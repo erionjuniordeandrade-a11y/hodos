@@ -1,8 +1,11 @@
 # Hodos: audit fixes and frontend redesign, closeout (2026-09-11)
 
-Owner: Dr. Erion de Andrade. Implementer: Claude Fable 5.1, one agent, `~/hodos` claimed and
-released. Nothing committed, nothing pushed, nothing deployed. The public site still serves
-content 2026-09-11.1 with the pre-audit design.
+Owner: Dr. Erion de Andrade. Implementer: Claude Fable 5.1, one agent. Owner authorised commit,
+push and deploy the same evening: commits 0e4f0ca and 65c1a73 on main, pushed; production
+deployment https://081a95de.hodos-atlas.pages.dev serves https://hodos-atlas.pages.dev with
+content 2026-09-11.2 (release.json SHA-256 0cc3452a…, build `dist/hodos-redesign-20260911b`).
+Public verification: 88 assets by hash, 10 lessons, 0 errors; asset paths cache 30 days,
+pages revalidate.
 
 ## Scope delivered
 
