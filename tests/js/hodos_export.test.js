@@ -28,7 +28,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(home,/class="brand" href="\.\/"/);assert.doesNotMatch(home,/href="\.\/atlas\.html"/);
   assert.match(sources,/href="\.\/"/);assert.match(home,/href="\.\/atlas-sources"/);
   const headers=await readFile(path.join(out,'_headers'),'utf8');
-  assert.match(headers,/\/atlas\/\*\n  Cache-Control: public, max-age=2592000/);assert.match(headers,/^\/\*\n(?:.*\n)*?  Cache-Control: public, max-age=0, must-revalidate/);
+  assert.match(headers,/\/atlas\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);assert.match(headers,/^\/\*\n(?:.*\n)*?  Cache-Control: public, max-age=0, must-revalidate/);
   assert(receipt.files.some(f=>f.path==='brand/hodos-og.png'));
   assert(receipt.files.some(f=>f.path==='vendor/addons/libs/draco/gltf/draco_decoder.wasm'));
   assert(receipt.files.some(f=>f.path==='404.html'));

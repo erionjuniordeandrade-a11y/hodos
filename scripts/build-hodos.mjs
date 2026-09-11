@@ -95,9 +95,11 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   add('LICENSE',await safeRead(root,'LICENSE'));
   // Pages are revalidated on every visit; large static assets are cached for 30 days. Atlas and
   // plate fetches carry a content-hash query, so a changed asset is fetched under a new key.
+  // Pages applies every matching rule and appends same-named headers, so the asset rules
+  // detach the page-level Cache-Control ("! Header") before setting their own.
+  const cached=['  ! Cache-Control','  Cache-Control: public, max-age=2592000'];
   add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin','  Cache-Control: public, max-age=0, must-revalidate',
-    '/atlas/*','  Cache-Control: public, max-age=2592000','/vendor/*','  Cache-Control: public, max-age=2592000',
-    '/reference-plates/*','  Cache-Control: public, max-age=2592000','/brand/*','  Cache-Control: public, max-age=2592000',''].join('\n'));
+    '/atlas/*',...cached,'/vendor/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,''].join('\n'));
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
   for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);
