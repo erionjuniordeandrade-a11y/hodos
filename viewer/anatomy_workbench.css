@@ -20,12 +20,11 @@
   #lessonPanel .dissection-dialog h2{flex-basis:100%;font-size:22px}
   #lessonPanel #dissectionClose{margin-left:auto}
 }
-@media(max-width:760px){.dissection-open{scroll-margin-top:372px;scroll-margin-bottom:112px}}
 :root{--reading:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--space:8px}
 .studio-header{min-height:68px;padding:12px 24px;gap:24px}
 .brand{display:flex;align-items:center;gap:12px}
 .brand .brand-name{margin:0;color:var(--ink);font:650 23px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.6px}
-.brand small{display:block;font:10px/1.5 var(--mono);letter-spacing:1.6px;color:var(--accent);margin-top:4px}
+.brand small{display:block;font:11px/1.5 var(--mono);letter-spacing:1.6px;color:var(--accent);margin-top:4px}
 .studio-header nav{gap:8px}
 .studio-header nav button{border-color:transparent;background:transparent;font-size:14px;padding:8px 12px}
 .studio-header nav button[aria-current=page]{border-bottom-color:var(--accent);border-radius:0;color:var(--accent-strong);font-weight:650}
@@ -41,7 +40,7 @@ body[data-mode=lesson] .intro,body[data-mode=recap] .intro,body[data-mode=explor
 #atlasWorkspace .atlas-stage{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:var(--stage);border-radius:2px 0 0 2px;overflow:hidden}
 #atlasCanvas{min-height:0;height:100%}
 .stage-head{padding:12px 16px;gap:8px;flex-wrap:nowrap}
-.stage-head .eyebrow{font-size:10px;letter-spacing:1.2px}
+.stage-head .eyebrow{font-size:11px;letter-spacing:1.2px}
 .stage-head p{font:12px/1.4 var(--mono);margin:4px 0 0}
 .stage-tools{display:flex;gap:8px;align-items:center}
 .stage-tools>button,.atlas-view-menu>summary{font-size:12px;min-height:32px;padding:7px 9px;border-radius:3px}
@@ -50,7 +49,7 @@ body[data-mode=lesson] .intro,body[data-mode=recap] .intro,body[data-mode=explor
 .atlas-view-menu .views{position:absolute;right:0;top:calc(100% + 8px);z-index:10;width:228px;padding:12px;border:1px solid var(--stage-line);background:var(--stage);display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .views button{font-size:12px;min-height:36px;margin:0}
 .scene-readout{position:relative;padding:12px 16px;pointer-events:auto;border-top:1px solid #47404d;min-height:76px;padding-right:158px}
-.scene-readout .eyebrow{font-size:10px;letter-spacing:.6px}
+.scene-readout .eyebrow{font-size:11px;letter-spacing:.6px}
 .scene-readout h2,body[data-profile=presenter] .scene-readout h2{font-size:19px;line-height:1.3;font-weight:500;margin:4px 0}
 .scene-readout #lessonSceneStatus,.scene-readout #explorationStatus{font-size:12px;line-height:1.4;margin:4px 0 0;padding:0;border:0;color:var(--stage-muted)}
 .scene-details{position:absolute;right:16px;bottom:16px;font-size:12px;max-width:calc(100% - 32px)}
@@ -76,7 +75,7 @@ body[data-mode=lesson] .intro,body[data-mode=recap] .intro,body[data-mode=explor
 #lessonPanel .learning-phases button{border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 0;min-height:36px;font-size:12px;color:var(--muted);background:transparent}
 #lessonPanel .learning-phases button[aria-pressed=true]{border-bottom-color:var(--accent);color:var(--accent-strong);font-weight:700}
 #lessonPanel .lesson-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:8px 8px 16px 0;scrollbar-gutter:stable}
-#lessonPanel .lesson-kicker{font:10px/1.5 var(--mono);letter-spacing:1px;margin:0 0 12px;color:var(--accent-strong)}
+#lessonPanel .lesson-kicker{font:11px/1.5 var(--mono);letter-spacing:1px;margin:0 0 12px;color:var(--accent-strong)}
 #lessonPanel #lessonCurrentTitle{font:400 clamp(25px,2.2vw,34px)/1.12 var(--reading);letter-spacing:-.5px;margin:0 0 20px;color:var(--ink)}
 #lessonPanel h3,#lessonPanel #lessonCurrent h3,body[data-profile=presenter] #lessonPanel #lessonCurrent h3{font:650 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:24px 0 8px;letter-spacing:0}
 #lessonPanel h4{font-size:14px;color:var(--accent-strong);margin:16px 0 8px}
@@ -162,16 +161,16 @@ body[data-expanded=true] #atlasWorkspace #lessonPanel{display:none}
   .curriculum-heading{display:block}.curriculum-heading p{margin-top:4px!important}
 }
 @media(max-width:760px){
-  .studio-header{gap:12px;align-items:center;padding:12px 16px}.brand .brand-name{font-size:21px}.brand small{font-size:9px}
+  .studio-header{gap:12px;align-items:center;padding:12px 16px}.brand .brand-name{font-size:21px}.brand small{font-size:11px}
   .studio-header nav{gap:4px;width:100%;justify-content:space-between}.studio-header nav button{font-size:12px;padding:6px;min-height:36px}.studio-header #lessonProfile{font-size:12px;max-width:88px;margin:0;padding:4px}
   .intro{display:block;margin:8px 0 24px}.intro h1,body[data-profile=presenter] .intro h1{font-size:40px}.intro>p{margin-top:16px;font-size:14px}
   #atlasWorkspace,body[data-profile=presenter] #atlasWorkspace{display:flex;flex-direction:column;height:auto;min-height:0}
   #atlasWorkspace .atlas-stage{height:360px;min-height:0;flex:none;position:sticky;top:0;z-index:4;border-radius:0;grid-template-rows:auto minmax(0,1fr) auto}
-  .stage-head{flex-wrap:nowrap;padding:8px 12px}.stage-head>div:first-child{flex-basis:auto}.stage-head .eyebrow{font-size:9px}.stage-head p{font-size:11px}
+  .stage-head{flex-wrap:nowrap;padding:8px 12px}.stage-head>div:first-child{flex-basis:auto}.stage-head .eyebrow{font-size:11px}.stage-head p{font-size:11px}
   .stage-tools{gap:4px}.stage-tools>button,.atlas-view-menu>summary{font-size:11px;padding:6px;min-height:32px}
   .scene-readout{padding:8px 12px;padding-right:120px;min-height:54px}.scene-readout .eyebrow{display:none}.scene-readout h2,body[data-profile=presenter] .scene-readout h2{font-size:16px;margin:0}
-  .scene-readout #lessonSceneStatus,.scene-readout #explorationStatus{font-size:10px;line-height:1.4}
-  .scene-details{position:absolute;right:12px;bottom:8px;font-size:10px;margin:0}.scene-details>summary{font-size:10px}.scene-details-body{right:0;left:auto}
+  .scene-readout #lessonSceneStatus,.scene-readout #explorationStatus{font-size:11px;line-height:1.4}
+  .scene-details{position:absolute;right:12px;bottom:8px;font-size:11px;margin:0}.scene-details>summary{font-size:11px}.scene-details-body{right:0;left:auto}
   #atlasWorkspace #lessonPanel,#atlasWorkspace #lessonPanel[data-active-lesson=true]{height:auto;min-height:480px;max-height:none;padding:16px 16px 0;border:0;overflow:visible;display:flex;flex:none}
   #lessonPanel .lesson-scroll{overflow:visible;padding:8px 0 16px;scrollbar-gutter:auto}
   #lessonPanel .lesson-outline[open]{max-height:200px}
@@ -204,4 +203,65 @@ body[data-expanded=true] #atlasWorkspace #lessonPanel{display:none}
   #atlasWorkspace .atlas-stage{height:480px;position:static}#atlasCanvas{height:380px}
   #atlasWorkspace #lessonPanel,#atlasWorkspace #lessonPanel[data-active-lesson=true]{display:block;height:auto;overflow:visible;border:0;padding:24px 0}
   #lessonPanel .lesson-scroll{display:block;overflow:visible}.source-footer{display:block}
+}
+
+/* ---- Pre-production audit 2026-09-11 ---------------------------------------------------
+   Stacked layouts (phone / narrow tablet): the atlas keeps a short sticky viewer and the
+   lesson uses the PAGE scroll, so there is never a nested scroll strip. Only the action
+   bar stays sticky at the bottom. Overrides the fixed-height panel rules above. */
+:root{--stage-sticky:36dvh}
+@media screen and (max-width:760px){
+  #atlasWorkspace .atlas-stage{height:var(--stage-sticky);min-height:300px;max-height:420px;position:sticky;top:0;z-index:4}
+  #atlasCanvas{min-height:0}
+  #atlasWorkspace #lessonPanel,#atlasWorkspace #lessonPanel[data-active-lesson=true]{display:block;height:auto;min-height:0;max-height:none;overflow:visible;padding:12px 16px 0}
+  #lessonPanel .lesson-scroll{flex:none;min-height:0;overflow:visible;padding:8px 0 16px;scrollbar-gutter:auto}
+  #lessonPanel .lesson-controls{position:sticky;bottom:0;z-index:5;padding:8px 0 max(8px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--panel)}
+  #lessonPanel .lesson-controls::before{display:none}
+  #lessonPanel .lesson-outline[open]{max-height:none;overflow:visible}
+  .dissection-open{scroll-margin-top:calc(var(--stage-sticky) + 12px);scroll-margin-bottom:112px}
+  .dissection-reference{scroll-margin-top:calc(var(--stage-sticky) + 12px)}
+  body[data-mode=explore] #atlasWorkspace .atlas-stage,body[data-expanded=true] #atlasWorkspace .atlas-stage{height:calc(100dvh - 156px);max-height:none;min-height:420px;position:relative}
+  body[data-mode=library] #atlasWorkspace .atlas-stage{position:relative;height:300px;max-height:none}
+}
+/* Short landscape viewports (phone rotated, small laptop window): the viewer must not eat the text. */
+@media screen and (max-width:760px) and (max-height:520px){
+  #atlasWorkspace .atlas-stage{position:relative;height:240px;min-height:0}
+  .dissection-open,.dissection-reference{scroll-margin-top:12px}
+}
+/* Tablet-width stack (761–1100px): the panel is a fixed box with an inner scroll; keep it tall enough to read. */
+@media screen and (min-width:761px) and (max-width:1100px){
+  #atlasWorkspace #lessonPanel[data-active-lesson=true]{height:auto;min-height:0;max-height:none;overflow:visible;flex:none}
+  #lessonPanel .lesson-scroll{flex:none;overflow:visible}
+  #lessonPanel .lesson-controls{position:sticky;bottom:0;z-index:5;background:var(--panel)}
+  #lessonPanel .lesson-controls::before{display:none}
+  .atlas-stage{grid-template-rows:auto minmax(320px,46dvh) auto}
+}
+/* Desktop: the lesson body scrolls inside the panel; make that visible (thin scrollbar + fade). */
+@media screen and (min-width:1101px){
+  #lessonPanel .lesson-scroll{scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+  #lessonPanel .lesson-scroll::-webkit-scrollbar{width:8px}
+  #lessonPanel .lesson-scroll::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:4px}
+  #lessonPanel .lesson-controls{position:relative}
+  #lessonPanel .lesson-controls::before{content:"";position:absolute;left:0;right:8px;bottom:100%;height:36px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--panel))}
+}
+/* Views menu: one column, never clipped, always fully worded. */
+.atlas-view-menu .views{width:176px;grid-template-columns:1fr;gap:4px;padding:8px}
+.views button{white-space:nowrap;text-align:left;padding:8px 10px;min-height:36px}
+.stage-head,.stage-tools{overflow:visible}
+.stage-head{z-index:6}/* above the callout/leader layers (z 2) so the Views menu is never overdrawn */
+/* Stale-link notice and search filter chip. */
+#lessonPanel .lesson-notice{border-left:2px solid var(--accent);padding:8px 12px;margin:0 0 16px;background:var(--accent-soft);font-size:13px;line-height:1.5;color:var(--ink)}
+#pathwayStatus .filter-chip{display:inline-flex;align-items:center;min-height:28px;margin-left:8px;padding:2px 10px;border-radius:999px;font-size:12px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent-strong)}
+/* Cold-cache loading state: an indeterminate bar above the status text. */
+#atlasLoading{display:grid;gap:12px;justify-items:center}
+#atlasLoading .loading-bar{display:block;width:min(240px,60%);height:3px;border-radius:2px;background:var(--line);overflow:hidden;position:relative}
+#atlasLoading .loading-bar::after{content:"";position:absolute;left:-40%;top:0;bottom:0;width:40%;background:var(--accent);animation:hodos-loading 1.4s ease-in-out infinite}
+@keyframes hodos-loading{to{left:100%}}
+@media (prefers-reduced-motion:reduce){#atlasLoading .loading-bar::after{animation:none;left:0;width:100%;opacity:.5}}
+#lessonPanel .lesson-nav button[hidden]{display:none}
+/* Short sticky viewer on phones: keep the Views menu inside it (two columns, compact rows). */
+@media screen and (max-width:760px){
+  .atlas-view-menu .views{width:224px;grid-template-columns:1fr 1fr;gap:4px;padding:6px}
+  .views button{min-height:32px;padding:6px 8px;font-size:12px}
+  .stage-head p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
 }

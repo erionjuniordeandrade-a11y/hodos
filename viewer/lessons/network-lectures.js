@@ -64,7 +64,7 @@ const attention=lecture('attention-networks','Attention networks · orienting, r
     question:'How can a frontal white-matter lesion contribute to a parietal-type spatial deficit while the parietal cortex appears structurally preserved?',
     answer:'It can affect a pathway participating in frontal–parietal communication. That is a disconnection hypothesis: it requires the lesion’s actual location, a compatible behavioural finding and supporting individual anatomy. A normal-looking distant cortex does not settle network function.',
     sources:['N3','N4','D2'],evidenceClass:'reconstruction',scene:{side:'R',bundles:['SLF2'],ghost:['SLF1','SLF3'],regions:cortex(10,95),surface:.15,camera:{view:'right',tweenMs:650}},
-    targets:[tract('SLF1','SLF I'),tract('SLF2','SLF II'),tract('SLF3','SLF III'),parcel(10,'FEF'),parcel(95,'LIPd')],
+    targets:[tract('SLF1','SLF I'),tract('SLF2','SLF II'),tract('SLF3','SLF III'),parcel(10,'FEF · frontal eye field'),parcel(95,'LIPd · intraparietal')],
   },
   {
     title:'Separate spatial attention from maintaining a task',
@@ -96,7 +96,7 @@ const attention=lecture('attention-networks','Attention networks · orienting, r
     question:'Left-sided omissions persist despite useful hand strength after a right parietal procedure. Which findings could change an attention-network interpretation?',
     answer:'Characterize the search bias alongside visual fields, sensation, movement and the time course. A field deficit or inconsistent task performance could change the interpretation of the omissions. Relate reproducible findings to the actual lesion and postoperative imaging before distinguishing cortical involvement from a disconnection or wider network disturbance; preserved strength alone does not settle that distinction.',
     sources:['N3','N4'],evidenceClass:'schematic',scene:{side:'R',network:'DAN',regions:cortex(95,10),bundles:['SLF2'],surface:.2,camera:{view:'right',tweenMs:650}},
-    targets:[parcel(95,'LIPd · parietal'),parcel(10,'FEF · frontal'),tract('SLF2','SLF II')],
+    targets:[parcel(95,'LIPd · intraparietal'),parcel(10,'FEF · frontal eye field'),tract('SLF2','SLF II')],
   },
 ]);
 
@@ -113,7 +113,7 @@ const language=lecture('language-networks','Language networks · dorsal, ventral
     question:'What is missing from “Broca’s area is intact, therefore language is preserved”?',
     answer:'An account of the remaining language-related cortex, intervening white matter, individual functional localization and actual performance. The statement also leaves unspecified whether naming, comprehension, repetition or connected speech was assessed.',
     sources:['M1','N5','N7'],scene:languageScene({regions:cortex(74,75,129),surface:.85}),
-    targets:[parcel(74,'44 · inferior frontal'),parcel(75,'45 · inferior frontal'),parcel(129,'STSdp · posterior temporal')],
+    targets:[parcel(74,'44 · inferior frontal'),parcel(75,'45 · inferior frontal'),parcel(129,'STSdp · posterior superior temporal')],
   },
   {
     title:'Follow the dorsal sound-to-articulation relationship',
@@ -125,7 +125,7 @@ const language=lecture('language-networks','Language networks · dorsal, ventral
     question:'Repetition is disproportionately impaired while understanding a simple instruction is relatively preserved. Which pathway question does that pattern raise?',
     answer:'It raises a question about dorsal speech–sound and articulatory integration. Characterize the errors and compare auditory, language and motor-speech performance; the dissociation does not prove that one named fascicle is injured.',
     sources:['N5','D2'],evidenceClass:'functional_measurement',scene:languageScene({regions:cortex(129,74),bundles:['AF'],ghost:['SLF3']}),
-    targets:[tract('AF','Arcuate fasciculus'),tract('SLF3','SLF III'),parcel(129,'STSdp'),parcel(74,'44')],
+    targets:[tract('AF','Arcuate fasciculus'),tract('SLF3','SLF III'),parcel(129,'STSdp · posterior superior temporal'),parcel(74,'44 · inferior frontal')],
   },
   {
     title:'Compare the ventral route with the dorsal route',
@@ -160,7 +160,7 @@ const language=lecture('language-networks','Language networks · dorsal, ventral
     question:'Which comparison helps characterize hesitancy: phrase-start timing versus articulation within words, or only total words produced?',
     answer:'Comparing phrase starts with intra-word articulation helps separate planning-related delay from a speech-motor timing change. Total output alone mixes several processes. The finding must remain attached to the task and the individual anatomy.',
     sources:['R9','S4','R6','R7'],evidenceClass:'functional_measurement',scene:languageScene({regions:cortex(74,44,55),bundles:['FAT'],ghost:['AF']}),
-    targets:[tract('FAT','Frontal aslant'),parcel(74,'44'),parcel(44,'6ma · anterior medial'),parcel(55,'6mp · posterior medial')],
+    targets:[tract('FAT','Frontal aslant'),parcel(74,'44 · inferior frontal'),parcel(44,'6ma · anterior medial premotor'),parcel(55,'6mp · posterior medial premotor')],
   },
   {
     title:'Keep the individual language map separate from the atlas',
@@ -171,7 +171,7 @@ const language=lecture('language-networks','Language networks · dorsal, ventral
     question:'Does changing the atlas to the right hemisphere demonstrate right-sided language dominance?',
     answer:'No. It changes the reference anatomy being displayed. Dominance and localization require individual evidence with an interpretable task and method; the left-sided lecture example establishes neither for a particular person.',
     sources:['N7','M1'],evidenceClass:'functional_measurement',scene:languageScene({regions:cortex(74,75,12),surface:.8}),
-    targets:[parcel(74,'44'),parcel(75,'45'),parcel(12,'55b')],
+    targets:[parcel(74,'44 · inferior frontal'),parcel(75,'45 · inferior frontal'),parcel(12,'55b · premotor')],
   },
   {
     title:'Build a task-by-pathway case explanation',
@@ -231,7 +231,7 @@ const dmn=lecture('default-mode-network','Default mode network · hubs, subsyste
     question:'Why is “DMN impairment” less informative than describing a specific difficulty with memory-based scene construction?',
     answer:'The latter states a cognitive operation to assess and compare. The network label combines several components and tasks; it does not specify which ability changed or which anatomical relationship might explain it.',
     sources:['N9','D3'],evidenceClass:'functional_measurement',scene:dmnScene({regions:cortex(35,14,143),deep:true,deepRegions:['HIP'],surface:.2}),
-    targets:[deep('HIP','Hippocampus'),parcel(35,'31pv'),parcel(14,'RSC · retrosplenial'),parcel(143,'PGp · lateral parietal')],
+    targets:[deep('HIP','Hippocampus'),parcel(35,'31pv · posterior cingulate'),parcel(14,'RSC · retrosplenial'),parcel(143,'PGp · lateral parietal')],
   },
   {
     title:'Understand “default” without calling the brain inactive',
@@ -252,7 +252,7 @@ const dmn=lecture('default-mode-network','Default mode network · hubs, subsyste
     question:'What would make this case presentation stronger than “the DMN was injured”?',
     answer:'A description of the new ability or difficulty, its time course and objective assessment, plus the individual cortical and white-matter anatomy. Then explain why a posterior medial or connection-level mechanism is plausible and which alternatives remain.',
     sources:['N9','N10'],evidenceClass:'schematic',scene:dmnScene({regions:cortex(35,65),bundles:['C_FP'],ghost:['C_PHP'],deep:true,deepRegions:['HIP'],surface:.16}),
-    targets:[parcel(35,'31pv'),tract('C_FP','Cingulum'),deep('HIP','Hippocampus')],
+    targets:[parcel(35,'31pv · posterior cingulate'),tract('C_FP','Cingulum'),deep('HIP','Hippocampus')],
   },
 ]);
 
@@ -269,7 +269,7 @@ const salience=lecture('salience-network','Salience network · insula, cingulate
     question:'Why does “salience-network lesion” not tell you whether a surgical target is insular or medial frontal?',
     answer:'The network contains separated territories. State which cortical location and depth are involved, then explain the proposed relationship to the other territories and the observed behaviour.',
     sources:['N11','N1','M1','R5'],scene:salienceScene(),
-    targets:[parcel(111,'AVI · anterior insula'),parcel(60,'p32pr · cingulate reference')],
+    targets:[parcel(111,'AVI · anterior ventral insula'),parcel(60,'p32pr · anterior cingulate')],
   },
   {
     title:'Keep the buried insular anatomy in the picture',
@@ -280,7 +280,7 @@ const salience=lecture('salience-network','Salience network · insula, cingulate
     question:'What is wrong with explaining every new deficit after an anterior insular procedure as “loss of salience processing”?',
     answer:'It bypasses the observed deficit and the local anatomical alternatives. Characterize motor, language and cognitive findings separately, then consider cortex, deep pathways and vascular anatomy in the individual case.',
     sources:['R2','R5','N11'],scene:salienceScene({network:'off',regions:cortex(111),deep:true,deepRegions:['PUT','GP'],ghost:['CST'],surface:.08}),
-    targets:[parcel(111,'AVI'),deep('PUT','Putamen'),deep('GP','Pallidum')],
+    targets:[parcel(111,'AVI · anterior ventral insula'),deep('PUT','Putamen'),deep('GP','Globus pallidus')],
   },
   {
     title:'Separate three overlapping network vocabularies',
@@ -291,7 +291,7 @@ const salience=lecture('salience-network','Salience network · insula, cingulate
     question:'Two reports both say “salience network” but use different parcellations. What must be compared before treating their boundaries as equivalent?',
     answer:'The actual territories, scale, method and functional definition. Similar vocabulary is insufficient: a coarse ventral-attention grouping may combine distinctions that another analysis separates into salience and cingulo-opercular components.',
     sources:['N1','N11','N13'],scene:salienceScene({surface:.45}),
-    targets:[parcel(111,'AVI'),parcel(60,'p32pr')],
+    targets:[parcel(111,'AVI · anterior ventral insula'),parcel(60,'p32pr · anterior cingulate')],
   },
   {
     title:'Explain the switching hypothesis without animating a mechanism',
@@ -302,7 +302,7 @@ const salience=lecture('salience-network','Salience network · insula, cingulate
     question:'Why is a sequence of atlas highlights insufficient evidence that the right insula causally switches the DMN off?',
     answer:'The sequence is an authored explanation. It contains no measured event timing, perturbation or individual coupling. The switching account comes from the cited analyses, whose inference and limits should remain attached to the claim.',
     sources:['N12'],evidenceClass:'functional_measurement',scene:salienceScene({side:'R',camera:{view:'right',tweenMs:650}}),
-    targets:[parcel(111,'Right AVI'),parcel(60,'Right p32pr reference')],
+    targets:[parcel(111,'AVI · anterior ventral insula'),parcel(60,'p32pr · anterior cingulate')],
   },
   {
     title:'Add subcortical relationships without inventing a circuit',
@@ -313,7 +313,7 @@ const salience=lecture('salience-network','Salience network · insula, cingulate
     question:'Does placing thalamus and amygdala beside an insular highlight demonstrate a complete salience circuit?',
     answer:'No. It supplies spatial reference objects at different atlas scales. The relevant subdivisions, connections and physiological observations would need their own evidence; proximity or a common lesson step does not create them.',
     sources:['N11','D3'],scene:salienceScene({regions:cortex(111),deep:true,deepRegions:['AMY','THA'],surface:.1}),
-    targets:[parcel(111,'Anterior insular reference'),deep('AMY','Amygdala'),deep('THA','Gross thalamus')],
+    targets:[parcel(111,'AVI · anterior ventral insula'),deep('AMY','Amygdala'),deep('THA','Thalamus (gross)')],
   },
   {
     title:'Present a behavioural change before naming its network',
@@ -324,7 +324,7 @@ const salience=lecture('salience-network','Salience network · insula, cingulate
     question:'Rewrite “salience network damaged” as an observation followed by a testable anatomical hypothesis.',
     answer:'“Behavioural redirection after relevant events has changed under these specified task conditions; a frontoinsular/control-network contribution is one hypothesis.” Then describe the lesion and comparison observations needed to separate that account from other cognitive, language, motor or arousal explanations.',
     sources:['N11','N12','N13'],evidenceClass:'schematic',scene:salienceScene({side:'R',camera:{view:'right',tweenMs:650}}),
-    targets:[parcel(111,'Right AVI'),parcel(60,'Cingulate reference')],
+    targets:[parcel(111,'AVI · anterior ventral insula'),parcel(60,'p32pr · anterior cingulate')],
   },
 ]);
 

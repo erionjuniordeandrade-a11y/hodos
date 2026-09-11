@@ -16,9 +16,10 @@ const modules=[
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
 ];
 const supportingFiles=[
-  'lesson_player.css','atlas.css','atlas-theme.css','anatomy_workbench.css','atlas-design.css',
-  'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg',
+  'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css',
+  'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
   'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',
+  'vendor/fonts/inter-latin-regular.woff2','vendor/fonts/inter-latin-medium.woff2','vendor/fonts/inter-latin-semibold.woff2','vendor/fonts/Inter-OFL.txt',
   'vendor/addons/libs/draco/gltf/draco_decoder.js',
   'vendor/addons/libs/draco/gltf/draco_wasm_wrapper.js',
   'vendor/addons/libs/draco/gltf/draco_decoder.wasm',
@@ -41,6 +42,9 @@ async function safeRead(base,relative){
 
 function publicHTML(html){
   html=html.replace(/(?: · )?<a href="\.\/\?profile=clinical">Case reconstruction<\/a>/g,'');
+  // Pages serves the coursebook at the site root and strips .html; public links use those paths
+  // so the canonical URL, the wordmark and the sources link all agree.
+  html=html.replaceAll('href="./atlas.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"');
   html=html.replace('THIRD_PARTY_NOTICES.md in the source checkout','<a href="./THIRD_PARTY_NOTICES.md">Third-party notices and software licenses</a>');
   if(!html.includes('name="description"'))html=html.replace('</head>','<meta name="description" content="Hodos: an interactive cortex and white matter atlas for neurosurgical residents. Explore anatomy, relationships and brain networks. Created by Dr. Erion de Andrade."></head>');
   if(/profile=clinical|Case reconstruction/.test(html))throw Error('Local case navigation remains in the public page');
@@ -89,8 +93,15 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   add('index.html',files.get('atlas.html'));
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
-  add('_headers','/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Cache-Control: public, max-age=0, must-revalidate\n');
-  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/atlas.css"><link rel="stylesheet" href="/atlas-theme.css"><link rel="stylesheet" href="/atlas-design.css"></head><body><main><p class="eyebrow">HODOS</p><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
+  // Pages are revalidated on every visit; large static assets are cached for 30 days. Atlas and
+  // plate fetches carry a content-hash query, so a changed asset is fetched under a new key.
+  add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin','  Cache-Control: public, max-age=0, must-revalidate',
+    '/atlas/*','  Cache-Control: public, max-age=2592000','/vendor/*','  Cache-Control: public, max-age=2592000',
+    '/reference-plates/*','  Cache-Control: public, max-age=2592000','/brand/*','  Cache-Control: public, max-age=2592000',''].join('\n'));
+  // Plate version keys embedded in the lesson module must match the shipped bytes.
+  const plateModule=files.get('dissection_references.js').toString();
+  for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);
+  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/atlas.css"><link rel="stylesheet" href="/atlas-design.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
 
   // Explicit imports must resolve inside the allowlist. A new dependency
   // needs an intentional export change, never an automatic whole-tree copy.

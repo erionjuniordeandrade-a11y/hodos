@@ -14,11 +14,13 @@ test('local resume retains the exact reviewed step and phase without claiming ma
   again.review('motor-cst');assert.equal(again.get('motor-cst').reviewed,true);
   assert.doesNotMatch(storage.getItem(LEARNING_KEY),/master|patient|case|answer|camera/);
 });
-test('progress rejects stale versions, unknown lessons and corrupt or out-of-range records',()=>{
+test('progress survives a content version bump but rejects unknown lessons and corrupt or out-of-range records',()=>{
   const storage=store();
-  for(const value of ['{broken','null',JSON.stringify({version:'old',lastLesson:'motor-cst',lessons:{'motor-cst':{step:3}}})]){
+  for(const value of ['{broken','null',JSON.stringify({lastLesson:'motor-cst',lessons:{'motor-cst':{step:3}}})]){
     storage.setItem(LEARNING_KEY,value);assert.equal(createLearningProgress(storage).lastLesson,null);
   }
+  storage.setItem(LEARNING_KEY,JSON.stringify({version:'2026-09-10.4',lastLesson:'motor-cst',lessons:{'motor-cst':{step:3,phase:'compare',visited:[0,3]}}}));
+  assert.deepEqual(createLearningProgress(storage).get('motor-cst'),{step:3,phase:'compare',visited:[0,3],reviewed:false});
   storage.setItem(LEARNING_KEY,JSON.stringify({version:CONTENT_VERSION,lastLesson:'unknown',lessons:{
     unknown:{step:0},'motor-cst':{step:99,phase:'recap',visited:[0,99,-1,'2'],reviewed:true}}}));
   assert.equal(createLearningProgress(storage).get('motor-cst'),null);

@@ -50,7 +50,7 @@ button:disabled,.bundle-chip:disabled,#lessonPanel button:disabled{opacity:1;bac
 .source-footer p+p{display:block}
 .source-footer p:nth-child(2){display:none}
 body[data-profile=presenter]{--muted:#b9bec3;--faint:#969ea5}
-@media(max-width:760px){.brand .brand-name{font-size:25px}.scene-network{font-size:10px}}
+@media(max-width:760px){.brand .brand-name{font-size:25px}.scene-network{font-size:11px}}
 @media(prefers-contrast:more){:root{--ink:white;--muted:#e0e4e8;--line:#a7acb1;--line-strong:#d7dce0;--accent:#c4eef7;--stage-muted:#e0e4e8}}
 @media(forced-colors:active){
   :root{--bg:Canvas;--panel:Canvas;--ink:CanvasText;--muted:CanvasText;--accent:LinkText;--accent-strong:LinkText;--accent-ink:Canvas;--accent-soft:Canvas;--control:ButtonFace;--subtle:Canvas;--line:CanvasText;--line-strong:CanvasText;--stage-ink:#ebe7df;--stage-muted:#b9bec3;--parcel-focus:#9be1f0;--parcel-context:#dcc39a}

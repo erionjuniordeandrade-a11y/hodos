@@ -189,7 +189,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   setView();onStatus('Loading the reference atlas…');
   let manifest;
   try{
-    const metaResponse=await fetch('./atlas/manifest.json');
+    const metaResponse=await fetch(`./atlas/manifest.json?v=${MANIFEST_SHA256.slice(0,12)}`);
     if(!metaResponse.ok)throw new Error(`Atlas manifest unavailable (${metaResponse.status})`);
     const manifestBytes=await metaResponse.arrayBuffer();
     if(await sha256(manifestBytes)!==MANIFEST_SHA256)throw new Error('Atlas manifest integrity failed');
@@ -197,7 +197,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   }catch(error){disposeBase();throw error;}
   async function checked(path){
     const record=manifest.assets.find(a=>a.path===path);if(!record)throw new Error('Unlisted atlas asset');
-    const response=await fetch(`./atlas/${path}`);if(!response.ok)throw new Error(`Atlas asset unavailable: ${path}`);
+    const response=await fetch(`./atlas/${path}?v=${record.sha256.slice(0,12)}`);if(!response.ok)throw new Error(`Atlas asset unavailable: ${path}`);
     const bytes=await response.arrayBuffer();
     const hash=await sha256(bytes);
     if(hash!==record.sha256||bytes.byteLength!==record.bytes)throw new Error(`Atlas asset integrity failed: ${path}`);
@@ -216,7 +216,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   let surfaceMeta,tractMeta,tractBuffer,labels,networks=null,sub;
   let networkSel=networkSelection('off');
   try {
+    onStatus('Loading the reference atlas · pathways (3 MB)…');
     [surfaceMeta,tractMeta,tractBuffer]=await Promise.all([json('surface.json'),json('tracts.json'),checked('tracts.bin')]);
+    onStatus('Loading the reference atlas · cortical surface…');
     const [left,right,labelBuffer]=await Promise.all([geometry('cortex-L.glb'),geometry('cortex-R.glb'),checked('surface-labels.bin')]);
     const counts=[left.attributes.position.count,right.attributes.position.count];
     labels=decodeAtlasLabels(surfaceMeta,labelBuffer,counts,'glasser');
@@ -238,6 +240,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       hemis[h]={geo,shell,group,count};
       frameGeometry.push(geo);
     }
+    onStatus('Loading the reference atlas · deep structures…');
     const context=new THREE.Mesh(await geometry('inferior-context.glb'),new THREE.MeshStandardMaterial({
       color:0x8e8794,roughness:.8,side:THREE.DoubleSide,
       clippingPlanes:[new THREE.Plane(new THREE.Vector3(0,0,-1),0)]}));
@@ -256,6 +259,16 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});draco.dispose();disposeBase();throw error;
   }
   let hoverPick=null,boundaryIdentity='';
+  const parcelNetworkCache=new Map();
+  /** {id, share} of the most frequent Yeo-7 label across a parcel's vertices, or null. */
+  function parcelNetwork(hemi,id){
+    if(!networks||!(hemi in hemis)||id===0)return null;
+    const key=`${hemi}:${id}`;if(parcelNetworkCache.has(key))return parcelNetworkCache.get(key);
+    const counts=new Map();let total=0;
+    for(let i=0;i<labels[hemi].length;i++){if(labels[hemi][i]!==id)continue;total++;const n=networks[hemi][i];counts.set(n,(counts.get(n)||0)+1);}
+    let best=null;for(const [n,c] of counts)if(!best||c>best.count)best={id:n,count:c};
+    const summary=best&&total?{id:best.id,share:best.count/total}:null;parcelNetworkCache.set(key,summary);return summary;
+  }
   function updateBoundary(){
     const key=JSON.stringify(selected);if(key===boundaryIdentity)return;boundaryIdentity=key;
     for(const h of ['L','R']){
@@ -530,7 +543,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     autoFrame=false;frameFocus=false;controls.update();requestDraw();
   }
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
-    setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,
+    setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setSurface,
     setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},

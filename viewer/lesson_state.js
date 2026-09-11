@@ -4,13 +4,16 @@ export function lessonStateFromSearch(search=''){
   const params=new URLSearchParams(search);
   const id=params.get('lesson');
   const lesson=LESSONS.find(l=>l.id===id);
-  if(!id) return Object.freeze({status:'inactive',lessonId:null,step:0,error:''});
-  if(!lesson) return Object.freeze({status:'inactive',lessonId:null,step:0,error:'That lesson is not installed.'});
-  const version=params.get('lessonVersion');
-  if(version && version!==lesson.version) return Object.freeze({status:'inactive',lessonId:null,step:0,error:'This lesson link uses a different content version. Choose the installed draft.'});
-  const raw=Number(params.get('step')||0);
-  const step=Number.isInteger(raw) && raw>=0 && raw<lesson.steps.length ? raw : 0;
-  return Object.freeze({status:'paused',lessonId:id,step,error:''});
+  if(!id) return Object.freeze({status:'inactive',lessonId:null,step:0,error:'',notice:''});
+  if(!lesson) return Object.freeze({status:'inactive',lessonId:null,step:0,error:'That lesson is not installed.',notice:''});
+  // `lessonVersion` is advisory: a shared or bookmarked link must survive a content
+  // deploy. The requested lesson/step opens on the installed version with a one-line
+  // notice; an out-of-range step clamps to the last relationship instead of restarting.
+  const version=params.get('lessonVersion'),stale=!!version&&version!==lesson.version;
+  const raw=Number(params.get('step')||0),last=lesson.steps.length-1;
+  const step=Number.isInteger(raw) && raw>=0 && raw<=last ? raw : (stale&&Number.isInteger(raw)&&raw>last ? last : 0);
+  const notice=stale?`This lesson was updated after this link was made (now ${lesson.version}). Showing the current version.`:'';
+  return Object.freeze({status:'paused',lessonId:id,step,error:'',notice});
 }
 
 export function lessonSearch(search,state){
@@ -29,11 +32,11 @@ export function createLessonController({search='',onChange=()=>{}}={}){
     get state(){return state;},
     restore(search){return emit(lessonStateFromSearch(search));},
     select(id){const lesson=LESSONS.find(l=>l.id===id);if(!lesson)throw new Error('Unknown lesson');
-      return emit({status:'paused',lessonId:id,step:0,error:''});},
+      return emit({status:'paused',lessonId:id,step:0,error:'',notice:''});},
     move(delta){if(!state.lessonId)return state;const lesson=LESSONS.find(l=>l.id===state.lessonId);
-      return emit({...state,step:Math.max(0,Math.min(lesson.steps.length-1,state.step+delta)),status:'paused'});},
+      return emit({...state,step:Math.max(0,Math.min(lesson.steps.length-1,state.step+delta)),status:'paused',notice:''});},
     play(){return state.lessonId?emit({...state,status:'playing'}):state;},
     pause(){return state.lessonId?emit({...state,status:'paused'}):state;},
-    close(){return emit({status:'inactive',lessonId:null,step:0,error:''});},
+    close(){return emit({status:'inactive',lessonId:null,step:0,error:'',notice:''});},
   };
 }

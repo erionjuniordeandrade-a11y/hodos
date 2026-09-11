@@ -8,7 +8,7 @@ import {DEFAULT_SCENE} from './lesson_content.js';
 import {toggleBundle,MAX_BUNDLES,tintForIndex,tintCss,filterBundles,selectionCaption} from './bundle_picker.js';
 import {YEO7,networkLabel,networkFromSearch,networkToSearchValue,networkSelection,rgbCss} from './atlas_networks.js';
 import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
-import {bundleLabel} from './atlas_glossary.js';
+import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
 // Read `net` before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
@@ -33,13 +33,18 @@ function syncURL(){const p=new URLSearchParams(location.search);p.set('profile',
   const nv=scene?networkToSearchValue(scene.state.network):null;if(nv)p.set('net',nv);else p.delete('net');
   history.replaceState(history.state,'',`${location.pathname}?${p}`);}
 function motionUI(){const canPlay=profile==='teaching'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
-  $('tracePlay').disabled=!canPlay;$('tracePlay').textContent=playing&&canPlay?'Pause display trace':'Play display trace';
+  $('tracePlay').disabled=!canPlay;$('tracePlay').textContent=playing&&canPlay?'Pause fibre animation':'Animate fibre paths';
   $('tracePlay').setAttribute('aria-pressed',String(playing&&canPlay));
   $('traceNote').textContent=profile==='presenter'?'Presenter · static reference anatomy.':!canPlay?'Reduced motion · static reference anatomy.':
-    `${playing?'Playing':'Paused'} · paired trace follows shape; no direction or conduction.`;
+    `${playing?'Animating':'Paused'} · fibre paths are illustrative: no direction or conduction speed is implied.`;
   scene?.setPlaying(playing&&canPlay);
 }
 function setProfile(value){profile=value==='presenter'?'presenter':'teaching';document.body.dataset.profile=profile;$('lessonProfile').value=profile;scene?.setProfile(profile);motionUI();syncURL();}
+const VIEW_NAMES={superior:'superior view',anterior:'anterior view',posterior:'posterior view',inferior:'inferior view',medial:'medial view',free:'free view'};
+function viewName(hemisphere,view){
+  if(view==='left'||view==='right')return hemisphere==='both'||(hemisphere==='L')===(view==='left')?`${view} lateral view`:`${view} view`;
+  return VIEW_NAMES[view]||`${view} view`;
+}
 function syncMedialLabel(){document.querySelector('[data-view="medial"]').textContent=$('atlasHemisphere').value==='R'?'Right medial':'Left medial';}
 /** Show a picked parcel. hemi is 'L' | 'R' | 'both' — 'both' is the paired label lit in
  * both hemispheres and is what a 'follow' lesson step means under the Both control. */
@@ -52,13 +57,13 @@ function readRegion(hemi,id,vertex=null){
   const region=regionIdentity(scene.surfaceMeta,hemi==='both'?'L':hemi,id);scene.select(hemi,id);
   currentPick={hemi,id};
   document.querySelector('.parcel-legend').hidden=id===0;
-  $('pickedClass').textContent='ATLAS PARCEL · HCP–MMP1';
+  $('pickedClass').textContent='Atlas parcel, HCP-MMP1';
   const sideWord=hemi==='L'?'Left':hemi==='R'?'Right':'Both';
   $('pickedName').textContent=`${sideWord} · ${id===0?'medial wall':`area ${region.code}`}`;
   $('pickedDescription').textContent=id===0?'Unlabelled medial wall in this atlas.':
     hemi==='both'
       ? `Area ${region.code} in both hemispheres · Group reference boundary. Individual function and tract endpoints require separate evidence.`
-      : `${region.raw} · Group reference boundary. Individual function and tract endpoints require separate evidence.`;
+      : `Area ${region.code} · ${hemi==='L'?'left':'right'} hemisphere · HCP-MMP1 code ${region.raw}.${parcelNetworkNote(hemi,id)} Group reference boundary; individual function and tract endpoints require separate evidence.`;
   const paired=$('atlasPairedArea');
   paired.hidden=hemi!=='both';paired.value=`both:${id}`;paired.textContent=`Both · ${region.code}`;
   $('atlasArea').value=`${hemi}:${id}`;
@@ -66,8 +71,13 @@ function readRegion(hemi,id,vertex=null){
   // for a parcel (a parcel can straddle networks) and never for a lesson/URL pick.
   const nid=(vertex!=null&&hemi!=='both')?scene.networkAt(hemi,vertex):null;
   $('pickedNetwork').textContent=nid==null?'':nid===0?'Yeo-7 at this vertex: medial wall (unlabelled)'
-    :`Yeo-7 at this vertex: ${networkLabel(nid)} · group resting-state label, not this patient`;
+    :`Yeo-7 at this vertex: ${networkLabel(nid)} · group resting-state label, not an individual`;
   syncURL();
+}
+/** Majority Yeo-7 label across a parcel's vertices: a group expectation, shown with its share. */
+function parcelNetworkNote(hemi,id){
+  const summary=scene.parcelNetwork?.(hemi,id);if(!summary||!summary.id)return '';
+  return ` Mostly ${networkLabel(summary.id)} in the Yeo-7 group atlas (${Math.round(summary.share*100)}% of its vertices).`;
 }
 /** Yeo-7 wash control: select + legend + URL key, one entry point (also used by lesson steps). */
 function applyNetworks(sel){
@@ -81,11 +91,11 @@ function applyNetworks(sel){
   networkReadout.querySelector('i').style.background=live.mode==='focus'?rgbCss(YEO7.find(n=>n.id===live.focus).rgb)
     :`linear-gradient(90deg,${YEO7.map(n=>rgbCss(n.rgb)).join(',')})`;
   if(!currentPick&&!currentDeep&&live.mode!=='off'){
-    $('pickedClass').textContent='NETWORK CONTEXT · YEO–7';
+    $('pickedClass').textContent='Network context, Yeo-7';
     $('pickedName').textContent=live.mode==='all'?'Seven cortical networks':networkLabel(live.focus);
     $('pickedDescription').textContent='Population cortical grouping. Select cortex to compare its HCP parcel identity; network colour does not show task activation.';
   }else if(!currentPick&&!currentDeep){
-    $('pickedClass').textContent='ATLAS PARCEL';$('pickedName').textContent='No parcel selected';
+    $('pickedClass').textContent='Atlas parcel';$('pickedName').textContent='No parcel selected';
     $('pickedDescription').textContent='Select cortex to inspect its HCP-MMP1 label.';
   }
   syncURL();
@@ -94,7 +104,7 @@ function applyNetworks(sel){
 function clearPick(){
   currentPick=null;currentDeep=null;scene.select(null);scene.setDeepHighlight([]);$('deepRegion').value='';
   document.querySelector('.parcel-legend').hidden=true;
-  $('pickedClass').textContent='ATLAS PARCEL';
+  $('pickedClass').textContent='Atlas parcel';
   $('pickedName').textContent='No parcel selected';
   $('pickedDescription').textContent='Select cortex to inspect its HCP-MMP1 label.';
   $('pickedNetwork').textContent='';
@@ -108,7 +118,7 @@ function showDeep(entry,{reveal=true}={}){
   if($('atlasHemisphere').value!=='both'&&$('atlasHemisphere').value!==entry.hemisphere){
     $('atlasHemisphere').value=entry.hemisphere;scene.setHemisphere(entry.hemisphere);syncMedialLabel();
   }
-  $('pickedClass').textContent='ATLAS STRUCTURE · MELBOURNE S1';
+  $('pickedClass').textContent='Atlas structure, Melbourne S1';
   $('pickedName').textContent=`${entry.hemisphere==='L'?'Left':'Right'} · ${entry.name}`;
   $('pickedDescription').textContent=entry.name==='Thalamus'?'Merged thalamic atlas territory. No specific relay nucleus or circuit is identified.':
     'Group reference surface. Its appearance does not establish a functional state or connection.';
@@ -160,8 +170,9 @@ function syncPicker(){
   }
   $('pathwayCount').textContent=selectionCaption(selectedBundles.length);
   $('pathwayClear').disabled=!selectedBundles.length;
-  $('pathwayStatus').textContent=full?`${MAX_BUNDLES} of ${MAX_BUNDLES} pathways displayed. Remove a pathway to add another.`
-    :`${selectedBundles.length} of ${MAX_BUNDLES} pathways displayed. Select L or R to add a side.`;
+  const status=$('pathwayStatus');status.replaceChildren(document.createTextNode(full?`${MAX_BUNDLES} of ${MAX_BUNDLES} pathways displayed. Remove a pathway to add another.`
+    :`${selectedBundles.length} of ${MAX_BUNDLES} pathways displayed. Select L or R to add a side.`));
+  syncFilterChip();
   const activeId=document.activeElement?.id;
   const selected=$('selectedPathways');selected.replaceChildren();
   for(const id of selectedBundles){const b=document.createElement('button');b.type='button';b.id=`remove-${id}`;
@@ -169,6 +180,14 @@ function syncPicker(){
     b.addEventListener('click',()=>togglePathway(id));selected.append(b);}
   if(activeId?.startsWith('remove-'))(document.getElementById(activeId)||selected.firstElementChild||$('pathwayFilter')).focus({preventScroll:true});
   if(catalog.length)applyPathwayFilter();
+}
+/** The Layers list mirrors the Find box: say so, with a way out. Never re-enters the filter. */
+function syncFilterChip(){
+  const q=$('pathwayFilter').value.trim(),status=$('pathwayStatus');let chip=$('pathwayFilterClear');
+  if(!q){chip?.remove();return;}
+  if(!chip){chip=document.createElement('button');chip.type='button';chip.id='pathwayFilterClear';chip.className='filter-chip';
+    chip.addEventListener('click',()=>{$('pathwayFilter').value='';applyPathwayFilter();});status.append(document.createTextNode(' '),chip);}
+  chip.textContent=`Filtered by “${q}” ×`;chip.setAttribute('aria-label',`Show all pathways (remove the filter “${q}”)`);
 }
 /** Manual chip click: toggle in the ordered set. A ghosted bundle that gets picked is promoted. */
 function togglePathway(id){
@@ -190,6 +209,7 @@ function applyPathwayFilter(){
   }
   const results=$('anatomyResults');results.replaceChildren();results.hidden=!q.trim();
   $('clearAnatomySearch').disabled=!q;
+  syncFilterChip();
   if(!q.trim()){$('anatomySearchStatus').textContent='Search by name or atlas code, for example V1, thalamus or arcuate.';return;}
   const matches=searchAnatomy(catalog,q);
   $('anatomySearchStatus').textContent=matches.length?`${matches.length} anatomy matches${matches.length>40?' · first 40 shown; refine your search':''}.`
@@ -205,6 +225,8 @@ function applyPathwayFilter(){
         if(kind==='Cortical parcels')readRegion(entry.hemi,entry.id);
         else if(kind==='Deep structures')showDeep(scene.subMeta.structures.find(d=>d.id===entry.id));
         else togglePathway(entry.id);
+        // The result is now on the atlas; the popover must not keep covering it.
+        closeSearch({refocus:false});$('atlasCanvas').querySelector('canvas')?.focus({preventScroll:true});
       });section.append(b);}
     results.append(section);
   }
@@ -237,11 +259,11 @@ function applyStep(lesson,step,{authored=false}={}){
   const hemisphere=resolved.side??'both';$('atlasHemisphere').value=hemisphere;scene.setHemisphere(hemisphere);syncMedialLabel();
   applySceneEffects(resolved,{authored});
   if(!resolved.regions.length&&resolved.bundleIds.length&&resolved.network.mode==='off'){
-    $('pickedClass').textContent='PATHWAY REFERENCE';
+    $('pickedClass').textContent='Pathway reference';
     $('pickedName').textContent=resolved.bundleIds.length===1?bundleLabel(resolved.bundleIds[0]):`${resolved.bundleIds.length} pathways in comparison`;
   }
   lastResolvedTrace=resolved.trace;playing=lastResolvedTrace;motionUI();
-  $('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent='Lesson view · focus and neighbours';
+  $('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent='Lesson view, focus and neighbours';
 }
 function inspectLessonTarget(target){
   if(!currentLesson||!currentStep)return;
@@ -251,10 +273,10 @@ function inspectLessonTarget(target){
   scene.setHemisphere(authored.side??'both');$('atlasHemisphere').value=authored.side??'both';syncMedialLabel();
   applySceneEffects(focused,{keepCamera:true});
   if(target.kind==='deep'||target.kind==='bundle'){
-    $('pickedClass').textContent=target.kind==='deep'?'DEEP STRUCTURE · REFERENCE':'PATHWAY · REFERENCE';
+    $('pickedClass').textContent=target.kind==='deep'?'Deep structure':'Pathway';
     $('pickedName').textContent=target.label||target.id;
   }
-  $('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent=`Comparing ${target.label||target.id} · neighbours retained`;
+  $('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent=`Comparing ${target.label||target.id}, neighbours retained`;
   playing=false;motionUI();
 }
 function compareLecture(comparison,option){
@@ -264,7 +286,7 @@ function compareLecture(comparison,option){
   const resolved=resolveScene({scene:{...currentStep.scene,side,regions:option.regions||[],deep:false,deepRegions:[],network:option.network||'off',
     bundles:option.bundles||[],ghost:option.ghost||[],surface:option.network ? .8 : .14,camera:{view:comparison.view,tweenMs:0}}},side);
   applySceneEffects(resolved,{authored:true});
-  $('pickedClass').textContent='LECTURE COMPARISON';$('pickedName').textContent=option.label;$('pickedDescription').textContent=comparison.note;
+  $('pickedClass').textContent='Lecture comparison';$('pickedName').textContent=option.label;$('pickedDescription').textContent=comparison.note;
   $('explorationStatus').hidden=true;$('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent=`Lecture comparison · ${option.label}. Restore returns to this relationship.`;
 }
 function pauseForExploration(){
@@ -272,7 +294,7 @@ function pauseForExploration(){
   playing=false;motionUI();
   exploring=true;$('explorationStatus').hidden=!currentLesson;
   $('lessonSceneStatus').hidden=true;
-  $('explorationStatus').textContent='Free inspection · Restore lesson scene returns to the authored relationship.';
+  $('explorationStatus').textContent='Free inspection. Restore scene returns to the authored relationship.';
 }
 function restoreExploration({retain=false}={}){
   if(!exploration)return;scene.restore(exploration);
@@ -289,7 +311,9 @@ function restoreExploration({retain=false}={}){
 function setMode(mode){
   // Capture before the library changes the canvas aspect ratio and auto-framing.
   if(mode==='library'&&document.body.dataset.mode==='explore'&&!exploration&&scene)exploration=scene.snapshot();
+  const wasExplore=document.body.dataset.mode==='explore';
   document.body.dataset.mode=mode;document.body.dataset.expanded='false';$('expandAnatomy').setAttribute('aria-pressed','false');$('expandAnatomy').textContent='Expand';
+  if(mode==='explore')$('anatomyDrawer').open=true;else if(wasExplore)$('anatomyDrawer').open=false;
   $('atlasWorkspace').dataset.lessonHidden=String(mode==='explore');$('toggleLesson').setAttribute('aria-expanded',String(mode!=='explore'));
   $('learnHome').setAttribute('aria-current',mode==='explore'?'false':'page');$('toggleLesson').setAttribute('aria-current',mode==='explore'?'page':'false');
 }
@@ -297,14 +321,20 @@ setMode('library');
 $('learnHome').addEventListener('click',()=>player?.library());
 $('toggleLesson').addEventListener('click',()=>player?.explore());
 $('lessonProfile').addEventListener('change',()=>setProfile($('lessonProfile').value));
-$('openAnatomySearch').addEventListener('click',()=>{const open=$('anatomySearch').hidden;$('anatomySearch').hidden=!open;
-  $('openAnatomySearch').setAttribute('aria-expanded',String(open));if(open)$('pathwayFilter').focus();});
-$('openAtlasTools').addEventListener('click',()=>{$('anatomyDrawer').open=!$('anatomyDrawer').open;});
+function closeSearch({refocus=true}={}){
+  if($('anatomySearch').hidden)return;
+  $('anatomySearch').hidden=true;$('openAnatomySearch').setAttribute('aria-expanded','false');
+  if(refocus)$('openAnatomySearch').focus();
+}
+$('openAnatomySearch').addEventListener('click',()=>{const open=$('anatomySearch').hidden;
+  if(open){$('anatomySearch').hidden=false;$('openAnatomySearch').setAttribute('aria-expanded','true');$('pathwayFilter').focus();}
+  else closeSearch();});
+$('openAtlasTools').addEventListener('click',()=>{const docked=document.body.dataset.mode==='explore';$('anatomyDrawer').open=docked?true:!$('anatomyDrawer').open;if(docked)$('atlasArea').focus({preventScroll:false});});
 $('anatomyDrawer').addEventListener('toggle',()=>{$('openAtlasTools').setAttribute('aria-expanded',String($('anatomyDrawer').open));});
 document.querySelector('.skip-link').addEventListener('click',()=>{$('anatomyDrawer').open=true;$('atlasControls').focus();});
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;
-  if(!$('anatomySearch').hidden){$('anatomySearch').hidden=true;$('openAnatomySearch').setAttribute('aria-expanded','false');$('openAnatomySearch').focus();}
-  else if($('anatomyDrawer').open){$('anatomyDrawer').open=false;$('openAtlasTools').focus();}
+  if(!$('anatomySearch').hidden)closeSearch();
+  else if($('anatomyDrawer').open&&document.body.dataset.mode!=='explore'){$('anatomyDrawer').open=false;$('openAtlasTools').focus();}
 });
 $('expandAnatomy').addEventListener('click',()=>{const open=document.body.dataset.expanded!=='true';document.body.dataset.expanded=String(open);
   $('expandAnatomy').setAttribute('aria-pressed',String(open));$('expandAnatomy').textContent=open?'Back to lesson':'Expand';});
@@ -327,7 +357,7 @@ try{
       if(currentLesson){inspectLessonTarget(pick.deep?{kind:'deep',id:pick.deep.id.replace(/-(lh|rh)$/,''),label:pick.deep.name}:{kind:'parcel',id:pick.id,label:regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code});}
       else{pick.deep?showDeep(pick.deep):readRegion(pick.hemi,pick.id,pick.vertex);}
     },onInteraction:()=>{playing=false;motionUI();},
-    onView:({hemisphere,view})=>{$('sceneOrientation').textContent=`${hemisphere==='both'?'Both hemispheres':hemisphere==='L'?'Left hemisphere':'Right hemisphere'} · ${view==='free'?'free view':view}`;}});
+    onView:({hemisphere,view})=>{$('sceneOrientation').textContent=`${hemisphere==='both'?'Both hemispheres':hemisphere==='L'?'Left hemisphere':'Right hemisphere'}, ${viewName(hemisphere,view)}`;}});
   $('atlasLoading').hidden=true;
   const area=$('atlasArea');area.replaceChildren(option('','Choose an area…'));
   const paired=option('','Both hemispheres');paired.id='atlasPairedArea';paired.hidden=true;area.append(paired);
@@ -380,7 +410,7 @@ try{
     chip.addEventListener('click',()=>togglePathway(b.id));row.append(chip);
     }pathwayGroups.get(family.group).append(row);
   }
-  catalog=anatomyCatalog(scene.surfaceMeta,scene.tractMeta,scene.subMeta,bundleLabel);
+  catalog=anatomyCatalog(scene.surfaceMeta,scene.tractMeta,scene.subMeta,bundleLabel,bundleAliases);
   $('pathwayFilter').disabled=false;$('pathwayFilter').addEventListener('input',applyPathwayFilter);
   $('clearAnatomySearch').addEventListener('click',()=>{$('pathwayFilter').value='';applyPathwayFilter();$('pathwayFilter').focus();});applyPathwayFilter();
   $('pathwayClear').addEventListener('click',()=>{pauseForExploration();applyBundles([],currentGhosts);});

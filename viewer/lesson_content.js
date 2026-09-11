@@ -10,7 +10,7 @@ export {REGIONS} from './lesson_references.js';
 import {RESIDENT_LESSONS,RESIDENT_SOURCES} from './lessons/resident-anatomy.js';
 import {NETWORK_LECTURES,NETWORK_SOURCES} from './lessons/network-lectures.js';
 import {DISSECTION_PLATES} from './dissection_references.js';
-export const CONTENT_VERSION='2026-09-11.1';
+export const CONTENT_VERSION='2026-09-11.2';
 export const EVIDENCE_CLASSES=Object.freeze(['atlas','reconstruction','association',
   'schematic','recovery_overlay','functional_measurement','model_metric',
   'experimental_anatomy','conceptual_model']);

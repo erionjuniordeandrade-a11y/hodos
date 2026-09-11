@@ -41,7 +41,7 @@ try{
     }
   };
   await visit('');assert.equal((await state()).lesson.status,'inactive');
-  assert.equal(await page.title(),'Hodos · Cortex & pathways');
+  assert.equal(await page.title(),'Hodos · Brain networks & white matter tracts');
   assert.match(await page.locator('.brand-name').innerText(),/^Hodos/);
   await page.evaluate(()=>document.fonts.ready);assert(await page.evaluate(()=>document.fonts.check('600 26px "Playfair Display"')));
   assert.match(await page.locator('link[rel=icon]').getAttribute('href'),/hodos-favicon/);
@@ -218,7 +218,8 @@ try{
   await page.emulateMedia({forcedColors:'none',media:'print'});assert(await page.locator('.brand').isVisible());
   await page.emulateMedia({media:'screen'});
   report.checks.push('Both atlas pages use Hodos and locally served Playfair; original atlas attribution remains');
-  await visit('lesson=motor-cst&lessonVersion=old');assert.equal((await state()).lesson.status,'inactive');assert.match(await page.locator('.lesson-error').innerText(),/different content version/);
+  await visit('lesson=motor-cst&lessonVersion=old&step=5&phase=compare');assert.equal((await state()).lesson.status,'paused');assert.equal((await state()).lesson.step,5);assert.match(await page.locator('.lesson-notice').innerText(),/updated after this link/);
+  await page.locator('#lessonNext').click();assert.equal(await page.locator('.lesson-notice').count(),0,'notice clears on navigation');
 
   // A small touch screen with storage denied must still be a usable lesson.
   const touchContext=await browser.newContext({viewport:{width:320,height:700},hasTouch:true,reducedMotion:'reduce'});

@@ -96,3 +96,8 @@ Educational reuse terms: https://www.aans.org/education-publications/references/
 (checked 2026-09-11). See `viewer/reference-plates/README.md` and `manifest.json`
 for source locators, hashes, limitations and other-use conditions. The terms for
 these photographs are separate from the atlas data and software licences above.
+
+
+## Inter (body typeface)
+
+Inter 4.1, Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter). SIL Open Font License 1.1, no Reserved Font Name. Shipped as Latin subsets (`viewer/vendor/fonts/inter-latin-*.woff2`); licence text in `viewer/vendor/fonts/Inter-OFL.txt`.

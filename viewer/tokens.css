@@ -1,0 +1,78 @@
+/* Hallmark · genre: editorial · macrostructure: Index-First (home) · Workbench (lesson) · Long Document (sources)
+ * theme: custom (owner palette 2026-09-10 · paper oklch(18% 0.008 248) · accent oklch(87% 0.073 213) ice · Playfair Display + Inter)
+ * nav: N9 · footer: Ft4 · enrichment: live atlas only · design-system: design.md · designed-as-app
+ * pre-emit critique: P4 H4 E4 S5 R4 V4 · contrast: pass (40–41) · tokens: pass (48) */
+:root{
+  color-scheme:dark;
+  /* Paper and ink. Every neutral carries the anchor hue (248) at low chroma. */
+  --color-paper:oklch(18% 0.008 248);
+  --color-paper-2:oklch(21.5% 0.010 248);
+  --color-paper-3:oklch(24.5% 0.012 248);
+  --color-stage:oklch(16.2% 0.008 248);
+  --color-control:oklch(24.9% 0.012 248);
+  --color-control-hover:oklch(29% 0.014 248);
+  --color-rule:oklch(34.9% 0.015 248);
+  --color-rule-2:oklch(52.9% 0.021 246);
+  --color-faint:oklch(60.4% 0.012 248);
+  --color-muted:oklch(74.2% 0.009 248);
+  --color-ink:oklch(92.9% 0.012 85);
+  --color-ink-on-ink:var(--color-paper);
+  /* One accent, ice. Used for links, the active tab, focus rings and the focus parcel. */
+  --color-accent:oklch(86.8% 0.073 213);
+  --color-accent-strong:oklch(92.2% 0.045 212);
+  --color-accent-ink:oklch(18.8% 0.017 225);
+  --color-accent-soft:oklch(25.7% 0.022 221);
+  --color-focus:oklch(86.8% 0.073 213);
+  /* Scientific display pigments stay as authored: context parcels, hover, neutral cortex. */
+  --color-parcel-focus:oklch(86.8% 0.073 213);
+  --color-parcel-context:oklch(82.8% 0.061 80);
+  --color-parcel-hover:oklch(95.1% 0.014 61);
+
+  --font-display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-outlier:ui-monospace,SFMono-Regular,Menlo,monospace; /* atlas codes and coordinates only */
+
+  /* Major third from 16 px. Five sizes per page. */
+  --text-xs:0.8rem;      /* 12.8 */
+  --text-sm:0.875rem;    /* 14 */
+  --text-base:1rem;      /* 16 */
+  --text-md:1.25rem;     /* 20 */
+  --text-lg:1.5625rem;   /* 25 */
+  --text-xl:1.9531rem;   /* 31 */
+  --text-2xl:2.4414rem;  /* 39 */
+  --text-display:clamp(2.5rem,3.2vw + 1rem,4rem);
+  --text-title:clamp(1.75rem,1.4vw + 1rem,2.25rem);
+  --lh-display:1.06;
+  --lh-title:1.15;
+  --lh-body:1.6;
+  --measure:62ch;
+
+  --space-3xs:0.125rem;
+  --space-2xs:0.25rem;
+  --space-xs:0.5rem;
+  --space-sm:0.75rem;
+  --space-md:1rem;
+  --space-lg:1.5rem;
+  --space-xl:2.5rem;
+  --space-2xl:4rem;
+  --space-3xl:6rem;
+  --page-gutter:clamp(1rem,3vw,2.5rem);
+
+  --radius:2px;
+  --control-height:2.75rem; /* 44 px: inputs, buttons and selects share it */
+  --stage-sticky:max(300px,36dvh);
+
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+  --ease-in:cubic-bezier(0.7,0,0.84,0);
+  --ease-in-out:cubic-bezier(0.65,0,0.35,1);
+  --dur-micro:120ms;
+  --dur-short:220ms;
+  --dur-long:420ms;
+
+  --z-base:1;
+  --z-raised:10;
+  --z-dropdown:100;
+  --z-sticky:200;
+  --z-sticky-nav:300;
+  --z-modal:400;
+}

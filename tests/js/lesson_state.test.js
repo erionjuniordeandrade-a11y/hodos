@@ -11,11 +11,15 @@ test('ten substantive drafts have resolved sources, notes and knowledge checks',
   assert.equal(SOURCES.S12.evidenceClass,'experimental_anatomy');
   assert.equal(LESSONS.find(l=>l.id==='interoception').referenceOnly,true);
 });
-test('reload is always paused; legacy mode flags do not create a lesson',()=>{
+test('reload is always paused; stale link versions open the current content with a notice',()=>{
   assert.equal(lessonStateFromSearch('?teaching=1').status,'inactive');
   const state=lessonStateFromSearch(`?profile=teaching&lesson=motor-cst&lessonVersion=${CONTENT_VERSION}&step=2&playing=1`);
   assert.equal(state.status,'paused');assert.equal(state.step,2);
-  assert.equal(lessonStateFromSearch('?lesson=motor-cst&lessonVersion=old').status,'inactive');
+  const stale=lessonStateFromSearch('?lesson=motor-cst&lessonVersion=old&step=3');
+  assert.equal(stale.status,'paused');assert.equal(stale.step,3);assert.match(stale.notice,/updated after this link/);
+  assert.equal(lessonStateFromSearch('?lesson=motor-cst&lessonVersion=old&step=999').step,LESSONS.find(l=>l.id==='motor-cst').steps.length-1);
+  assert.equal(lessonStateFromSearch(`?lesson=motor-cst&lessonVersion=${CONTENT_VERSION}&step=999`).step,0);
+  assert.equal(state.notice,'');
   assert.equal(lessonStateFromSearch('?lesson=unknown').lessonId,null);
 });
 test('player controls change only lesson state and serialize no autoplay or case state',()=>{

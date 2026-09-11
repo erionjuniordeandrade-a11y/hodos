@@ -1,5 +1,5 @@
 /** Installed atlas identities only; never infer names or laterality from a query. */
-export function anatomyCatalog(surface,tracts,subcortex,bundleLabel){
+export function anatomyCatalog(surface,tracts,subcortex,bundleLabel,bundleAliases=()=>''){
   const entries=[];
   for(const hemi of ['L','R'])for(const [id,raw] of Object.entries(surface.sets.glasser.regions[hemi])){
     if(Number(id)===0)continue;
@@ -7,7 +7,7 @@ export function anatomyCatalog(surface,tracts,subcortex,bundleLabel){
     entries.push({kind:'Cortical parcels',id:Number(id),hemi,code,label:`${code} · ${hemi==='L'?'left':'right'}`,search:`${code} ${raw} ${hemi==='L'?'left':'right'}`});
   }
   for(const d of subcortex.structures)entries.push({kind:'Deep structures',id:d.id,code:d.name,label:`${d.name} · ${d.hemisphere==='L'?'left':'right'}`,search:`${d.id} ${d.name} ${d.hemisphere==='L'?'left':'right'}`});
-  for(const b of tracts.bundles)entries.push({kind:'Reference pathways',id:b.id,code:b.id,label:bundleLabel(b.id),search:`${b.id} ${bundleLabel(b.id)} ${b.group}`});
+  for(const b of tracts.bundles)entries.push({kind:'Reference pathways',id:b.id,code:b.id,label:bundleLabel(b.id),search:`${b.id} ${bundleLabel(b.id)} ${bundleAliases(b.id)} ${b.group}`});
   return entries;
 }
 

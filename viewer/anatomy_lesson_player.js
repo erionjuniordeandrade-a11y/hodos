@@ -2,6 +2,9 @@ import {LESSONS,CONTENT_VERSION,SOURCES,REGIONS,sourceIdsForStep} from './lesson
 import {createLessonController,lessonSearch} from './lesson_state.js';
 import {createLearningProgress,learningPhase,LEARNING_PHASES} from './anatomy_learning.js';
 import {CURRICULUM,TEACHING_GUIDES} from './lesson_briefings.js';
+// Home page order is the teaching order: module numbers and the dropdown follow it.
+const ORDERED_IDS=CURRICULUM.flatMap(group=>group.ids);
+const moduleNumber=id=>String(ORDERED_IDS.indexOf(id)+1).padStart(2,'0');
 import {createDissectionReference} from './dissection_references.js';
 
 function el(tag,attrs={},text=''){
@@ -18,7 +21,7 @@ const phaseFromSearch=search=>{const value=new URLSearchParams(search).get('phas
 export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onRestore=()=>{},onExplore=()=>{},onMode=()=>{},onCompare=()=>{}}={}){
   let storage;try{storage=localStorage;}catch{/* Session-only progress still works. */}
   const progress=createLearningProgress(storage),revealed=new Set();
-  let phase=phaseFromSearch(location.search),controller,lastScene='',lastReading='',focusHeading=false;
+  let phase=phaseFromSearch(location.search),controller,lastScene='',lastReading='',focusHeading=false,noticeFor=null;
   const lessonNow=()=>LESSONS.find(l=>l.id===controller.state.lessonId);
   function sync(){
     const params=new URLSearchParams(lessonSearch(location.search,controller.state));
@@ -51,14 +54,14 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
   function progressNote(){return el('p',{class:'learning-save-note'},progress.persistent?'Progress saved on this device · no account needed.':'Progress is available for this session; device storage is unavailable.');}
   function renderLibrary(state){
     onMode('library');lastScene='';onStep(null,null);
-    root.append(el('p',{class:'lesson-kicker'},'THE HODOS COURSEBOOK'),el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},'Choose a relationship to understand.'));
+    root.append(el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},'Choose a relationship to understand.'));
     if(state.error)root.append(el('p',{role:'status',class:'lesson-error'},state.error));
     const entry=el('div',{class:'library-entry'});
     if(progress.lastLesson){const lesson=LESSONS.find(l=>l.id===progress.lastLesson),saved=progress.get(lesson.id);
-      const resume=button(`Resume · ${TEACHING_GUIDES[lesson.id].shortTitle}`,'lessonResume',()=>start(lesson.id,{resume:true}));
-      resume.append(el('small',{},`Relationship ${saved.step+1} of ${lesson.steps.length} · ${saved.phase}`));entry.append(resume);
-    }else entry.append(button('Start learning · Central region','lessonStart',()=>start('motor-cst')));
-    entry.append(button('Explore anatomy','lessonExplore',explore));root.append(entry);
+      const resume=button(`Resume lesson ${moduleNumber(lesson.id)}`,'lessonResume',()=>start(lesson.id,{resume:true}));
+      resume.append(el('small',{},`relationship ${saved.step+1} of ${lesson.steps.length}`));entry.append(resume);
+    }else entry.append(button(`Begin lesson ${moduleNumber(ORDERED_IDS[0])}`,'lessonStart',()=>start(ORDERED_IDS[0])));
+    entry.append(button('Explore','lessonExplore',explore));root.append(entry);
     const catalog=el('div',{class:'lesson-catalog'});
     let number=0;
     for(const group of CURRICULUM){const section=el('section',{'aria-label':group.title});
@@ -66,8 +69,8 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
       for(const id of group.ids){const lesson=LESSONS.find(l=>l.id===id),guide=TEACHING_GUIDES[id],saved=progress.get(id);
         const row=button('',`lessonStart-${id}`,()=>start(id));row.className='curriculum-row';
         row.append(el('span',{class:'curriculum-number','aria-hidden':'true'},String(++number).padStart(2,'0')));
-        const title=el('span',{class:'curriculum-name'},guide.shortTitle);title.append(el('small',{},`${lesson.steps.length} relationships · about ${lesson.minutes} min${saved?` · ${saved.reviewed?'reviewed':`${saved.visited.length} visited`}`:''}`));
-        row.append(title,el('span',{'aria-hidden':'true'},'↗'));section.append(row);
+        const title=el('span',{class:'curriculum-name'},guide.shortTitle);title.append(el('small',{},`${lesson.steps.length} relationships, about ${lesson.minutes} min${saved?`, ${saved.reviewed?'reviewed':`${saved.visited.length} visited`}`:''}`));
+        row.append(title);section.append(row);
       }catalog.append(section);
     }
     root.append(catalog,progressNote());
@@ -125,22 +128,26 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
       if(LEARNING_PHASES.includes(phase))progress.visit(lesson.id,state.step,phase);
       const top=el('div',{class:'lesson-top'});top.append(button('← Lessons','lessonLibrary',library));
       const select=el('select',{id:'lessonSelect','aria-label':'Choose a guided lesson'});
-      for(const item of LESSONS)select.append(el('option',{value:item.id},TEACHING_GUIDES[item.id].shortTitle));
+      for(const id of ORDERED_IDS)select.append(el('option',{value:id},`${moduleNumber(id)} · ${TEACHING_GUIDES[id].shortTitle}`));
       select.value=lesson.id;select.addEventListener('change',()=>start(select.value));top.append(select);root.append(top);
       const outline=el('details',{class:'lesson-outline'});
-      outline.append(el('summary',{},`${phase==='recap'?'Lesson recap':`Relationship ${state.step+1} of ${lesson.steps.length}`} · ${guide.hemisphere==='L'?'left':'right'} reference`));
+      outline.append(el('summary',{},`${phase==='recap'?'Lesson recap':`Relationship ${state.step+1} of ${lesson.steps.length}`}, ${guide.hemisphere==='L'?'left':'right'} reference`));
       const ordered=el('ol',{'aria-label':'Lesson relationships'});
       for(const [i,item] of lesson.steps.entries()){const li=el('li'),b=button(item.title,`lessonStep-${i}`,()=>goStep(i));
         b.setAttribute('aria-current',state.step===i?'step':'false');li.append(b);ordered.append(li);}
       outline.append(ordered);root.append(outline);
       if(!['brief','recap'].includes(phase)){
         const phases=el('nav',{class:'learning-phases','aria-label':'Teaching sequence'});
-        for(const [i,p] of LEARNING_PHASES.entries()){const b=button(`${String(i+1).padStart(2,'0')} ${p[0].toUpperCase()+p.slice(1)}`,`phase-${p}`,()=>goPhase(p));
+        for(const p of LEARNING_PHASES){const b=button(p[0].toUpperCase()+p.slice(1),`phase-${p}`,()=>goPhase(p));
           b.setAttribute('aria-pressed',String(phase===p));phases.append(b);}root.append(phases);
       }
       const body=el('div',{class:'lesson-scroll'});root.append(body);
       const title=phase==='brief'?guide.shortTitle:phase==='recap'?'Explain the relationship.':step.title;
-      body.append(el('p',{class:'lesson-kicker'},phase==='brief'?`${lesson.category} · ${lesson.minutes} minutes`:phase==='recap'?'TAKE IT INTO YOUR NEXT DISCUSSION':`${phase.toUpperCase()} · ${lesson.category}`),el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},title));
+      // A stale-link notice belongs to the reading it opened on; any step or phase change retires it.
+      if(state.notice){if(noticeFor===null)noticeFor=readingId;if(noticeFor===readingId)body.append(el('p',{class:'lesson-notice',role:'status'},state.notice));}
+      const kicker=phase==='brief'?`${lesson.category}, about ${lesson.minutes} minutes`:phase==='recap'?'Take it into your next discussion':'';
+      if(kicker)body.append(el('p',{class:'lesson-kicker'},kicker));
+      body.append(el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},title));
       if(phase==='brief'){
         const brief=el('section',{class:'lesson-case','aria-label':'Opening case question'});brief.append(el('h3',{},'The question to carry with you'),el('p',{},guide.question));body.append(brief);
         body.append(el('p',{class:'lesson-lead'},lesson.summary),el('h3',{},'By the end, you should be able to'),list(lesson.goals));
@@ -161,9 +168,9 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
         const article=el('article',{id:'lessonCurrent','aria-labelledby':'lessonCurrentTitle'});
         if(phase==='orient'){
           article.append(el('p',{class:'lesson-lead'},step.text));
-          const task=el('section',{class:'lesson-observe'});task.append(el('h3',{},'Find the relationship'),el('p',{},step.observe));appendTargets(task,step);article.append(task);
+          const task=el('section',{class:'lesson-observe'});task.append(el('h3',{},'Locate the structures'),el('p',{},step.targets?.length?'Select each structure to light it on the atlas, then rotate until you can name what lies in front, behind and beneath it.':'Rotate the atlas until you can name what lies in front, behind and beneath the displayed structures.'));appendTargets(task,step);article.append(task);
         }else if(phase==='compare'){
-          const task=el('section',{class:'lesson-observe'});task.append(el('p',{},step.observe));appendTargets(task,step);article.append(task);
+          const task=el('section',{class:'lesson-observe'});task.append(el('h3',{},'Compare'),el('p',{},step.observe));appendTargets(task,step);article.append(task);
           const anatomy=el('section',{class:'lesson-anatomy'});anatomy.append(el('h3',{},'Read the neighbours'),list(step.anatomy));article.append(anatomy);
           appendComparison(article,guide);
           if(step.referencePlate)article.append(createDissectionReference(step.referencePlate));
@@ -178,15 +185,15 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
         const caseQuestion=el('details',{class:'lesson-case-reminder'});caseQuestion.append(el('summary',{},'The question for this lesson'),el('p',{},guide.question));body.append(caseQuestion);
         appendReferences(body,step);
       }
-      body.append(el('p',{class:'lesson-version'},`Educational draft ${CONTENT_VERSION} · anatomical review pending`));body.scrollTop=scrollTop;
+      if(phase==='brief')body.append(el('p',{class:'lesson-version'},`Educational draft ${CONTENT_VERSION}, anatomical review pending.`));body.scrollTop=scrollTop;
       const footer=el('div',{class:'lesson-controls'}),nav=el('div',{class:'lesson-nav'});
-      if(phase==='recap')nav.append(button('Review final relationship','lessonPrev',previous),button('All lessons','lessonNext',library));
+      if(phase==='recap')nav.append(button('Final relationship','lessonPrev',previous),button('All lessons','lessonNext',library));
       else{
-        const prev=button('Previous','lessonPrev',previous);prev.disabled=phase==='brief';
+        const prev=button('Previous','lessonPrev',previous);prev.hidden=phase==='brief';
         const nextLabel=phase==='brief'?'Begin lesson →':phase==='orient'?'Compare →':phase==='compare'?'Explain →':state.step===lesson.steps.length-1?'Lesson recap →':'Next relationship →';
         nav.append(prev,button(nextLabel,'lessonNext',next));
       }footer.append(nav);
-      const tools=el('div',{class:'lesson-tools'});tools.append(button('Restore lesson scene','lessonRestore',()=>{
+      const tools=el('div',{class:'lesson-tools'});tools.append(button('Restore scene','lessonRestore',()=>{
         onRestore();for(const b of root.querySelectorAll('.lesson-targets button'))b.setAttribute('aria-pressed','false');
       }),button('Explore freely','lessonExplore',explore));footer.append(tools);root.append(footer);
     }

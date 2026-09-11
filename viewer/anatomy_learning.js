@@ -13,7 +13,9 @@ export function createLearningProgress(storage){
   try{
     const raw=storage?.getItem(LEARNING_KEY);
     const saved=raw&&raw.length<50000?JSON.parse(raw):null;
-    if(saved?.version===CONTENT_VERSION&&saved.lessons&&typeof saved.lessons==='object'){
+    // Progress is keyed by lesson id and validated against the installed step count, so a
+    // wording or label deploy (new CONTENT_VERSION) does not erase a resident's record.
+    if(typeof saved?.version==='string'&&saved.lessons&&typeof saved.lessons==='object'){
       for(const lesson of LESSONS){const r=saved.lessons[lesson.id];
         if(!r||!Number.isInteger(r.step)||r.step<0||r.step>=lesson.steps.length)continue;
         records[lesson.id]={step:r.step,phase:learningPhase(r.phase),

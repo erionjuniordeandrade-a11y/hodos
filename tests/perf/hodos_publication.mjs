@@ -41,11 +41,11 @@ try{
   page.on('request',r=>{const url=new URL(r.url());if(url.protocol.startsWith('http')&&url.origin!==new URL(base).origin)report.externalRequests.push(r.url());});
   await page.goto(new URL('/?test=1',base).href);
   await page.waitForFunction(()=>window.__atlasTest?.ready,null,{timeout:45000});
-  assert.equal(await page.title(),'Hodos · Cortex & pathways');
+  assert.equal(await page.title(),'Hodos · Brain networks & white matter tracts');
   assert.equal(await page.locator('.curriculum-row').count(),LESSONS.length);
   assert(await page.locator('canvas').isVisible());
   const creator=page.locator('.creator-credit');
-  assert.match(await creator.innerText(),/Neurosurgeon.*Porto Alegre, Brazil/s);
+  assert.match(await creator.innerText(),/Created by Dr\. Erion de Andrade/);
   assert.equal(await creator.locator('a').getAttribute('href'),'https://www.dreriondeandrade.com.br/');
   assert.equal(await page.getByRole('link',{name:'Case reconstruction',exact:true}).count(),0);
   for(const lesson of LESSONS){
