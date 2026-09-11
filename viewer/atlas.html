@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hodos · Cortex & pathways</title>
+<meta name="author" content="Dr. Erion de Andrade">
+<link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./lesson_player.css"><link rel="stylesheet" href="./atlas.css">
+<link rel="stylesheet" href="./atlas-theme.css">
+<link rel="stylesheet" href="./anatomy_workbench.css">
+<link rel="stylesheet" href="./atlas-design.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/":"./vendor/addons/"}}</script>
+</head><body>
+<a class="skip-link" href="#atlasControls">Skip to atlas controls</a>
+<header class="studio-header"><a class="brand" href="./atlas.html" title="Brain networks and white matter tracts for intra-axial surgery"><svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true" focusable="false"><path d="M10 46 C 24 44, 30 30, 40 24 S 54 16, 56 14" fill="none" stroke-width="4" stroke-linecap="round"/><path class="f" d="M8 40 C 22 40, 28 26, 38 20 S 50 12, 54 10" fill="none" stroke-width="3" stroke-linecap="round"/><path class="f" d="M12 52 C 26 50, 34 36, 44 30 S 56 22, 58 20" fill="none" stroke-width="3" stroke-linecap="round"/><circle class="n" cx="10" cy="46" r="5"/><circle class="n" cx="40" cy="24" r="5"/><circle class="d" cx="56" cy="14" r="5"/></svg><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a>
+  <nav aria-label="Workspace"><button id="learnHome" type="button">Learn</button><button id="toggleLesson" type="button" aria-controls="lessonPanel" aria-expanded="true">Explore</button>
+  <button id="openAnatomySearch" type="button" aria-controls="anatomySearch" aria-expanded="false">Find anatomy</button><button id="openAtlasTools" type="button" aria-controls="anatomyDrawer" aria-expanded="false">Display</button>
+  <label class="sr-only" for="lessonProfile">Display profile</label><select id="lessonProfile"><option value="teaching">Study</option><option value="presenter">Present</option></select>
+  <a href="./atlas-sources.html" class="header-sources">Sources</a></nav>
+</header>
+<main>
+  <div class="intro"><div><p class="lesson-kicker">A COURSEBOOK FOR NEUROSURGICAL RESIDENTS</p><h1>Anatomy, in context.</h1></div>
+    <p>Orient the structure. Compare its neighbours.<br>Explain the surgical relationship.</p></div>
+  <section id="anatomySearch" class="anatomy-search" aria-label="Find anatomy" hidden>
+    <label for="pathwayFilter">Find anatomy</label>
+    <div class="search-field"><input id="pathwayFilter" type="search" placeholder="Search parcels, pathways or deep structures…" aria-controls="anatomyResults" autocomplete="off" disabled><button type="button" id="clearAnatomySearch">Clear search</button></div>
+    <p id="anatomySearchStatus" role="status">Search by name or atlas code, for example V1, thalamus or arcuate.</p>
+    <div id="anatomyResults" hidden></div>
+  </section>
+  <div id="atlasWorkspace">
+    <section class="atlas-stage" aria-label="Reference anatomy">
+      <div class="stage-head"><div><span class="eyebrow">REFERENCE ANATOMY</span><p id="sceneOrientation">Both hemispheres</p><p id="sceneNetwork" class="scene-network" hidden><i aria-hidden="true"></i><span></span></p></div>
+        <div class="stage-tools"><button type="button" id="atlasFit">Fit</button><details class="atlas-view-menu"><summary>Views</summary><div class="views" role="group" aria-label="Anatomical views"><button type="button" data-view="left">Left</button><button type="button" data-view="right">Right</button><button type="button" data-view="superior">Superior</button><button type="button" data-view="anterior">Anterior</button><button type="button" data-view="posterior">Posterior</button><button type="button" data-view="inferior">Inferior</button><button type="button" data-view="medial">Left medial</button></div></details><button id="expandAnatomy" type="button" aria-pressed="false">Expand</button></div></div>
+      <div id="atlasCanvas"><p id="atlasLoading" role="status">Loading the reference atlas…</p><div id="atlasHover" role="tooltip" hidden></div></div>
+      <div class="scene-readout" aria-live="polite"><span class="eyebrow" id="pickedClass">ATLAS PARCEL</span>
+        <h2 id="pickedName">Choose a relationship</h2><p id="lessonSceneStatus" role="status" hidden></p><p id="explorationStatus" role="status" hidden></p>
+        <details class="scene-details"><summary>Scene key & details</summary><div class="scene-details-body"><p id="pickedDescription">Select cortex to inspect its HCP-MMP1 label.</p>
+        <p id="pickedNetwork" class="picked-network"></p>
+        <p class="parcel-legend"><span class="focus-key">● Focus</span> <span class="context-key">● Context</span> · separate atlas parcels. Dashed leaders mark covered anchors.</p>
+      <div class="scene-footer"><span id="pathwaySummary">Sampled atlas pathways</span><button type="button" id="tracePlay" aria-pressed="false">Play display trace</button></div>
+      <p class="trace-note" id="traceNote">Paused · paired trace follows shape; no direction or conduction.</p>
+      <p class="canvas-help" id="canvasHelp">Drag to rotate · scroll to zoom · click cortex to identify. Keyboard: arrows rotate, Shift + arrows pan, + / − zoom, Home fits.</p>
+      </div></details></div>
+    </section>
+    <aside id="lessonPanel" aria-label="Guided anatomy lesson"><p>Preparing guided lessons…</p></aside>
+  </div>
+  <details id="anatomyDrawer" class="anatomy-drawer"><summary>Explore anatomy <span>Display, hemispheres & pathways</span></summary>
+  <section id="atlasControls" class="atlas-controls" aria-label="Atlas display controls" tabindex="-1">
+    <div><label for="atlasArea">Selected cortical parcel</label><select id="atlasArea" disabled><option>Loading atlas labels…</option></select></div>
+    <div><label for="atlasHemisphere">Visible hemispheres</label><select id="atlasHemisphere"><option value="both">Both hemispheres</option><option value="L">Left hemisphere</option><option value="R">Right hemisphere</option></select></div>
+    <div class="deep-control"><label><input id="deepStructures" type="checkbox"> Show deep structures</label><label for="deepRegion" class="sr-only">Inspect a deep atlas structure</label><select id="deepRegion"><option value="">Inspect a structure…</option></select></div>
+    <div class="network-control"><label for="atlasNetworks">Resting-state networks <span class="picker-count">Yeo-7 · group labels</span></label><select id="atlasNetworks" disabled><option value="off">Off</option></select><ul id="networkLegend" class="network-legend" hidden></ul></div>
+    <div><label for="surfaceLevel">Cortical surface</label><input id="surfaceLevel" type="range" min="8" max="95" value="60"><span class="range-caption">Transparent <span>Defined</span></span></div>
+    <div class="pathway-picker" id="atlasPathways" role="group" aria-labelledby="atlasPathwaysLabel"><div class="picker-head"><h2 id="atlasPathwaysLabel">Reference pathways <span id="pathwayCount" class="picker-count">loading…</span></h2><button type="button" id="pathwayClear" disabled>Clear pathways</button></div><p id="pathwayStatus" role="status"></p><div id="selectedPathways" role="group" aria-label="Displayed pathways"></div><p class="picker-help">L / R select each side. Names follow the <a href="https://brain.labsolver.org/hcp_trk_atlas.html" target="_blank" rel="noopener noreferrer">HCP1065 atlas glossary</a>; source codes remain searchable.</p><div id="pathwayGroups" class="picker-groups"></div></div>
+  </section>
+  </details>
+  <footer class="source-footer"><div><p>Hodos · Brain networks &amp; white matter tracts · intra-axial surgery.</p><p>HCP S1200 surface · HCP-MMP1 parcels · HCP1065 sampled tractography · Melbourne subcortex</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a>.<br>Neurosurgeon · brain tumors, pituitary tumors &amp; skull base surgery · Porto Alegre, Brazil.</p><p>Reference atlas · not navigation. Educational draft · research only · no patient registration.</p></div>
+    <div><a href="./atlas-sources.html">Atlas sources & use terms ↗</a></div></footer>
+</main><script type="module" src="./atlas_app.js"></script>
+</body></html>

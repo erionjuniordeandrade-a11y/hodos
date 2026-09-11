@@ -1,0 +1,65 @@
+/* Hodos identity, integrated from the approved design handoff.
+   Anatomy workbench owns layout; this layer owns brand and display pigments.
+   Scientific Yeo-7 and pathway palettes remain unchanged. */
+@font-face{font-family:"Playfair Display";font-style:normal;font-weight:400 900;font-display:swap;src:url('./vendor/fonts/playfair-display.ttf') format('truetype')}
+:root{
+  color-scheme:dark;
+  --bg:#0f1215;--panel:#161a1e;--panel-2:#1c2126;
+  --ink:#ebe7df;--muted:#a7acb1;--faint:#7c8288;
+  --line:#343b42;--line-strong:#626d77;
+  --accent:#9be1f0;--accent-strong:#c4eef7;--accent-ink:#0b1519;--accent-soft:#17262b;
+  --control:#1d2227;--control-hover:#262c32;--subtle:#1a1f24;
+  --gold:var(--accent);--blue:var(--accent);
+  --stage:#0b0e11;--stage-ink:var(--ink);--stage-muted:var(--muted);
+  --stage-line:#59646e;--stage-control:#1a1f24;
+  --parcel-focus:#9be1f0;--parcel-context:#dcc39a;
+  --display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --reading:var(--display);
+}
+::selection{background:#2b4a53;color:var(--ink)}
+a{color:var(--accent)}
+.brand .brand-name{font:600 26px/1.1 var(--display);letter-spacing:0}
+.brand small{font-family:var(--mono)}
+.brand-mark{flex:none;stroke:var(--accent)}
+.brand-mark .f{opacity:.55}
+.brand-mark .n{fill:var(--ink)}
+.brand-mark .d{fill:var(--parcel-context)}
+button:disabled,.bundle-chip:disabled,#lessonPanel button:disabled{opacity:1;background:#15191d;color:#8d959d;border-color:var(--line)}
+.skip-link,#anatomyResults button[aria-pressed=true],#selectedPathways button,.bundle-chip[aria-pressed=true],#lessonPanel .lesson-nav button:last-child,#lessonPanel .lesson-targets button[aria-pressed=true],#lessonPanel .library-entry button:first-child{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#lessonPanel .lesson-targets button:hover{background:var(--control-hover)}
+#lessonPanel .lesson-targets button[aria-pressed=true]:hover{background:var(--accent-strong)}
+.atlas-stage{--gold:var(--accent);--blue:var(--accent)}
+.stage-head .eyebrow,.scene-readout .eyebrow{color:var(--stage-muted)}
+.atlas-stage button:hover{background:var(--control-hover);border-color:var(--accent)}
+.atlas-stage button:focus-visible,#atlasCanvas canvas:focus-visible{outline-color:var(--accent)}
+.atlas-stage button:disabled{background:#15191d;color:#8d959d;border-color:var(--line)}
+#atlasFit{border-color:var(--accent);color:var(--accent-strong)}
+#atlasHover{background:var(--panel);color:var(--ink);border-color:var(--accent)}
+.scene-readout,.scene-footer{border-color:var(--line)}
+.scene-readout #explorationStatus{border-color:var(--accent);color:var(--accent-strong)}
+.atlas-orientation line{stroke:var(--stage-muted)}
+.atlas-orientation text{fill:var(--stage-ink)}
+.atlas-parcel-label{border-color:var(--label-color,var(--parcel-context));background:#161a1ef5;color:var(--label-color,var(--parcel-context))}
+.atlas-parcel-label[data-primary=true]{border-color:var(--parcel-focus);color:var(--parcel-focus)}
+.atlas-parcel-label small{color:var(--stage-muted)}
+.atlas-leaders line{stroke:var(--parcel-context)}
+.atlas-leaders line[data-primary=true]{stroke:var(--parcel-focus)}
+.scene-network{display:flex;align-items:center;gap:6px;margin:0!important;font:12px/1.4 var(--mono);color:var(--stage-ink)}
+.scene-network[hidden]{display:none}
+.scene-network i{width:10px;height:10px;border:1px solid #fff7;border-radius:50%;flex:none}
+.source-footer p+p{display:block}
+.source-footer p:nth-child(2){display:none}
+body[data-profile=presenter]{--muted:#b9bec3;--faint:#969ea5}
+@media(max-width:760px){.brand .brand-name{font-size:25px}.scene-network{font-size:10px}}
+@media(prefers-contrast:more){:root{--ink:white;--muted:#e0e4e8;--line:#a7acb1;--line-strong:#d7dce0;--accent:#c4eef7;--stage-muted:#e0e4e8}}
+@media(forced-colors:active){
+  :root{--bg:Canvas;--panel:Canvas;--ink:CanvasText;--muted:CanvasText;--accent:LinkText;--accent-strong:LinkText;--accent-ink:Canvas;--accent-soft:Canvas;--control:ButtonFace;--subtle:Canvas;--line:CanvasText;--line-strong:CanvasText;--stage-ink:#ebe7df;--stage-muted:#b9bec3;--parcel-focus:#9be1f0;--parcel-context:#dcc39a}
+  .brand-mark{stroke:LinkText}.brand-mark .n,.brand-mark .d{fill:CanvasText}
+  .skip-link,#anatomyResults button[aria-pressed=true],#selectedPathways button,.bundle-chip[aria-pressed=true],#lessonPanel .lesson-nav button:last-child,#lessonPanel .lesson-targets button[aria-pressed=true],#lessonPanel .library-entry button:first-child{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}
+  .scene-network i{forced-color-adjust:none}
+}
+@media print{
+  :root{--bg:white;--panel:white;--ink:black;--muted:#222;--accent:black;--accent-strong:black;--accent-ink:white;--accent-soft:white;--subtle:white;--line:#999;--stage-ink:#ebe7df;--stage-muted:#b9bec3}
+  .studio-header{display:flex!important;background:white;min-height:48px;position:static}.studio-header nav{display:none}
+  .brand-mark{stroke:#1f7f96}.brand-mark .n{fill:black}.brand-mark .d{fill:#b58a3c}
+}

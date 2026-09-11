@@ -1,0 +1,227 @@
+:root{color-scheme:dark;--bg:#070c12;--panel:#101821;--ink:#e4eaf0;--muted:#9caebf;--line-strong:#2a3b4b;--gold:#d6ba83;--blue:#8fbce0;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,a,input,select{touch-action:manipulation}a{color:var(--blue);text-underline-offset:4px}button,select{background:#152331;color:var(--ink);border:1px solid #3b5369;border-radius:5px;padding:9px 12px;font-size:13px}button{cursor:pointer}button:hover{background:#21364a}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+.studio-header{height:68px;padding:0 36px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #22313f;gap:20px}.brand{font-size:23px;font-weight:650;color:var(--ink);text-decoration:none;white-space:nowrap}.brand span{font:10px var(--mono);letter-spacing:.17em;color:var(--gold);margin-left:12px}.studio-header nav{display:flex;align-items:center;gap:24px;font-size:12px}.studio-header nav a{text-decoration:none}.studio-header nav button{padding:8px 12px}
+main{max-width:1680px;margin:auto;padding:28px 36px 18px}.intro{display:flex;align-items:center;justify-content:space-between;gap:32px;margin-bottom:24px}.eyebrow{font:10px/1.5 var(--mono);letter-spacing:.14em;color:var(--blue);margin:0 0 7px}.intro h1{font-size:32px;letter-spacing:-.04em;font-weight:550;margin:0}.intro>p{font-size:13px;line-height:1.7;margin:0;color:#c6d3df}.intro>p span{color:var(--muted);font-size:12px}
+#atlasWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 350px;border:1px solid #2a3b4b;border-radius:8px;overflow:hidden;height:clamp(610px,78dvh,900px);background:#0b121b}
+.atlas-stage{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto auto;background:radial-gradient(ellipse at 48% 50%,#122436 0%,#0a131e 53%,#080f17 78%)}
+.stage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px 0;z-index:1}.stage-head .eyebrow{color:var(--gold);font-size:9px}.stage-head p{font-size:11px;color:var(--muted);margin:4px 0}.stage-head strong{font:17px var(--mono);color:var(--ink);margin-right:4px}.stage-head p span{display:none}.views{display:flex;gap:5px}.views button{font-size:11px;padding:7px 10px;background:#101d2a}
+#atlasCanvas{min-height:0;position:relative;overflow:hidden}#atlasCanvas canvas{display:block;width:100%;height:100%;outline:none}#atlasLoading{position:absolute;inset:40% 8% auto;text-align:center;color:var(--muted);font-size:14px;z-index:2}#atlasLoading[hidden]{display:none}
+.scene-readout{padding:0 24px 12px;pointer-events:none}.scene-readout .eyebrow{font-size:9px;color:var(--gold)}.scene-readout h2{font-weight:500;font-size:22px;letter-spacing:-.025em;margin:5px 0}.scene-readout p{color:#9fb3c5;font-size:12px;line-height:1.5;margin:5px 0 0;max-width:660px}
+.scene-footer{border-top:1px solid #233445;margin:0 24px;display:flex;gap:10px;align-items:center;justify-content:space-between;padding-top:10px;color:#c7b38d;font:10px/1.5 var(--mono)}.scene-footer button{font:11px/1.4 inherit;padding:7px 10px;white-space:nowrap}.trace-note{margin:7px 24px 14px;font:10px/1.5 var(--mono);color:#91a8bb}
+#atlasWorkspace #lessonPanel{display:block;overflow:auto;padding:20px 23px 28px;background:var(--panel);border-left:1px solid #2a3b4b;font-size:13px;line-height:1.6;min-height:0}.lesson-top{margin-bottom:10px}#lessonPanel h2{font-size:24px;margin:18px 0}#lessonPanel h3{font-size:20px}#lessonPanel .lesson-lead{font-size:14px;line-height:1.65}#lessonPanel .lesson-review{font-size:10px;color:#bdab86;margin-top:9px}.lesson-top #lessonClose{font-size:10px;padding:4px 7px}#lessonPanel select{font-size:12px;padding:8px}#lessonProfile{margin-bottom:8px}#lessonPanel .lesson-capability{background:transparent;border-color:#52687c;color:#adc1d3;padding-left:10px}.lesson-sources>div{margin-top:10px}#lessonPanel .lesson-catalog button{background:transparent;border:0;border-bottom:1px solid #2a3b4b;border-radius:0;padding:12px 0}#lessonPanel .lesson-catalog button:hover{color:var(--gold)}
+#atlasWorkspace[data-lesson-hidden="true"]{grid-template-columns:1fr}#atlasWorkspace[data-lesson-hidden="true"] #lessonPanel{display:none}.atlas-controls{display:grid;grid-template-columns:1.2fr 1fr 1.15fr 1fr 1.1fr;gap:22px;padding:22px 0 20px;border-bottom:1px solid #23313f;align-items:start}.atlas-controls>div{min-width:0}.atlas-controls label{display:block;font-size:11px;color:#b1c1cf;margin-bottom:8px}.atlas-controls select{width:100%;min-width:0;font-size:12px;padding:8px;background:#0e1923}.atlas-controls input[type=range]{width:100%;margin:5px 0;accent-color:var(--blue)}.range-caption{display:flex;justify-content:space-between;font-size:9px;color:var(--muted)}.deep-control input{accent-color:var(--gold);vertical-align:middle;margin:0 5px 0 0}.source-footer{display:flex;gap:16px;justify-content:space-between;align-items:baseline;color:#8197aa;font-size:10px;line-height:1.6}.source-footer a{white-space:nowrap;font-size:10px}
+.skip-link{position:fixed;left:10px;top:-60px;padding:12px;background:#22364a;z-index:10}.skip-link:focus{top:10px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(min-width:1450px){#atlasWorkspace{grid-template-columns:minmax(0,1fr) 390px}.stage-head p span{display:inline}.intro h1{font-size:36px}}
+@media(max-width:1040px){main{padding:24px}.studio-header{padding:0 24px}#atlasWorkspace{grid-template-columns:minmax(0,1fr) 330px}.stage-head{padding:16px 16px 0;flex-wrap:wrap}.atlas-controls{gap:12px;grid-template-columns:repeat(3,minmax(0,1fr))}.intro>p{font-size:12px}.source-footer{display:block}}
+@media(max-width:760px){.studio-header{height:auto;min-height:64px;padding:14px 18px;flex-wrap:wrap;gap:12px}.brand{font-size:21px}.studio-header nav{gap:16px;flex-wrap:wrap;font-size:11px}.studio-header nav button{font-size:11px}main{padding:22px 16px}.intro{display:block;margin-bottom:20px}.intro h1{font-size:29px}.intro>p{margin-top:12px}#atlasWorkspace{display:flex;flex-direction:column;height:auto}.atlas-stage{height:580px;flex:none}.stage-head{flex-wrap:nowrap;gap:6px}.views{gap:3px;flex-wrap:wrap;justify-content:flex-end}.views button{padding:6px;font-size:10px}#atlasWorkspace #lessonPanel{border-left:0;border-top:1px solid #2a3b4b;max-height:none;padding:22px}.atlas-controls{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}.scene-readout{padding:0 18px 12px}.scene-readout h2{font-size:20px}.scene-footer{margin:0 18px;flex-wrap:wrap}.trace-note{margin:8px 18px 14px;font-size:9px}.source-footer{font-size:10px}.deep-control{grid-column:1/-1}.source-footer a{white-space:normal}}
+@media(max-width:380px){.stage-head{display:block}.views{justify-content:flex-start;margin-top:8px}.atlas-stage{height:560px}.scene-readout p{font-size:11px}}
+
+/* multi-bundle picker (owner ask 2026-09-07: select more tracts at a time) */
+.pathway-picker{grid-column:1/-1;min-width:0}.picker-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:8px}.picker-head label{margin:0}.picker-count{font:10px var(--mono);color:var(--muted);margin-left:8px}.picker-head button{font-size:10px;padding:4px 8px}#pathwayFilter{width:100%;background:#0e1923;color:var(--ink);border:1px solid #3b5369;border-radius:5px;padding:7px 9px;font-size:12px;margin-bottom:8px}.picker-groups{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto;padding-right:4px}.picker-group{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.picker-group>span{font:9px var(--mono);letter-spacing:.14em;color:#8ea3b6;text-transform:uppercase;margin-right:4px;min-width:96px}.picker-group[hidden]{display:none}.bundle-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:4px 9px;border-radius:999px;background:#0e1923;border:1px solid #2f4457;color:#c6d3de;line-height:1.2}.bundle-chip:hover{background:#17283a}.bundle-chip[aria-pressed=true]{border-color:var(--chip,#e3bf82);color:var(--ink);font-weight:600;background:#14202c}.bundle-chip i{width:7px;height:7px;border-radius:50%;background:#3b5369;flex:none}.bundle-chip[aria-pressed=true] i{background:var(--chip,#e3bf82)}.bundle-chip[hidden]{display:none}.bundle-chip:disabled{opacity:.4;cursor:not-allowed}
+
+/* Yeo-7 network wash (owner ask 2026-09-09) */
+.network-legend{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 10px;font-size:10px;color:#b1c1cf}.network-legend li{display:flex;align-items:center;gap:5px}.network-legend i{width:9px;height:9px;border-radius:2px;flex:none}.network-legend li.dim{opacity:.35}.network-legend[hidden]{display:none}.picked-network{font:10px/1.5 var(--mono);color:#b8a97f;margin:4px 0 0;min-height:1em}
+
+/* Anatomy UX: readable teaching, bounded controls and explicit interaction states. */
+:root{font-size:16px;--muted:#b1c1cf;--line-strong:#536b80}
+button,select,input{min-height:36px;font-size:14px}
+button:disabled{opacity:.65}
+[hidden]{display:none!important}
+.studio-header{height:auto;min-height:72px;padding:12px 32px}
+.studio-header nav{gap:16px;font-size:14px}
+.studio-header nav a{display:inline-flex;align-items:center;min-height:36px}
+.brand span,.eyebrow{font-size:12px}
+main{padding:24px 32px;max-width:1920px}
+.intro{margin-bottom:20px;align-items:flex-start}
+.intro>p,.intro>p span{font-size:14px}
+.anatomy-search{margin-bottom:20px;max-width:880px}
+.anatomy-search>label{display:block;font-weight:600;margin-bottom:8px}
+.search-field{display:flex;gap:8px}
+#pathwayFilter{flex:1;min-width:0;margin:0;font-size:16px;padding:10px 12px}
+.search-field button{flex:none;white-space:nowrap}
+#anatomySearchStatus{font-size:13px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+#anatomyResults{max-height:320px;overflow:auto;border:1px solid #536b80;background:var(--panel);padding:12px;margin-top:12px}
+#anatomyResults>div{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+#anatomyResults h3{font-size:14px;flex-basis:100%;margin:0;color:var(--muted)}
+#anatomyResults button{font-size:14px;min-height:36px;text-align:left}
+#anatomyResults button[aria-pressed=true]{background:#d6ba83;color:#101821;font-weight:650}
+#atlasWorkspace{grid-template-columns:minmax(0,1fr) 400px;height:clamp(800px,88dvh,1080px);overflow:hidden}
+.atlas-stage{grid-template-rows:auto minmax(340px,1fr) auto auto auto auto}
+.stage-head{padding:16px 20px 8px;gap:16px;flex-wrap:wrap;align-items:center}
+.stage-head .eyebrow,.stage-head p{font-size:12px}
+.stage-head p{margin:4px 0}
+.stage-head p span{display:inline}
+.views{flex-wrap:wrap;gap:8px;max-width:100%}
+.views button{font-size:13px;min-height:36px;padding:8px 10px}
+#atlasFit{border-color:var(--gold);font-weight:650}
+#atlasCanvas{min-width:0;min-height:340px}
+#atlasCanvas canvas{cursor:grab;touch-action:none}
+#atlasCanvas canvas:active{cursor:grabbing}
+#atlasCanvas canvas:focus-visible{outline:3px solid var(--gold);outline-offset:-5px}
+#atlasHover{position:absolute;left:16px;top:12px;max-width:calc(100% - 32px);padding:8px 12px;background:#101821f5;border:1px solid #9caebf;border-radius:4px;color:#f4f6f8;font-size:14px;pointer-events:none;z-index:3}
+.scene-readout{padding:12px 20px}
+.scene-readout .eyebrow{font-size:12px}
+.scene-readout h2{font-size:24px}
+.scene-readout p{font-size:14px;line-height:1.55;max-width:none;overflow-wrap:anywhere}
+.scene-readout .parcel-legend{font-size:12px;margin-top:12px;color:#bacbdf}
+.focus-key{color:#fbd390;font-weight:650;margin-right:8px}
+.context-key{color:#d9e3ed;font-weight:650;margin-right:8px}
+.scene-readout #explorationStatus{border-left:2px solid var(--gold);padding-left:10px;color:#e4cc9d;font-size:13px}
+.scene-footer{font-size:13px;flex-wrap:wrap;gap:12px;margin:0 20px}
+.scene-footer button{font-size:13px;min-height:36px}
+.trace-note{font:12px/1.5 var(--mono);margin:12px 20px 6px}
+.canvas-help{font-size:12px;line-height:1.6;color:#adc0d0;margin:0 20px 16px}
+#atlasWorkspace #lessonPanel{font-size:16px;line-height:1.65;padding:24px;min-width:0;overflow-wrap:anywhere}
+#lessonPanel .lesson-lead{font-size:16px;line-height:1.75}
+#lessonPanel h2{font-size:26px;line-height:1.25}
+#lessonPanel h3{font-size:22px;line-height:1.35}
+#lessonPanel .lesson-review,#lessonPanel .lesson-version{font-size:12px;line-height:1.6}
+#lessonPanel .lesson-eyebrow,#lessonPanel .lesson-evidence{font-size:12px}
+#lessonPanel select{font-size:14px;min-height:40px}
+#lessonPanel button,#lessonPanel .lesson-top #lessonClose{min-height:36px;font-size:14px}
+#lessonPanel .lesson-progress button{min-width:36px;min-height:36px;padding:4px}
+#lessonPanel .lesson-progress button[data-visited=true]{background:#263a49;color:#e4eaf0}
+#lessonPanel .lesson-nav{gap:8px;flex-wrap:wrap}
+#lessonPanel .lesson-nav button{min-height:40px;min-width:72px;font-size:14px}
+#lessonPanel #lessonRestore,#lessonPanel #lessonExplore{display:block;width:100%;margin-top:8px}
+#lessonPanel .lesson-capability,#lessonPanel summary,#lessonPanel details p,#lessonPanel .lesson-sources a{font-size:14px;line-height:1.6}
+#lessonPanel summary{padding:8px 0;min-height:36px}
+#lessonPanel details small{font-size:12px}
+.atlas-controls{grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;padding:24px 0}
+.atlas-controls label{font-size:14px;min-height:24px;color:#c6d3df}
+.atlas-controls select{font-size:14px;padding:10px;min-height:40px}
+.range-caption,.picker-count,.network-legend,.picked-network{font-size:12px}
+.pathway-picker{border-top:1px solid #3b5369;padding-top:20px}
+.picker-head{justify-content:flex-start;align-items:center;flex-wrap:wrap}
+.picker-head h2{font-size:18px;font-weight:600;margin:0}
+.picker-head button{font-size:14px;min-height:36px;margin-left:8px}
+#pathwayStatus,.picker-help{font-size:13px;line-height:1.6;color:#b8c9d8;margin:8px 0 12px}
+#selectedPathways{display:flex;flex-wrap:wrap;gap:8px}
+#selectedPathways button{background:#d6ba83;color:#101821;border:2px solid #d6ba83;font-size:13px;font-weight:600;min-height:36px}
+.picker-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:20px;max-height:520px;overflow:auto;padding:4px 8px 8px 0;align-items:start}
+.picker-group{display:block;min-width:0}
+.picker-group h3{font-size:14px;margin:0 0 8px;color:#c6d3df}
+.pathway-row{display:grid;grid-template-columns:minmax(0,1fr) 48px 48px;gap:8px;align-items:center;border-bottom:1px solid #26394a;padding:6px 0;min-width:0}
+.pathway-row>span{font-size:14px;line-height:1.4;overflow-wrap:anywhere;padding-right:4px}
+.bundle-chip{justify-content:center;min-height:36px;border-radius:4px;border-width:2px;padding:4px;font-size:13px;gap:3px}
+.bundle-chip i{width:12px;height:12px;border-radius:0;background:none}
+.bundle-chip[aria-pressed=true]{background:#d6ba83;color:#101821;border-color:#d6ba83;font-weight:750}
+.bundle-chip[aria-pressed=true] i{background:none}
+.bundle-chip[aria-pressed=true] i::after{content:'✓';display:block;font-size:13px;line-height:12px}
+.bundle-chip:disabled{opacity:.65}
+.source-footer,.source-footer a{font-size:12px}
+body[data-profile=presenter] #atlasWorkspace{grid-template-columns:minmax(0,1fr) 440px;height:clamp(880px,94dvh,1200px)}
+body[data-profile=presenter] #lessonPanel .lesson-lead{font-size:18px}
+body[data-profile=presenter] #lessonPanel h3{font-size:25px}
+body[data-profile=presenter] .scene-readout h2{font-size:28px}
+body[data-profile=presenter] .scene-readout>p{font-size:16px}
+body[data-profile=presenter] .intro h1{font-size:40px}
+body[data-profile=presenter] #lessonPanel .lesson-capability,body[data-profile=presenter] #lessonPanel summary,body[data-profile=presenter] #lessonPanel details p{font-size:16px}
+#atlasWorkspace[data-lesson-hidden=true],body[data-profile=presenter] #atlasWorkspace[data-lesson-hidden=true]{grid-template-columns:1fr}
+@media(max-width:1100px){
+  main{padding:20px}.intro{gap:20px}.studio-header{padding:12px 20px}
+  #atlasWorkspace,body[data-profile=presenter] #atlasWorkspace{display:flex;flex-direction:column;height:auto}
+  .atlas-stage{height:auto;grid-template-rows:auto minmax(380px,60dvh) auto auto auto auto;flex:none}
+  #atlasWorkspace #lessonPanel{border-left:0;border-top:1px solid #3b5369;max-height:800px;max-height:min(90dvh,900px)}
+  #lessonPanel .lesson-lead{max-width:75ch}
+  .atlas-controls{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  main{padding:16px}.intro{display:block}.intro h1,body[data-profile=presenter] .intro h1{font-size:30px}.intro>p{margin-top:12px}
+  .studio-header{padding:12px 16px}.studio-header nav{gap:8px 16px;flex-wrap:wrap;font-size:13px}
+  .brand{font-size:22px}.brand span{font-size:11px}
+  .search-field{flex-wrap:wrap}#pathwayFilter{flex-basis:100%}
+  .stage-head{display:flex;padding:16px 12px 8px}.views{justify-content:flex-start;gap:8px}.views button{font-size:12px;padding:6px 8px}
+  .atlas-stage{grid-template-rows:auto clamp(280px,85vw,520px) auto auto auto auto}
+  #atlasCanvas{min-height:280px}
+  .scene-readout{padding:12px}.scene-footer{margin:0 12px}.trace-note,.canvas-help{margin-left:12px;margin-right:12px}
+  #atlasWorkspace #lessonPanel{padding:20px 16px}
+  .atlas-controls{grid-template-columns:1fr;gap:16px}.deep-control{grid-column:auto}
+  .picker-groups{grid-template-columns:minmax(0,1fr)}.picker-head button{margin-left:0}
+  .source-footer{display:block}.source-footer a{white-space:normal}
+}
+@media(pointer:coarse){
+  button,input,.views button,.bundle-chip,.scene-footer button,.picker-head button,#selectedPathways button,#anatomyResults button,#lessonPanel button,#lessonPanel .lesson-top #lessonClose,#lessonPanel .lesson-progress button,#lessonPanel .lesson-nav button,.studio-header nav a,select,.atlas-controls select,#lessonPanel select{min-height:44px}
+  #lessonPanel .lesson-progress button{min-width:44px}.deep-control>label{display:flex;align-items:center;min-height:44px}
+}
+@media(prefers-contrast:more){
+  :root{--ink:#fff;--muted:#d6e2ee;--line-strong:#b8ccdd}
+  button,select,input,#atlasWorkspace,#anatomyResults{border-color:#b8ccdd}
+  #lessonPanel .lesson-capability,.trace-note,.canvas-help,.source-footer{color:#d6e2ee}
+}
+@media(forced-colors:active){
+  button,select,input{border:2px solid ButtonText}
+  .bundle-chip[aria-pressed=true],#selectedPathways button,#lessonPanel button[aria-current=step]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}
+  #atlasCanvas{forced-color-adjust:none;background:#070c12}
+  .parcel-legend{border:1px solid CanvasText;padding:8px}.focus-key,.context-key{color:CanvasText}
+}
+@media print{
+  :root{color-scheme:light;background:white;color:black}body{background:white;color:black}
+  .studio-header,.anatomy-search,.views,.canvas-help,.scene-footer button,#lessonPanel select,#lessonPanel button,.lesson-progress,.lesson-nav,.lesson-pace,.atlas-controls,.trace-note,.lesson-pace-label,.lesson-pace-note{display:none!important}
+  main{max-width:none;padding:0}.intro>p,.intro>p span{color:black}
+  #atlasWorkspace,body[data-profile=presenter] #atlasWorkspace{display:block;height:auto;border:0}
+  .atlas-stage{display:block;height:auto;background:#070c12;color:#e4eaf0;break-inside:avoid}
+  #atlasCanvas{height:500px}#atlasWorkspace #lessonPanel{display:block!important;max-height:none;overflow:visible;border:0;padding:20px 0;background:white;color:black}
+  #lessonPanel h2,#lessonPanel h3,#lessonPanel p,#lessonPanel .lesson-lead,#lessonPanel summary,#lessonPanel a,#lessonPanel .lesson-review,#lessonPanel .lesson-version{color:black!important}
+  #lessonPanel details{break-inside:avoid}#lessonPanel .lesson-capability{background:white;color:black}
+}
+
+/* Resident atlas layout. The long catalog is available on demand. */
+.atlas-annotations,.atlas-leaders{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:hidden;}
+.atlas-parcel-label{position:absolute;min-height:26px;padding:5px 7px;border:1px solid var(--label-color,#84cec0);border-radius:3px;background:#25242bf2;color:var(--label-color,#a6e4d7);font:600 12px/1.3 var(--mono);}
+.atlas-parcel-label[data-primary=true]{border-color:#d4a2e5;color:#ecc8f8;}
+.atlas-parcel-label small{display:block;color:#dfd5e4;font:12px/1.3 var(--mono);}
+.atlas-parcel-label small:empty{display:none;}
+.atlas-leaders line{stroke:#84cec0;stroke-width:1;opacity:.85;}
+.atlas-leaders line[data-primary=true]{stroke:#d4a2e5;}
+.atlas-leaders line[data-visibility=covered]{stroke-dasharray:4 4;opacity:.6;}
+.anatomy-drawer{border:1px solid #344758;border-radius:6px;margin-top:16px;background:#0c151e;}
+.anatomy-drawer>summary{min-height:48px;padding:14px 18px;cursor:pointer;font-size:16px;font-weight:600;color:#e4eaf0;}
+.anatomy-drawer>summary span{font-size:13px;font-weight:400;color:#a8bacb;margin-left:12px;}
+.anatomy-drawer .atlas-controls{padding:16px;margin:0;}
+.anatomy-drawer summary:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+@media screen{
+  main{padding-top:18px;}
+  .intro{margin-bottom:14px;}
+  .intro h1,body[data-profile=presenter] .intro h1{font-size:30px;}
+  .anatomy-search{margin-bottom:16px;}
+  #atlasWorkspace,body[data-profile=presenter] #atlasWorkspace{height:clamp(680px,calc(100dvh - 244px),1040px);grid-template-columns:minmax(0,1fr) 420px;}
+  #atlasWorkspace #lessonPanel[data-active-lesson=true]{display:flex;flex-direction:column;overflow:hidden;padding:16px 20px 0;}
+  #lessonPanel .lesson-top{margin-bottom:8px;flex:none;}
+  #lessonPanel .lesson-top .lesson-eyebrow{display:none;}
+  #lessonPanel #lessonProfile{max-width:180px;margin:0;font-size:13px;min-height:36px;}
+  #lessonPanel #lessonSelect{flex:none;}
+  #lessonPanel .lesson-title{font-size:14px;margin:12px 0;color:#b7c7d5;line-height:1.4;font-weight:500;}
+  #lessonPanel .lesson-progress{flex:none;max-width:none;gap:6px;margin:12px 0;}
+  #lessonPanel .lesson-scroll{min-height:0;overflow:auto;overscroll-behavior:contain;flex:1;padding-right:8px;scrollbar-gutter:stable;}
+  #lessonPanel .lesson-scroll>.lesson-evidence{margin:8px 0;font-size:11px;}
+  #lessonPanel #lessonCurrent h3,body[data-profile=presenter] #lessonPanel #lessonCurrent h3{font-size:25px;line-height:1.2;margin:10px 0 14px;}
+  #lessonPanel .lesson-controls{flex:none;background:var(--panel);border-top:1px solid #3b5369;padding:10px 0 12px;display:flex;flex-wrap:wrap;gap:8px;}
+  #lessonPanel .lesson-nav{width:100%;margin:0;gap:8px;}
+  #lessonPanel .lesson-controls>button{font-size:12px;min-height:32px;flex:1;}
+  #lessonPanel .lesson-nav button{font-size:14px;min-height:40px;}
+  body[data-profile=presenter] #lessonPanel .lesson-observe p,body[data-profile=presenter] #lessonPanel .lesson-surgical p,body[data-profile=presenter] #lessonPanel .lesson-check p,body[data-profile=presenter] #lessonPanel .lesson-anatomy li{font-size:17px;}
+}
+@media screen and (max-width:1100px){
+  #atlasWorkspace,body[data-profile=presenter] #atlasWorkspace{display:flex;flex-direction:column;height:auto;}
+  #atlasWorkspace #lessonPanel[data-active-lesson=true]{flex:none;height:clamp(640px,90dvh,900px);max-height:none;}
+}
+@media screen and (max-width:760px){
+  #atlasWorkspace #lessonPanel[data-active-lesson=true]{padding:16px 16px 0;}
+  .anatomy-drawer>summary span{display:block;margin:6px 0 0;}
+  .intro>p{font-size:14px;margin-top:8px;}
+}
+@media (pointer:coarse){
+  #lessonPanel .lesson-controls button,#lessonPanel .lesson-targets button,#lessonPanel #lessonProfile{min-height:44px;}
+}
+@media (forced-colors:active){
+  #lessonPanel .lesson-observe,#lessonPanel .lesson-check,#lessonPanel .lesson-controls{background:Canvas;color:CanvasText;}
+  #lessonPanel h4,#lessonPanel .lesson-answer summary{color:LinkText;}
+}
+@media print{
+  .anatomy-drawer{display:none;}
+  #lessonPanel .lesson-scroll{overflow:visible;height:auto;}
+  #lessonPanel .lesson-controls,#lessonPanel .lesson-targets{display:none;}
+  #lessonPanel .lesson-observe,#lessonPanel .lesson-check{background:white;color:black;}
+  #lessonPanel h4,#lessonPanel .lesson-observe p,#lessonPanel .lesson-surgical p,#lessonPanel .lesson-check p,#lessonPanel .lesson-anatomy li{color:black;}
+}

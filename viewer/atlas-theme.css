@@ -1,0 +1,100 @@
+/* TractLab Anatomy: stone / graphite / plum. Atlas pages only.
+   Scientific network and tract palettes are owned by their data renderers. */
+:root{
+  color-scheme:light;
+  --bg:#f3efea;--panel:#fffcf8;--ink:#29252d;--muted:#665e69;
+  --line:#d1c6cf;--line-strong:#847787;
+  --accent:#684067;--accent-strong:#512b56;--accent-soft:#eee3ef;
+  --control:#fffcf8;--control-hover:#eee5ed;--subtle:#eee8e4;
+  --gold:var(--accent);--blue:var(--accent); /* compatibility with layout styles */
+  --stage:#25242b;--stage-ink:#f5f0ed;--stage-muted:#c9c0cc;
+  --stage-line:#85798b;--stage-control:#38313e;
+  --parcel-focus:#d4a2e5;--parcel-context:#84cec0;
+  background:var(--bg);color:var(--ink);
+}
+body{background:var(--bg);color:var(--ink)}
+::selection{background:#dcc3df;color:#29252d}
+a{color:var(--accent-strong)}
+button,select,input{background:var(--control);color:var(--ink);border-color:var(--line-strong);accent-color:var(--accent)}
+button:hover{background:var(--control-hover);border-color:var(--accent)}
+button:disabled,.bundle-chip:disabled,#lessonPanel button:disabled{opacity:1;background:#eee8eb;color:#756b79;border-color:#b5a9b7}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.studio-header{background:var(--panel);border-color:var(--line)}
+.brand{color:var(--ink)}
+.brand span,.eyebrow{color:var(--accent)}
+.intro>p,.intro>p span{color:var(--muted)}
+.skip-link{background:var(--accent-strong);color:white}
+#pathwayFilter{background:var(--panel);color:var(--ink);border-color:var(--line-strong)}
+#pathwayFilter::placeholder{color:var(--muted);opacity:1}
+#anatomyResults{background:var(--panel);border-color:var(--line-strong)}
+#anatomyResults button[aria-pressed=true],#selectedPathways button,.bundle-chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:white}
+#anatomyResults button[aria-pressed=true]:hover,#selectedPathways button:hover,.bundle-chip[aria-pressed=true]:hover{background:var(--accent-strong)}
+#atlasWorkspace{background:var(--panel);border-color:var(--line-strong)}
+.atlas-stage{color-scheme:dark;background:var(--stage);color:var(--stage-ink);--gold:#d9b5e5;--blue:#d9b5e5;--muted:var(--stage-muted);--ink:var(--stage-ink)}
+.stage-head .eyebrow,.scene-readout .eyebrow{color:#d9b5e5}
+.stage-head strong,.scene-readout h2{color:var(--stage-ink)}
+.stage-head p,.scene-readout p,.scene-readout .parcel-legend,.trace-note,.canvas-help,.scene-footer{color:var(--stage-muted)}
+.atlas-stage button,.views button{background:var(--stage-control);border-color:var(--stage-line);color:var(--stage-ink)}
+.atlas-stage button:hover{background:#504157;border-color:#cba8d6}
+.atlas-stage button:focus-visible,#atlasCanvas canvas:focus-visible{outline-color:#e2bdef}
+.atlas-stage button:disabled{background:#312d36;color:#b5aab9;border-color:#716576}
+#atlasFit{border-color:#d9b5e5;color:#edcff6}
+.scene-footer{border-color:#665b6d}
+#atlasHover{background:#faf6f1;color:#29252d;border-color:#cda8d7}
+.focus-key{color:var(--parcel-focus)}
+.context-key{color:var(--parcel-context)}
+.scene-readout #explorationStatus{border-color:#d9b5e5;color:#e8ceed}
+.network-legend,.picked-network{color:var(--muted)}
+.network-legend li.dim{opacity:1;color:var(--muted)}
+.network-legend li.dim i{opacity:.4}
+#atlasWorkspace #lessonPanel{background:var(--panel);color:var(--ink);border-color:var(--line)}
+#lessonPanel button,#lessonPanel select{background:var(--control);color:var(--ink);border-color:var(--line-strong)}
+#lessonPanel button:hover{background:var(--control-hover);border-color:var(--accent)}
+#lessonPanel h2,#lessonPanel h3,#lessonPanel .lesson-lead,#lessonPanel .lesson-observe p,#lessonPanel .lesson-surgical p,#lessonPanel .lesson-check p{color:var(--ink)}
+#lessonPanel h4,#lessonPanel .lesson-answer summary,#lessonPanel .lesson-eyebrow{color:var(--accent-strong)}
+#lessonPanel .lesson-title,#lessonPanel .lesson-review,#lessonPanel .lesson-version,#lessonPanel .lesson-pace-note,#lessonPanel .lesson-catalog span,#lessonPanel .lesson-catalog small,#lessonPanel summary,#lessonPanel details small{color:var(--muted)}
+#lessonPanel .lesson-review{font-size:12px}
+#lessonPanel .lesson-evidence{color:var(--accent);font-size:12px}
+#lessonPanel .lesson-scroll>.lesson-evidence{font-size:12px}
+#lessonPanel .lesson-progress button[data-visited=true]{background:#e9e0eb;color:var(--accent-strong);border-color:#927696}
+#lessonPanel .lesson-progress button[aria-current=step]{background:var(--accent);color:white;border-color:var(--accent);border-style:solid}
+#lessonPanel .lesson-controls{background:var(--panel);border-color:var(--line)}
+#lessonPanel .lesson-nav button:last-child{background:var(--accent);color:white;border-color:var(--accent)}
+#lessonPanel .lesson-nav button:last-child:hover{background:var(--accent-strong)}
+#lessonPanel .lesson-observe{background:var(--accent-soft);border-color:var(--accent)}
+#lessonPanel .lesson-check{background:var(--subtle);border-color:var(--line)}
+#lessonPanel .lesson-targets button{background:var(--panel);border-color:var(--accent);color:var(--accent-strong)}
+#lessonPanel .lesson-targets button:hover{background:#ddc9e1}
+#lessonPanel .lesson-capability{background:transparent;border-color:var(--line-strong);color:var(--muted)}
+#lessonPanel .lesson-catalog button{background:transparent;color:var(--ink);border-color:var(--line)}
+#lessonPanel .lesson-catalog button:hover{background:var(--accent-soft);color:var(--accent-strong)}
+#lessonPanel .lesson-sources a{color:var(--accent-strong)}
+#lessonPanel .lesson-surgical,#lessonPanel .lesson-goals,#lessonPanel .lesson-playback,.lesson-regions details,.lesson-sources,.lesson-notes{border-color:var(--line)}
+.lesson-pace{background:#e0d5e0}
+.lesson-pace-fill{background:var(--accent)}
+.lesson-diagram{background:var(--subtle);border-color:var(--line)}
+.lesson-diagram>span{background:var(--panel);border-color:var(--accent)}
+.lesson-diagram small{color:var(--muted)}
+.anatomy-drawer{background:var(--panel);border-color:var(--line-strong)}
+.anatomy-drawer>summary{color:var(--ink)}
+.anatomy-drawer>summary span,.atlas-controls label,.picker-group h3,.picker-group>span,.range-caption,.picker-count,#pathwayStatus,.picker-help{color:var(--muted)}
+.atlas-controls,.pathway-picker,.pathway-row{border-color:var(--line)}
+.atlas-controls select{background:var(--control);color:var(--ink);border-color:var(--line-strong)}
+.atlas-controls input[type=range],.deep-control input{accent-color:var(--accent)}
+.bundle-chip{background:var(--panel);color:var(--ink);border-color:var(--line-strong)}
+.bundle-chip:hover{background:var(--control-hover)}
+.source-footer,.source-footer a{color:var(--muted)}
+.source-footer a:hover{color:var(--accent-strong)}
+@media(prefers-contrast:more){
+  :root{--ink:#19151d;--muted:#44394a;--line:#79697e;--line-strong:#594460;--accent:#512b56;--stage-muted:#eee5f2}
+}
+@media(forced-colors:active){
+  :root{--bg:Canvas;--panel:Canvas;--ink:CanvasText;--muted:CanvasText;--accent:LinkText;--accent-strong:LinkText;--accent-soft:Canvas;--control:ButtonFace;--subtle:Canvas;--line:CanvasText;--line-strong:CanvasText}
+  #lessonPanel .lesson-progress button[aria-current=step],#lessonPanel .lesson-nav button:last-child,#selectedPathways button,.bundle-chip[aria-pressed=true],#anatomyResults button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}
+  #lessonPanel .lesson-progress button[data-visited=true]:not([aria-current=step]){background:Canvas;color:CanvasText;border-color:CanvasText}
+  #atlasCanvas{forced-color-adjust:none;background:var(--stage)}
+}
+@media print{
+  :root{--bg:white;--panel:white;--ink:black;--muted:#222;--accent:black;--accent-strong:black;--accent-soft:white;--subtle:white}
+  #lessonPanel .lesson-observe,#lessonPanel .lesson-check{background:white}
+}

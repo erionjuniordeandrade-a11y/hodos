@@ -1,0 +1,16 @@
+{
+  "name": "hodos",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Interactive cortex and white matter anatomy coursebook",
+  "repository": "github:erionjuniordeandrade-a11y/hodos",
+  "scripts": {
+    "test": "node --test 'tests/js/*.test.js'",
+    "build": "node scripts/build-hodos.mjs",
+    "build:hodos": "node scripts/build-hodos.mjs"
+  },
+  "devDependencies": {"playwright": "1.62.1"},
+  "engines": {"node": ">=22"}
+}

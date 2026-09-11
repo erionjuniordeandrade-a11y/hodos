@@ -1,0 +1,74 @@
+{
+  "source_deck": "glioma_connectome_master_v2_18_atlas-addonly_notes.pptx",
+  "source_deck_sha256": "dc9155dec44eac41270083be85ecd8d65484e6b247d0ddde539e8c33b48ac289",
+  "terms_url": "https://www.aans.org/education-publications/references/the-rhoton-collection/",
+  "terms_checked": "2026-09-11",
+  "transform": "None. Embedded PNG bytes copied unchanged, including source highlights and watermarks.",
+  "plates": [
+    {
+      "id": "lateral-association",
+      "slide": 56,
+      "member": "ppt/media/image60.png",
+      "file": "lateral-association.png",
+      "sha256": "10c70f5e5bfaeff807124fc8192699d75ce6e6973101e282b4bf6a24bcfc8d67",
+      "width": 1619,
+      "height": 1080,
+      "bytes": 2925659,
+      "credit": "K. Yagmurlu / Rhoton Collection",
+      "laterality": "Left hemisphere, lateral dissection, anterior at image left",
+      "source_locator_status": "Embedded source from the owner-supplied deck; individual collection image IDs not supplied."
+    },
+    {
+      "id": "ifof",
+      "slide": 82,
+      "member": "ppt/media/image98.png",
+      "file": "ifof.png",
+      "sha256": "cafcb05ab5b2e6cde91e6f1524538c8372a47c320e7c93a3034e97217ef97550",
+      "width": 1601,
+      "height": 1080,
+      "bytes": 2435634,
+      "credit": "K. Yagmurlu / Rhoton Collection",
+      "laterality": "Left hemisphere, lateral dissection, anterior at image left",
+      "source_locator_status": "Embedded source from the owner-supplied deck; individual collection image IDs not supplied."
+    },
+    {
+      "id": "uncinate",
+      "slide": 98,
+      "member": "ppt/media/image114.png",
+      "file": "uncinate.png",
+      "sha256": "2ab120349195de48fb0a999b34deaf25b188e173b3ce53ab66ed791c1a7da24f",
+      "width": 1601,
+      "height": 1080,
+      "bytes": 2436816,
+      "credit": "K. Yagmurlu / Rhoton Collection",
+      "laterality": "Left hemisphere, lateral dissection, anterior at image left",
+      "source_locator_status": "Embedded source from the owner-supplied deck; individual collection image IDs not supplied."
+    },
+    {
+      "id": "optic-radiation",
+      "slide": 124,
+      "member": "ppt/media/image142.png",
+      "file": "optic-radiation.png",
+      "sha256": "0ddbbe03d46fba09f314f8b4b83078aaadf4227672c9d789383df7c3f741d826",
+      "width": 1608,
+      "height": 1080,
+      "bytes": 2927016,
+      "credit": "K. Yagmurlu / Rhoton Collection",
+      "laterality": "Left hemisphere, lateral dissection, anterior at image left",
+      "source_locator_status": "Embedded source from the owner-supplied deck; individual collection image IDs not supplied."
+    },
+    {
+      "id": "temporal-horn",
+      "slide": 127,
+      "member": "ppt/media/image145.png",
+      "file": "temporal-horn.png",
+      "sha256": "1e584780bff6a0da762492929b1b0d709b11bbdeffb5e23b52341acf75165fc1",
+      "width": 1608,
+      "height": 1080,
+      "bytes": 2923045,
+      "credit": "K. Yagmurlu / Rhoton Collection",
+      "laterality": "Left hemisphere, lateral dissection, anterior at image left",
+      "source_locator_status": "Embedded source from the owner-supplied deck; individual collection image IDs not supplied."
+    }
+  ]
+}
