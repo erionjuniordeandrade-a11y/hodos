@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 
 const repoRoot=fileURLToPath(new URL('../',import.meta.url));
 const modules=[
+  'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js',
   'atlas_app.js','atlas_scene.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
   'dissection_references.js',
@@ -16,6 +17,7 @@ const modules=[
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
 ];
 const supportingFiles=[
+  'case_conference.css',
   'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
   'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',
@@ -44,7 +46,7 @@ function publicHTML(html){
   html=html.replace(/(?: · )?<a href="\.\/\?profile=clinical">Case reconstruction<\/a>/g,'');
   // Pages serves the coursebook at the site root and strips .html; public links use those paths
   // so the canonical URL, the wordmark and the sources link all agree.
-  html=html.replaceAll('href="./atlas.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"');
+  html=html.replaceAll('href="./atlas.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"').replaceAll('href="./case-conference.html"','href="./case-conference"');
   html=html.replace('THIRD_PARTY_NOTICES.md in the source checkout','<a href="./THIRD_PARTY_NOTICES.md">Third-party notices and software licenses</a>');
   if(!html.includes('name="description"'))html=html.replace('</head>','<meta name="description" content="Hodos: an interactive cortex and white matter atlas for neurosurgical residents. Explore anatomy, relationships and brain networks. Created by Dr. Erion de Andrade."></head>');
   if(/profile=clinical|Case reconstruction/.test(html))throw Error('Local case navigation remains in the public page');
@@ -89,7 +91,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     if(bytes.length!==plate.bytes||sha256(bytes)!==plate.sha256)throw Error(`Dissection asset integrity failed: ${plate.file}`);
     add(name,bytes);
   }
-  for(const name of ['atlas.html','atlas-sources.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
+  for(const name of ['atlas.html','atlas-sources.html','case-conference.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
   add('index.html',files.get('atlas.html'));
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));

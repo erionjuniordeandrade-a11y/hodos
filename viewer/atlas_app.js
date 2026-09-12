@@ -9,6 +9,7 @@ import {toggleBundle,MAX_BUNDLES,tintForIndex,tintCss,filterBundles,selectionCap
 import {YEO7,networkLabel,networkFromSearch,networkToSearchValue,networkSelection,rgbCss} from './atlas_networks.js';
 import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
 import {bundleLabel,bundleAliases} from './atlas_glossary.js';
+import {caseReference} from './case_reference.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
 // Read `net` before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
@@ -431,6 +432,7 @@ try{
   applyBundles([]);scene.setSurface(.8);setProfile(profile);
   const deepFromUrl=scene.subMeta.structures.find(d=>d.id===bootParams.get('deep'));if(deepFromUrl)showDeep(deepFromUrl);
   player=mountAnatomyLessons($('lessonPanel'),{
+    readOnlyProgress:caseReference,
     onStep:applyStep,onMode:setMode,onInspect:inspectLessonTarget,onCompare:compareLecture,
     onRestore:()=>applyStep(currentLesson,currentStep),onExplore:restoreExploration,
   });

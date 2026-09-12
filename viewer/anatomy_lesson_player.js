@@ -18,8 +18,8 @@ const phaseFromSearch=search=>{const value=new URLSearchParams(search).get('phas
 
 /** Anatomy's resident teaching experience is independent of the case viewer's
  * legacy lesson player. Callbacks expose only local reference display actions. */
-export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onRestore=()=>{},onExplore=()=>{},onMode=()=>{},onCompare=()=>{}}={}){
-  let storage;try{storage=localStorage;}catch{/* Session-only progress still works. */}
+export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onRestore=()=>{},onExplore=()=>{},onMode=()=>{},onCompare=()=>{},readOnlyProgress=false}={}){
+  let storage;if(!readOnlyProgress)try{storage=localStorage;}catch{/* Session-only progress still works. */}
   const progress=createLearningProgress(storage),revealed=new Set();
   let phase=phaseFromSearch(location.search),controller,lastScene='',lastReading='',focusHeading=false,noticeFor=null;
   const lessonNow=()=>LESSONS.find(l=>l.id===controller.state.lessonId);
@@ -51,7 +51,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     else if(index>0)goPhase(LEARNING_PHASES[index-1]);
     else if(controller.state.step>0)goStep(controller.state.step-1,'explain');else goPhase('brief');
   }
-  function progressNote(){return el('p',{class:'learning-save-note'},progress.persistent?'Progress saved on this device · no account needed.':'Progress is available for this session; device storage is unavailable.');}
+  function progressNote(){return el('p',{class:'learning-save-note'},readOnlyProgress?'Case reference: lesson progress is session-only; your saved lessons are unchanged.':progress.persistent?'Progress saved on this device · no account needed.':'Progress is available for this session; device storage is unavailable.');}
   function renderLibrary(state){
     onMode('library');lastScene='';onStep(null,null);
     root.append(el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},'Choose a relationship to understand.'));
