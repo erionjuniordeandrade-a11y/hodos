@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build -- --out=dist/ci
+      - run: npx playwright install --with-deps chromium
+      - name: Serve the export and run the publication gate
+        run: |
+          python3 -m http.server 51038 --bind 127.0.0.1 --directory dist/ci &
+          sleep 2
+          node tests/perf/hodos_publication.mjs --url=http://127.0.0.1:51038 --release=dist/ci/release.json --out=output/ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: publication-report
+          path: output/ci
+          if-no-files-found: ignore
