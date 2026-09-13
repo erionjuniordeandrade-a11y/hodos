@@ -21,13 +21,15 @@ try{
  const next=()=>page.locator('.stage-actions .primary').click();
  const savedLearning=()=>page.evaluate(()=>localStorage.getItem('tractlab.anatomy.learning.v1'));
  await page.goto(new URL('case-conference.html',base).href);await page.getByRole('heading',{name:'Bring your reasoning to the conference.'}).waitFor();
- assert.equal(await page.locator('.case-row').count(),3);await shot('catalog-desktop');
- for(const [index,id] of ['medial-frontal','insular','temporoparietal'].entries()){
+ assert.equal(await page.locator('.case-row').count(),4);await shot('catalog-desktop');
+ for(const [index,id] of ['medial-frontal','insular','temporoparietal','right-medial-frontal'].entries()){
   await page.locator('.case-row').nth(index).getByRole('button',{name:'Begin case'}).click();
   await page.getByRole('heading',{name:'Read the case'}).waitFor();
-  await page.locator('.case-mri img').evaluate(img=>img.decode());
-  assert.match(await page.locator('.case-mri img').getAttribute('src'),new RegExp(`${id}.png$`));
-  assert.match(await page.locator('.case-mri figcaption').innerText(),/AI-generated/);
+  if(await page.locator('.case-mri img').count()){
+   await page.locator('.case-mri img').evaluate(img=>img.decode());
+   assert.match(await page.locator('.case-mri img').getAttribute('src'),new RegExp(`${id}.png$`));
+   assert.match(await page.locator('.case-mri figcaption').innerText(),/AI-generated/);
+  }else{assert.equal(await page.locator('.case-imaging').count(),0);assert(await page.locator('.schematic svg').isVisible(),'schematic shown when no illustration is installed');}
   await shot(`${id}-imaging`);if(index===0)await shot('medial-case');
   await next();await page.locator('#initialResponse').fill(`Initial teaching answer ${id}`);await next();
   if(index===0){

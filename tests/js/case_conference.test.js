@@ -9,8 +9,8 @@ test('review does not unlock practice stages or remain sticky when practice resu
  store.update(id,{stage:5,reviewOnly:true});assert.equal(store.get(id).maxStage,0);
  store.update(id,{stage:0,reviewOnly:false});assert.equal(store.get(id).reviewOnly,false);assert.equal(store.get(id).maxStage,0);
 });
-test('three fictional cases reference installed lessons and evidence',()=>{
- assert.equal(CASES.length,3);assert.equal(new Set(CASES.map(c=>c.id)).size,3);
+test('four fictional cases reference installed lessons and evidence',()=>{
+ assert.equal(CASES.length,4);assert.equal(new Set(CASES.map(c=>c.id)).size,4);
  for(const c of CASES){assert.ok(c.fictional);assert.equal(c.rubric.length,4);assert.ok(c.finding);assert.ok(c.debrief.length>=3);
   for(const r of c.references){const l=LESSONS.find(l=>l.id===r.lesson);assert.ok(l,r.lesson);assert.ok(l.steps[r.step]);}
   for(const s of c.sources)assert.match(s.url,/^https:\/\/(pubmed\.ncbi\.nlm\.nih\.gov|doi\.org)\//);
