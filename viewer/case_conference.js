@@ -39,6 +39,7 @@ function diagram(c){
 }
 function caseImage(c){
  const data=CASE_IMAGES[c.id],figure=el('figure',{class:'case-mri'});
+ if(!data){figure.append(p('No illustration is installed for this case. The written case and schematic remain available.'));return figure;}
  const img=el('img',{src:data.src,alt:data.alt,width:1280,height:1280,decoding:'async'});
  img.addEventListener('error',()=>{img.hidden=true;figure.prepend(p('Illustration unavailable. The written case and schematic remain available.'));});
  const full=el('a',{href:data.src,target:'_blank',rel:'noopener'},'Open full-size illustration');
@@ -113,8 +114,7 @@ function render(focus=false){
   const r=store.get(active.id),top=el('div',{class:'case-top'});top.append(button('All cases',()=>navigate(),{class:'text-button'}),p(`Fictional teaching case ${active.number} · Senior level`));main.append(top);
   const nav=el('ol',{class:'stage-nav','aria-label':'Case stages'});stages.forEach((name,i)=>{const li=el('li'),b=button('',()=>navigate(active.id,i));b.append(el('span',{},String(i+1).padStart(2,'0')),document.createTextNode(name));if(i===r.stage)b.setAttribute('aria-current','step');b.disabled=i>r.maxStage;li.append(b);nav.append(li);});main.append(nav);
   const work=el('div',{class:'case-workbench'}),aside=el('aside',{class:'case-aside','aria-label':'Case context'}),body=el('section',{class:'stage-body'});
-  const schematic=el('details',{class:'schematic'});schematic.open=matchMedia('(min-width:851px)').matches;schematic.append(el('summary',{},'Schematic location'),diagram(active));
-  schematic.open=false;
+  const schematic=el('details',{class:'schematic'});schematic.open=false;schematic.append(el('summary',{},'Schematic location'),diagram(active));
   const imaging=el('details',{class:'case-imaging'});imaging.open=r.stage===0||matchMedia('(min-width:851px)').matches;imaging.append(el('summary',{},'Fictional MRI-style illustration'),caseImage(active));
   aside.append(p(active.location,'location'),el('h1',{class:'case-name'},active.title),imaging,schematic);const context=el('details');context.append(el('summary',{},'Case context'),p(active.vignette),p(active.diagram.description));aside.append(context,p('Fictional scenario. Reference relationships, not individual anatomy.','draft-note'),referenceButtons(active));work.append(aside,body);main.append(work);
   body.append(p(`Stage ${r.stage+1} of 6`,'stage-index'),el('h2',{id:'stageTitle',tabindex:'-1'},['Read the case','State your interpretation','Explore the relationships','Consider the new finding','Prepare your response','Compare your reasoning'][r.stage]));

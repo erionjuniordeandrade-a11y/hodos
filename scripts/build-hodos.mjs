@@ -97,17 +97,36 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   add('index.html',files.get('atlas.html'));
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
-  // Pages are revalidated on every visit; large static assets are cached for 30 days. Atlas and
-  // plate fetches carry a content-hash query, so a changed asset is fetched under a new key.
-  // Pages applies every matching rule and appends same-named headers, so the asset rules
-  // detach the page-level Cache-Control ("! Header") before setting their own.
+  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/atlas.css"><link rel="stylesheet" href="/atlas-design.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
+  // Long-cached assets referenced by plain path (fonts, brand files) get a content-hash query
+  // key, so a changed file is fetched under a new key instead of served stale for 30 days.
+  const keyed=supportingFiles.filter(n=>/^(brand|vendor\/fonts)\/.*\.(svg|png|woff2|ttf)$/.test(n));
+  const versionRefs=text=>{for(const name of keyed){const key=sha256(files.get(name)).slice(0,12);
+    text=text.replace(new RegExp(`(["'(])(\\./|/)${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(["')])`,'g'),`$1$2${name}?v=${key}$3`);}return text;};
+  for(const [name,bytes] of files)if(/\.(html|css)$/.test(name)){
+    const text=versionRefs(bytes.toString());
+    if(/(["'(])(\.\/|\/)(brand|vendor\/fonts)\/[^"')?]+\.(svg|png|woff2|ttf)(["')])/.test(text))throw Error(`Unversioned cached asset reference in ${name}`);
+    files.set(name,Buffer.from(text));
+  }
+  // Content-Security-Policy: first-party only. The import map is the one inline script and is
+  // allowed by hash; Draco decodes meshes in blob workers with WebAssembly; recordings play from
+  // blob URLs; the case reference dialog frames the same origin.
+  for(const name of ['atlas-sources.html','case-conference.html'])if(/<script(?![^>]*\bsrc=)/.test(files.get(name).toString()))throw Error(`Inline script in ${name} needs a CSP hash`);
+  const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
+  const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
+  const csp=`default-src 'self'; script-src 'self' ${scriptHashes.join(' ')} 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'`;
+  // Pages are revalidated on every visit; hashed or key-versioned assets are cached for 30 days.
+  // Vendor scripts are referenced by plain path, so they revalidate like the page. Pages applies
+  // every matching rule and appends same-named headers, so the asset rules detach the page-level
+  // Cache-Control ("! Header") before setting their own.
   const cached=['  ! Cache-Control','  Cache-Control: public, max-age=2592000'];
-  add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin','  Cache-Control: public, max-age=0, must-revalidate',
-    '/atlas/*',...cached,'/vendor/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,''].join('\n'));
+  add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin',`  Content-Security-Policy: ${csp}`,
+    '  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=()','  Cache-Control: public, max-age=0, must-revalidate',
+    '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,''].join('\n'));
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
   for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);
-  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/atlas.css"><link rel="stylesheet" href="/atlas-design.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
 
   // Explicit imports must resolve inside the allowlist. A new dependency
   // needs an intentional export change, never an automatic whole-tree copy.

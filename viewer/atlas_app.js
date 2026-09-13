@@ -350,7 +350,7 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 }));
 
 try{
-  scene=await createAtlasScene($('atlasCanvas'),{onStatus:text=>{$('atlasLoading').textContent=text;},
+  scene=await createAtlasScene($('atlasCanvas'),{onStatus:(text,{ready=false}={})=>{const status=$('atlasLoading');status.textContent=text;status.hidden=ready;},
     onHover:pick=>{const tip=$('atlasHover');tip.hidden=!pick;if(!pick)return;
       tip.textContent=pick.deep?`${pick.deep.name} · ${pick.deep.hemisphere==='L'?'left':'right'}`
         :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code} · ${pick.hemi==='L'?'left':'right'} · click to select`;},

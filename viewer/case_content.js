@@ -25,7 +25,7 @@ export const CASES=[
    {title:'A defensible response',text:'“The brief strength examination is reassuring about the task tested, but it does not resolve the reported initiation difficulty. I would describe the medial frontal relationships, examine initiation and sequencing more closely, and keep the deep margin and individual functional organization explicitly unresolved.” This is an example of reasoning, not the only acceptable wording.',sourceIds:[]},
   ],
   rubric:rubric('Did I distinguish the medial premotor references, area 4 and descending pathways?','Did I separate an observation from a diagnosis and consider competing explanations?','Did I name specific missing examination and individual imaging information?','Did I avoid declaring functional sparing or forecasting recovery from an atlas?'),
-  sources:[source('sma','Resection of supplementary motor area gliomas: SMA syndrome and the frontal aslant tract','34598138','Retrospective surgical cohort. Postoperative associations do not diagnose preoperative symptoms or provide an individual probability of deficit.')],
+  sources:[source('sma','Resection of supplementary motor area gliomas: revisiting supplementary motor syndrome and the role of the frontal aslant tract','34598138','Retrospective surgical cohort. Postoperative associations do not diagnose preoperative symptoms or provide an individual probability of deficit.')],
  },
  {
   id:'insular',fictional:true,title:'The invisible part of the margin',location:'Insular glioma',number:'02',

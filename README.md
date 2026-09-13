@@ -37,6 +37,12 @@ node tests/perf/atlas_v1.mjs --url=http://127.0.0.1:51038 --out=output/v1
 node tests/perf/hodos_publication.mjs --url=http://127.0.0.1:51038 --release=dist/hodos/release.json --out=output/publication
 ```
 
+GitHub Actions runs the unit tests, a fresh export and the publication gate against
+that export on every push to `main` and on pull requests (`.github/workflows/ci.yml`).
+The export ships a first-party Content-Security-Policy and a Permissions-Policy in
+`_headers`; fonts and brand files are referenced with content-hash keys so long caches
+never serve stale bytes.
+
 ## Publish
 
 The existing Cloudflare Pages project is `hodos-atlas`, production branch `main`.

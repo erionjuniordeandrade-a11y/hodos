@@ -29,6 +29,12 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(sources,/href="\.\/"/);assert.match(home,/href="\.\/atlas-sources"/);
   const headers=await readFile(path.join(out,'_headers'),'utf8');
   assert.match(headers,/\/atlas\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);assert.match(headers,/^\/\*\n(?:.*\n)*?  Cache-Control: public, max-age=0, must-revalidate/);
+  assert.match(headers,/Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval'; style-src 'self'/);
+  assert.match(headers,/Permissions-Policy: microphone=\(self\), camera=\(\)/);
+  assert.doesNotMatch(headers,/^\/vendor\/\*$/m);assert.match(headers,/\/vendor\/fonts\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
+  assert.match(home,/href="\.\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}"/);
+  assert.match(await readFile(path.join(out,'hodos.css'),'utf8'),/inter-latin-regular\.woff2\?v=[a-f0-9]{12}/);
+  assert.match(await readFile(path.join(out,'404.html'),'utf8'),/\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}/);
   assert(receipt.files.some(f=>f.path==='brand/hodos-og.png'));
   assert(receipt.files.some(f=>f.path==='vendor/addons/libs/draco/gltf/draco_decoder.wasm'));
   assert(receipt.files.some(f=>f.path==='404.html'));

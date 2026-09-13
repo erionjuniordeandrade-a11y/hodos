@@ -64,10 +64,10 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const next=`${visibleHemi}:${autoFrame?view:'free'}`;
     if(next!==viewStamp){viewStamp=next;onView({hemisphere:visibleHemi,view:autoFrame?view:'free'});}
   }
-  const traces=[];let frames=0;
+  const traces=[];let frames=0,contextLost=false;
   const bundleIdsBy=ghost=>[...bundles].filter(([,v])=>v.ghost===ghost).map(([id])=>id);
   function draw(now=0){
-    frame=0;if(disposed)return;
+    frame=0;if(disposed||contextLost)return;
     const moving=playing&&profile==='teaching'&&!reduced.matches&&!document.hidden;
     if(moving&&last)time+=Math.min((now-last)/1000,.05);
     last=moving?now:0;
@@ -75,12 +75,17 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const changed=controls.update();pipeline.render();updateAnnotations(now);updateOrientation();frames++;
     if(moving||changed)requestDraw();
   }
-  function requestDraw(){if(!frame&&!disposed)frame=requestAnimationFrame(draw);}
+  function requestDraw(){if(!frame&&!disposed&&!contextLost)frame=requestAnimationFrame(draw);}
   controls.addEventListener('change',requestDraw);
   controls.addEventListener('start',()=>{cameraTween=null;autoFrame=false;pipeline.setInteracting(true);onInteraction();});
   controls.addEventListener('end',()=>{pipeline.setInteracting(false);annotationStamp='';requestDraw();});
   reduced.addEventListener('change',requestDraw);
   document.addEventListener('visibilitychange',requestDraw);
+  // A lost WebGL context (GPU switch, backgrounded mobile tab) pauses the loop and says so;
+  // three.js re-initialises its state on restore, so the scene is redrawn rather than left blank.
+  renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;cancelAnimationFrame(frame);frame=0;
+    onStatus('Graphics context lost. Waiting for the browser to restore it; reload if the atlas stays blank.');});
+  renderer.domElement.addEventListener('webglcontextrestored',()=>{contextLost=false;annotationStamp='';resize();onStatus('Atlas ready',{ready:true});requestDraw();});
   const resize=()=>{const w=mount.clientWidth,h=mount.clientHeight;
     if(w<=0||h<=0)return;camera.aspect=w/h;camera.updateProjectionMatrix();pipeline.resize(w,h,devicePixelRatio);
     annotationStamp='';
@@ -216,10 +221,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   let surfaceMeta,tractMeta,tractBuffer,labels,networks=null,sub;
   let networkSel=networkSelection('off');
   try {
-    onStatus('Loading the reference atlas · pathways (3 MB)…');
-    [surfaceMeta,tractMeta,tractBuffer]=await Promise.all([json('surface.json'),json('tracts.json'),checked('tracts.bin')]);
     onStatus('Loading the reference atlas · cortical surface…');
-    const [left,right,labelBuffer]=await Promise.all([geometry('cortex-L.glb'),geometry('cortex-R.glb'),checked('surface-labels.bin')]);
+    // The 3 MB pathway buffer downloads in the background; the cortex is framed and drawn first.
+    const pathways=Promise.all([json('tracts.json'),checked('tracts.bin')]);pathways.catch(()=>{});
+    const [left,right,labelBuffer,surfaceJson]=await Promise.all([geometry('cortex-L.glb'),geometry('cortex-R.glb'),checked('surface-labels.bin'),json('surface.json')]);
+    surfaceMeta=surfaceJson;
     const counts=[left.attributes.position.count,right.attributes.position.count];
     labels=decodeAtlasLabels(surfaceMeta,labelBuffer,counts,'glasser');
     // Yeo-7 rides the same vertex order; absent set → networks stay off, never guessed.
@@ -240,8 +246,13 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       hemis[h]={geo,shell,group,count};
       frameGeometry.push(geo);
     }
+    {const bounds=new THREE.Box3();for(const geo of frameGeometry){geo.computeBoundingBox();bounds.union(geo.boundingBox);}bounds.getCenter(centre);}
+    framed=true;resize();setView();requestDraw();
+    onStatus('Loading the reference atlas · pathways (3 MB)…');
+    const [pathwayData,contextGeometry]=await Promise.all([pathways,geometry('inferior-context.glb')]);
+    [tractMeta,tractBuffer]=pathwayData;
     onStatus('Loading the reference atlas · deep structures…');
-    const context=new THREE.Mesh(await geometry('inferior-context.glb'),new THREE.MeshStandardMaterial({
+    const context=new THREE.Mesh(contextGeometry,new THREE.MeshStandardMaterial({
       color:0x8e8794,roughness:.8,side:THREE.DoubleSide,
       clippingPlanes:[new THREE.Plane(new THREE.Vector3(0,0,-1),0)]}));
     configContextMaterial(context.material,{THREE,opacity:.12});
@@ -529,7 +540,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       if(JSON.stringify(next)!==JSON.stringify(hoverPick)){hoverPick=next;applySelection();}});});
   renderer.domElement.addEventListener('pointerleave',clearHover);
   renderer.domElement.addEventListener('pointercancel',()=>{down=null;clearHover();});
-  setSurface(surface);select(null);framed=true;resize();setView();onStatus('Atlas ready');
+  setSurface(surface);select(null);framed=true;resize();setView();onStatus('Atlas ready',{ready:true});
   function snapshot(){return {selected:selected?{...selected}:null,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,network:{...networkSel},
     bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),deepHighlight:[...deepHighlightIds],
     surface,deepVisible,view,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};}

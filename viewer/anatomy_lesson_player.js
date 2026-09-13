@@ -162,7 +162,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
           if(!progress.get(lesson.id))progress.visit(lesson.id,state.step,'explain');progress.review(lesson.id);render(state);
         }),progressNote());
         body.append(el('p',{class:'learning-save-note'},'Reviewed records your own review. It is not an assessment of competence.'));
-        const nextGuide=TEACHING_GUIDES[guide.next];if(nextGuide)body.append(button(`Continue with ${nextGuide.shortTitle}`,'lessonNextTopic',()=>start(guide.next)));
+        const nextId=ORDERED_IDS[ORDERED_IDS.indexOf(lesson.id)+1],nextGuide=TEACHING_GUIDES[nextId];if(nextGuide)body.append(button(`Continue with ${nextGuide.shortTitle}`,'lessonNextTopic',()=>start(nextId)));
         appendReferences(body,lesson.steps.at(-1));
       }else{
         const article=el('article',{id:'lessonCurrent','aria-labelledby':'lessonCurrentTitle'});
