@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 
 const repoRoot=fileURLToPath(new URL('../',import.meta.url));
 const modules=[
+  'case_images.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js',
   'atlas_app.js','atlas_scene.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
@@ -17,6 +18,7 @@ const modules=[
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
 ];
 const supportingFiles=[
+  'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/README.md',
   'case_conference.css',
   'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',

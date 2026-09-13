@@ -1,6 +1,7 @@
 import {CASES,CASE_VERSION} from './case_content.js';
 import {createCaseStore} from './case_state.js';
 import {createCaseAudio} from './case_audio.js';
+import {CASE_IMAGES,IMAGE_CAPTION} from './case_images.js';
 
 const $=id=>document.getElementById(id),main=$('caseMain');
 let storage;try{storage=localStorage;}catch{}
@@ -35,6 +36,13 @@ function diagram(c){
  shape('ellipse',{cx:c.diagram.cx,cy:c.diagram.cy,rx:55,ry:38,fill:'#9be1f033',stroke:'#9be1f0','stroke-width':2,'stroke-dasharray':'5 5'});
  const t=shape('text',{x:30,y:312,fill:'#b6c0c5','font-size':15});t.textContent='Anterior';const t2=shape('text',{x:455,y:312,fill:'#b6c0c5','font-size':15});t2.textContent='Posterior';
  f.append(svg,el('figcaption',{},`Schematic fictional lesion. ${c.diagram.view}. Not to scale; no individual anatomy or safe margin is represented.`));return f;
+}
+function caseImage(c){
+ const data=CASE_IMAGES[c.id],figure=el('figure',{class:'case-mri'});
+ const img=el('img',{src:data.src,alt:data.alt,width:1280,height:1280,decoding:'async'});
+ img.addEventListener('error',()=>{img.hidden=true;figure.prepend(p('Illustration unavailable. The written case and schematic remain available.'));});
+ const full=el('a',{href:data.src,target:'_blank',rel:'noopener'},'Open full-size illustration');
+ figure.append(img,el('figcaption',{},IMAGE_CAPTION),full);return figure;
 }
 function openReference(ref,trigger){
  if(!canMove())return;referenceTrigger=trigger;
@@ -106,7 +114,9 @@ function render(focus=false){
   const nav=el('ol',{class:'stage-nav','aria-label':'Case stages'});stages.forEach((name,i)=>{const li=el('li'),b=button('',()=>navigate(active.id,i));b.append(el('span',{},String(i+1).padStart(2,'0')),document.createTextNode(name));if(i===r.stage)b.setAttribute('aria-current','step');b.disabled=i>r.maxStage;li.append(b);nav.append(li);});main.append(nav);
   const work=el('div',{class:'case-workbench'}),aside=el('aside',{class:'case-aside','aria-label':'Case context'}),body=el('section',{class:'stage-body'});
   const schematic=el('details',{class:'schematic'});schematic.open=matchMedia('(min-width:851px)').matches;schematic.append(el('summary',{},'Schematic location'),diagram(active));
-  aside.append(p(active.location,'location'),el('h1',{class:'case-name'},active.title),schematic);const context=el('details');context.append(el('summary',{},'Case context'),p(active.vignette),p(active.diagram.description));aside.append(context,p('Fictional scenario. Reference relationships, not individual anatomy.','draft-note'),referenceButtons(active));work.append(aside,body);main.append(work);
+  schematic.open=false;
+  const imaging=el('details',{class:'case-imaging'});imaging.open=r.stage===0||matchMedia('(min-width:851px)').matches;imaging.append(el('summary',{},'Fictional MRI-style illustration'),caseImage(active));
+  aside.append(p(active.location,'location'),el('h1',{class:'case-name'},active.title),imaging,schematic);const context=el('details');context.append(el('summary',{},'Case context'),p(active.vignette),p(active.diagram.description));aside.append(context,p('Fictional scenario. Reference relationships, not individual anatomy.','draft-note'),referenceButtons(active));work.append(aside,body);main.append(work);
   body.append(p(`Stage ${r.stage+1} of 6`,'stage-index'),el('h2',{id:'stageTitle',tabindex:'-1'},['Read the case','State your interpretation','Explore the relationships','Consider the new finding','Prepare your response','Compare your reasoning'][r.stage]));
   if(r.stage===0){body.append(p(active.vignette,'lead'));const cols=el('div',{class:'fact-columns'});for(const [title,items] of [['What is supplied',active.known],['What remains unknown',active.unknown]]){const c=el('section');c.append(el('h3',{},title),list(items));cols.append(c);}body.append(cols,p('The exercise asks you to explain relationships and uncertainty. It does not ask you to choose a surgical margin.','draft-note'));}
   if(r.stage===1){body.append(p(active.prompt,'prompt'));draftField(body,'initialResponse','Your initial interpretation','initial','State your interpretation and one important uncertainty.');}

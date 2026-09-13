@@ -24,7 +24,11 @@ try{
  assert.equal(await page.locator('.case-row').count(),3);await shot('catalog-desktop');
  for(const [index,id] of ['medial-frontal','insular','temporoparietal'].entries()){
   await page.locator('.case-row').nth(index).getByRole('button',{name:'Begin case'}).click();
-  await page.getByRole('heading',{name:'Read the case'}).waitFor();if(index===0)await shot('medial-case');
+  await page.getByRole('heading',{name:'Read the case'}).waitFor();
+  await page.locator('.case-mri img').evaluate(img=>img.decode());
+  assert.match(await page.locator('.case-mri img').getAttribute('src'),new RegExp(`${id}.png$`));
+  assert.match(await page.locator('.case-mri figcaption').innerText(),/AI-generated/);
+  await shot(`${id}-imaging`);if(index===0)await shot('medial-case');
   await next();await page.locator('#initialResponse').fill(`Initial teaching answer ${id}`);await next();
   if(index===0){
    await page.locator('.stage-body .reference-links button').first().click();
@@ -59,6 +63,10 @@ try{
   assert.equal(await savedLearning(),learning);await page.getByRole('button',{name:'Return to cases'}).click();report.checks.push(`${id}: all stages, mode parity, opt-in reload and rubric`);
  }
  await page.setViewportSize({width:390,height:844});await shot('catalog-mobile');
+ await page.locator('.case-row').first().getByRole('button',{name:'Continue case'}).click();
+ await page.locator('.stage-nav button').first().click();await page.locator('.case-mri img').evaluate(img=>img.decode());
+ assert(await page.locator('.case-mri img').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await shot('imaging-mobile');
+ await page.locator('.stage-nav button').last().click();await page.getByRole('button',{name:'All cases'}).click();
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.locator('.case-row').first().getByRole('button',{name:'Continue case'}).click();await shot('debrief-mobile');
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
