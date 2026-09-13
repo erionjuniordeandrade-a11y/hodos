@@ -39,11 +39,13 @@ function diagram(c){
 }
 function caseImage(c){
  const data=CASE_IMAGES[c.id],figure=el('figure',{class:'case-mri'});
- if(!data){figure.append(p('No illustration is installed for this case. The written case and schematic remain available.'));return figure;}
- const img=el('img',{src:data.src,alt:data.alt,width:1280,height:1280,decoding:'async'});
- img.addEventListener('error',()=>{img.hidden=true;figure.prepend(p('Illustration unavailable. The written case and schematic remain available.'));});
- const full=el('a',{href:data.src,target:'_blank',rel:'noopener'},'Open full-size illustration');
- figure.append(img,el('figcaption',{},IMAGE_CAPTION),full);return figure;
+ if(!data?.length){figure.append(p('No illustration is installed for this case. The written case and schematic remain available.'));return figure;}
+ for(const image of data){
+  const panel=el('div',{class:'case-mri-panel'}),img=el('img',{src:image.src,alt:image.alt,width:1254,height:1254,decoding:'async',loading:'lazy'});
+  img.addEventListener('error',()=>{img.hidden=true;panel.prepend(p(`${image.sequence} illustration unavailable. The written case and schematic remain available.`));});
+  panel.append(el('p',{class:'case-mri-label'},image.sequence),img,el('a',{href:image.src,target:'_blank',rel:'noopener'},`Open full-size ${image.sequence}`));figure.append(panel);
+ }
+ figure.append(el('figcaption',{},IMAGE_CAPTION));return figure;
 }
 function openReference(ref,trigger){
  if(!canMove())return;referenceTrigger=trigger;
@@ -116,7 +118,7 @@ function render(focus=false){
   const work=el('div',{class:'case-workbench'}),aside=el('aside',{class:'case-aside','aria-label':'Case context'}),body=el('section',{class:'stage-body'});
   const schematic=el('details',{class:'schematic'});schematic.open=!CASE_IMAGES[active.id]&&matchMedia('(min-width:851px)').matches;schematic.append(el('summary',{},'Schematic location'),diagram(active));
   const panels=[];
-  if(CASE_IMAGES[active.id]){const imaging=el('details',{class:'case-imaging'});imaging.open=r.stage===0||matchMedia('(min-width:851px)').matches;imaging.append(el('summary',{},'Fictional MRI-style illustration'),caseImage(active));panels.push(imaging);}
+  if(CASE_IMAGES[active.id]){const imaging=el('details',{class:'case-imaging'});imaging.open=r.stage===0||matchMedia('(min-width:851px)').matches;imaging.append(el('summary',{},'Fictional MRI-style illustrations'),caseImage(active));panels.push(imaging);}
   aside.append(p(active.location,'location'),el('h1',{class:'case-name'},active.title),...panels,schematic);const context=el('details');context.append(el('summary',{},'Case context'),p(active.vignette),p(active.diagram.description));aside.append(context,p('Fictional scenario. Reference relationships, not individual anatomy.','draft-note'),referenceButtons(active));work.append(aside,body);main.append(work);
   body.append(p(`Stage ${r.stage+1} of 6`,'stage-index'),el('h2',{id:'stageTitle',tabindex:'-1'},['Read the case','State your interpretation','Explore the relationships','Consider the new finding','Prepare your response','Compare your reasoning'][r.stage]));
   if(r.stage===0){body.append(p(active.vignette,'lead'));const cols=el('div',{class:'fact-columns'});for(const [title,items] of [['What is supplied',active.known],['What remains unknown',active.unknown]]){const c=el('section');c.append(el('h3',{},title),list(items));cols.append(c);}body.append(cols,p('The exercise asks you to explain relationships and uncertainty. It does not ask you to choose a surgical margin.','draft-note'));}

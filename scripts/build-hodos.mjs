@@ -18,7 +18,8 @@ const modules=[
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
 ];
 const supportingFiles=[
-  'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/README.md',
+  'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
+  'case-images/medial-frontal-t1c.png','case-images/insular-t1c.png','case-images/temporoparietal-t1c.png','case-images/right-medial-frontal-t1c.png','case-images/README.md',
   'case_conference.css',
   'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',

@@ -26,8 +26,10 @@ try{
   await page.locator('.case-row').nth(index).getByRole('button',{name:'Begin case'}).click();
   await page.getByRole('heading',{name:'Read the case'}).waitFor();
   if(await page.locator('.case-mri img').count()){
-   await page.locator('.case-mri img').evaluate(img=>img.decode());
-   assert.match(await page.locator('.case-mri img').getAttribute('src'),new RegExp(`${id}.png$`));
+   assert.equal(await page.locator('.case-mri img').count(),2,'FLAIR and T1 +C illustrations');
+   for(const img of await page.locator('.case-mri img').all())await img.evaluate(i=>i.decode());
+   assert.match(await page.locator('.case-mri img').nth(0).getAttribute('src'),new RegExp(`${id}.png$`));
+   assert.match(await page.locator('.case-mri img').nth(1).getAttribute('src'),new RegExp(`${id}-t1c.png$`));
    assert.match(await page.locator('.case-mri figcaption').innerText(),/AI-generated/);
   }else{assert.equal(await page.locator('.case-imaging').count(),0);assert(await page.locator('.schematic svg').isVisible(),'schematic shown when no illustration is installed');}
   await shot(`${id}-imaging`);if(index===0)await shot('medial-case');
@@ -66,8 +68,8 @@ try{
  }
  await page.setViewportSize({width:390,height:844});await shot('catalog-mobile');
  await page.locator('.case-row').first().getByRole('button',{name:'Continue case'}).click();
- await page.locator('.stage-nav button').first().click();await page.locator('.case-mri img').evaluate(img=>img.decode());
- assert(await page.locator('.case-mri img').isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await shot('imaging-mobile');
+ await page.locator('.stage-nav button').first().click();await page.locator('.case-mri img').first().evaluate(img=>img.decode());
+ assert(await page.locator('.case-mri img').first().isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await shot('imaging-mobile');
  await page.locator('.stage-nav button').last().click();await page.getByRole('button',{name:'All cases'}).click();
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.locator('.case-row').first().getByRole('button',{name:'Continue case'}).click();await shot('debrief-mobile');
