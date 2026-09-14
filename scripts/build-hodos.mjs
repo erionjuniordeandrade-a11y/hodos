@@ -151,7 +151,9 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
-  const csp=`default-src 'self'; script-src 'self' ${scriptHashes.join(' ')} 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self'; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'`;
+  // Cloudflare Web Analytics (auto-injected beacon) is the only third-party script allowed; it is
+  // the site's usage signal and carries no user identity beyond Cloudflare's own privacy terms.
+  const csp=`default-src 'self'; script-src 'self' ${scriptHashes.join(' ')} 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'`;
   // Pages are revalidated on every visit; hashed or key-versioned assets are cached for 30 days.
   // Vendor scripts are referenced by plain path, so they revalidate like the page. Pages applies
   // every matching rule and appends same-named headers, so the asset rules detach the page-level
