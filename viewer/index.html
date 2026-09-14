@@ -31,10 +31,16 @@
 <a class="skip-link" href="#heroTitle">Skip to content</a>
 <main class="landing">
   <section class="hero" data-hero aria-labelledby="heroTitle">
-    <picture class="hero-plate">
-      <source media="(max-width: 700px)" srcset="./media/landing/hero-superior-commissural-1200-20260914.jpg" width="879" height="1000">
-      <img src="./media/landing/hero-superior-commissural-1920-20260914.jpg" alt="Commissural and projection bundles on the reference brain, viewed from above." width="1583" height="1800" fetchpriority="high" decoding="async">
-    </picture>
+    <div class="hero-plate">
+      <div class="hero-media">
+        <picture>
+          <source media="(max-width: 700px)" srcset="./media/landing/hero-superior-commissural-1200-20260914.jpg" width="880" height="1001">
+          <img src="./media/landing/hero-superior-commissural-1920-20260914.jpg" alt="Commissural and projection bundles on the reference brain, viewed from above." width="1400" height="1592" fetchpriority="high" decoding="async">
+        </picture>
+        <video id="heroLoop" class="hero-loop" muted loop playsinline preload="none" width="1000" height="1138" aria-hidden="true" data-src="./media/landing/hero-superior-loop-1400-20260914.mp4" data-src-narrow="./media/landing/hero-superior-loop-880-20260914.mp4"></video>
+        <button id="loopToggle" class="film-toggle" type="button" aria-pressed="false" hidden>Pause</button>
+      </div>
+    </div>
     <div class="hero-scrim" data-hero-scrim aria-hidden="true"></div>
     <header class="studio-header"><a class="brand" href="./index.html" title="Brain networks and white matter tracts for intra-axial surgery"><svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true" focusable="false"><path d="M10 46 C 24 44, 30 30, 40 24 S 54 16, 56 14" fill="none" stroke-width="4" stroke-linecap="round"/><path class="f" d="M8 40 C 22 40, 28 26, 38 20 S 50 12, 54 10" fill="none" stroke-width="3" stroke-linecap="round"/><path class="f" d="M12 52 C 26 50, 34 36, 44 30 S 56 22, 58 20" fill="none" stroke-width="3" stroke-linecap="round"/><circle class="n" cx="10" cy="46" r="5"/><circle class="n" cx="40" cy="24" r="5"/><circle class="d" cx="56" cy="14" r="5"/></svg><span class="brand-name">Hodos</span></a>
   <nav aria-label="Site"><a href="./atlas.html">Atlas &amp; lessons</a><a href="./case-conference.html">Case Conference</a><a href="./atlas-sources.html" class="header-sources">Sources</a></nav>
@@ -109,6 +115,7 @@
     <a class="cta cta-primary" href="./atlas.html?lesson=motor-cst">Start a lesson</a>
   </section>
 </main>
+<script src="./landing.js" defer></script>
 <footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p><p class="foot-role"><span>Neurosurgeon, CRM-RS 41.263, RQE 44841.</span> Skull base and neuro-oncology fellowships at Cleveland Clinic and Emory University. Residency preceptor, Hospital São José, Santa Casa de Porto Alegre.</p></div>
     <div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP-MMP1 cortical parcels</p><p>HCP1065 sampled tractography</p><p>Melbourne subcortex atlas</p></div>
     <div class="foot-terms"><p class="foot-label">Use</p><p>Reference atlas, not navigation.</p><p>Educational draft, research only.</p><p>No patient registration.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p></div></footer>

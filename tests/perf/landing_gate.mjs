@@ -186,8 +186,14 @@ try {
       await page.waitForTimeout(3000);
       counting = false;
       await Promise.all(pending);
-      if (width === 375 && row.bytes > 1.1 * 1024 * 1024) row.fails.push(`bytes ${row.bytes} exceed 1.1 MB at 375`);
-      if (width === 1440 && row.bytes > 2 * 1024 * 1024) row.fails.push(`bytes ${row.bytes} exceed 2.0 MB at 1440`);
+      // The hero loop is progressive media fetched after first paint; it has its own budget.
+      const mediaBytes = row.bytesByType.media || 0;
+      const pageBytes = row.bytes - mediaBytes;
+      row.pageBytes = pageBytes; row.mediaBytes = mediaBytes;
+      if (width === 375 && pageBytes > 1.1 * 1024 * 1024) row.fails.push(`page bytes ${pageBytes} exceed 1.1 MB at 375`);
+      if (width === 1440 && pageBytes > 2 * 1024 * 1024) row.fails.push(`page bytes ${pageBytes} exceed 2.0 MB at 1440`);
+      if (width <= 700 && mediaBytes > 1.3 * 1024 * 1024) row.fails.push(`media bytes ${mediaBytes} exceed 1.3 MB at ${width}`);
+      if (width > 700 && mediaBytes > 3.6 * 1024 * 1024) row.fails.push(`media bytes ${mediaBytes} exceed 3.6 MB at ${width}`);
       await page.screenshot({path: `${out}/${width}-viewport.png`});
       const got = await audit(page, width);
       row.fails.push(...got.fails);
