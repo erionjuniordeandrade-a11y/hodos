@@ -2,6 +2,7 @@ import {CASES,CASE_VERSION} from './case_content.js';
 import {createCaseStore} from './case_state.js';
 import {createCaseAudio} from './case_audio.js';
 import {CASE_IMAGES,IMAGE_CAPTION} from './case_images.js';
+import {CASE_LESIONS,LESION_NOTE} from './case_lesions.js';
 
 const $=id=>document.getElementById(id),main=$('caseMain');
 let storage;try{storage=localStorage;}catch{}
@@ -50,7 +51,7 @@ function caseImage(c){
 function openReference(ref,trigger){
  if(!canMove())return;referenceTrigger=trigger;
  $('referenceTitle').textContent=ref.label;
- const frame=el('iframe',{title:`Reference atlas: ${ref.label}`,src:`./atlas.html?caseReference=1&lesson=${encodeURIComponent(ref.lesson)}&step=${ref.step}&phase=orient&profile=teaching`,allow:'microphone \'none\'; camera \'none\''});
+ const frame=el('iframe',{title:`Reference atlas: ${ref.label}`,src:ref.case?`./atlas.html?caseReference=1&case=${encodeURIComponent(ref.case)}&profile=teaching`:`./atlas.html?caseReference=1&lesson=${encodeURIComponent(ref.lesson)}&step=${ref.step}&phase=orient&profile=teaching`,allow:'microphone \'none\'; camera \'none\''});
  $('referenceFrame').replaceChildren(frame);$('referenceDialog').showModal();$('closeReference').focus();
 }
 function closeReference(){if($('referenceDialog').open)$('referenceDialog').close();$('referenceFrame').replaceChildren();referenceTrigger?.focus();}
@@ -60,7 +61,9 @@ $('referenceDialog').addEventListener('close',()=>$('referenceFrame').replaceChi
 window.addEventListener('message',event=>{
  if(event.origin===location.origin&&event.source===$('referenceFrame').querySelector('iframe')?.contentWindow&&event.data?.type==='hodos:close-reference')closeReference();
 });
-function referenceButtons(c){const box=el('div',{class:'reference-links'});for(const ref of c.references){const b=button(ref.label,()=>openReference(ref,b));box.append(b);}return box;}
+function referenceButtons(c){const box=el('div',{class:'reference-links'});
+ if(CASE_LESIONS[c.id]){const ref={label:`Lesion marker · ${CASE_LESIONS[c.id].label}`,case:c.id},b=button(ref.label,()=>openReference(ref,b));b.title=LESION_NOTE;box.append(b);}
+ for(const ref of c.references){const b=button(ref.label,()=>openReference(ref,b));box.append(b);}return box;}
 function draftField(container,id,label,key,placeholder){
  container.append(el('label',{for:id,class:'field-label'},label));const field=el('textarea',{id,maxlength:10000,placeholder},store.get(active.id)[key]);
  field.addEventListener('input',()=>{store.update(active.id,{[key]:field.value});updateSaveStatus();});container.append(field);

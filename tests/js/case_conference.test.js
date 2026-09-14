@@ -38,3 +38,28 @@ test('invalid ids, stages, input sizes and non-text fields cannot enter saved re
  store.remember(id,true);assert.equal(JSON.parse(storage.getItem(CASE_KEY)).version,CASE_VERSION);assert.ok(!storage.getItem(CASE_KEY).includes('secret'));
  store.clear(id);assert.equal(store.get(id).response,'');assert.equal(storage.getItem(CASE_KEY),null);
 });
+test('every case carries a fictional lesion marker that resolves inside the installed atlas',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const {CASE_LESIONS,lesionScene}=await import('../../viewer/case_lesions.js');
+ const {resolveScene}=await import('../../viewer/lesson_scene.js');
+ const {DEFAULT_SCENE}=await import('../../viewer/lesson_content.js');
+ const surface=JSON.parse(readFileSync(new URL('../../viewer/atlas/surface.json',import.meta.url)));
+ assert.deepEqual(Object.keys(CASE_LESIONS).sort(),CASES.map(c=>c.id).sort());
+ for(const c of CASES){
+  const l=CASE_LESIONS[c.id];
+  assert.ok(['L','R'].includes(l.side),c.id);
+  assert.equal(Math.sign(l.mni.x),l.side==='L'?-1:1,`${c.id}: marker x agrees with its side`);
+  assert.ok(l.radiusMm>=8&&l.radiusMm<=30,`${c.id}: illustrative radius`);
+  for(const k of ['x','y','z'])assert.ok(Math.abs(l.mni[k])<=90,`${c.id}: inside the MNI head`);
+  const resolved=resolveScene({scene:{...DEFAULT_SCENE,...lesionScene(l)}},'both');
+  assert.equal(resolved.side,l.side);
+  assert.ok(resolved.regions.length>=3,`${c.id}: focus set`);
+  for(const r of resolved.regions){assert.equal(r.hemi,l.side);assert.ok(surface.sets.glasser.regions[r.hemi][r.id],`${c.id}: parcel ${r.id}`);}
+  assert.ok(resolved.bundleIds.length>=1);
+  for(const id of [...resolved.bundleIds,...resolved.ghostIds])assert.ok(id.endsWith(`_${l.side}`),`${c.id}: ${id} is on the marker side`);
+  assert.deepEqual(resolved.lesion,{...l.mni,radiusMm:l.radiusMm,side:l.side,label:l.label});
+  assert.ok(resolved.camera&&resolved.camera.zoom>0);
+ }
+ // Lessons never place a marker; a step that says nothing leaves any marker alone.
+ assert.equal(resolveScene({scene:DEFAULT_SCENE},'L').lesion,null);
+});

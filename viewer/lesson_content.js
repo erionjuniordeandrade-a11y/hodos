@@ -35,7 +35,7 @@ export function sourceIdsForStep(step,regions=REGIONS){
 export const DEFAULT_SCENE=Object.freeze({side:'follow',bundle:null,region:null,
   deep:false,surface:null,view:null,trace:false,
   bundles:Object.freeze([]),ghost:Object.freeze([]),regions:Object.freeze([]),
-  camera:null,durationSec:null,deepRegions:Object.freeze([]),network:null});
+  camera:null,durationSec:null,deepRegions:Object.freeze([]),network:null,lesion:null});
 
 export const LESSONS=Object.freeze([...RESIDENT_LESSONS,...NETWORK_LECTURES].map(l=>({...l,version:CONTENT_VERSION,
   steps:l.steps.map(s=>({...s,scene:{...DEFAULT_SCENE,...s.scene}}))})));
@@ -82,6 +82,13 @@ function validateScene(scene,lessonId){
     throw new Error(`Invalid scene durationSec in ${lessonId}`);
   if(!Array.isArray(scene.deepRegions) || scene.deepRegions.some(id=>!SUBCORTEX_IDS.includes(id)&&!SUBCORTEX_IDS.includes(`${id}-lh`)))
     throw new Error(`Invalid scene deepRegions in ${lessonId}`);
+  // v4: optional fictional lesion marker (case_lesions.js). Lessons leave it null.
+  if(scene.lesion!=null){
+    const l=scene.lesion;
+    if(typeof l!=='object' || !['x','y','z'].every(k=>Number.isFinite(l[k])&&Math.abs(l[k])<=120) ||
+      !Number.isFinite(l.radiusMm) || l.radiusMm<=0 || l.radiusMm>40 || !['L','R'].includes(l.side) || typeof l.label!=='string')
+      throw new Error(`Invalid scene lesion in ${lessonId}`);
+  }
 }
 
 export function validateLessons(lessons=LESSONS,{sources=SOURCES,regions=REGIONS}={}){

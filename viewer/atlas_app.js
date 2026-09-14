@@ -10,6 +10,8 @@ import {YEO7,networkLabel,networkFromSearch,networkToSearchValue,networkSelectio
 import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
 import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 import {caseReference} from './case_reference.js';
+import {CASE_LESIONS,lesionScene,LESION_NOTE} from './case_lesions.js';
+import {arterialSelection,arterialFromSearch,arterialToSearchValue,arterialLabel,ARTERIAL_NOTE} from './atlas_arterial.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
 // Read `net` before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
@@ -32,6 +34,7 @@ function syncURL(){const p=new URLSearchParams(location.search);p.set('profile',
   if(currentPick){p.set('area',String(currentPick.id));p.set('areaHemi',currentPick.hemi);}else{p.delete('area');p.delete('areaHemi');}
   if(currentDeep)p.set('deep',currentDeep.id);else p.delete('deep');
   const nv=scene?networkToSearchValue(scene.state.network):null;if(nv)p.set('net',nv);else p.delete('net');
+  const av=scene?arterialToSearchValue(scene.state.arterial,scene.arterialRows):null;if(av)p.set('art',av);else p.delete('art');
   history.replaceState(history.state,'',`${location.pathname}?${p}`);}
 function motionUI(){const canPlay=profile==='teaching'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
   $('tracePlay').disabled=!canPlay;$('tracePlay').textContent=playing&&canPlay?'Pause fibre animation':'Animate fibre paths';
@@ -71,7 +74,9 @@ function readRegion(hemi,id,vertex=null){
   // Yeo-7 is a per-VERTEX label: report it only for an actual clicked vertex, never inferred
   // for a parcel (a parcel can straddle networks) and never for a lesson/URL pick.
   const nid=(vertex!=null&&hemi!=='both')?scene.networkAt(hemi,vertex):null;
-  $('pickedNetwork').textContent=nid==null?'':nid===0?'Yeo-7 at this vertex: medial wall (unlabelled)'
+  const aid=(vertex!=null&&hemi!=='both'&&scene.state.arterial?.mode!=='off')?scene.arterialAt(hemi,vertex):null;
+  $('pickedNetwork').textContent=aid!=null?(aid===0?'Arterial atlas at this vertex: unlabelled':`Arterial atlas at this vertex: ${arterialLabel(scene.arterialRows,aid)} · group template, not an individual`)
+    :nid==null?'':nid===0?'Yeo-7 at this vertex: medial wall (unlabelled)'
     :`Yeo-7 at this vertex: ${networkLabel(nid)} · group resting-state label, not an individual`;
   syncURL();
 }
@@ -80,9 +85,33 @@ function parcelNetworkNote(hemi,id){
   const summary=scene.parcelNetwork?.(hemi,id);if(!summary||!summary.id)return '';
   return ` Mostly ${networkLabel(summary.id)} in the Yeo-7 group atlas (${Math.round(summary.share*100)}% of its vertices).`;
 }
+/** Arterial-territory wash: select + legend + URL key. Exclusive with the Yeo-7 wash so one
+ * colour on the cortex always means one thing. */
+function applyArterial(sel){
+  const rows=scene.arterialRows,s=arterialSelection(sel?.mode,sel?.focus,rows);
+  if(s.mode!=='off'&&scene.state.network.mode!=='off')applyNetworks(networkSelection('off'));
+  scene.setArterial(s);
+  const live=scene.state.arterial,sel_=$('atlasArterial'),legend=$('arterialLegend');
+  sel_.value=live.mode==='off'?'off':live.mode==='all'?'all':String(live.focus);
+  legend.hidden=live.mode==='off';
+  for(const li of legend.children)li.classList.toggle('dim',live.mode==='focus'&&Number(li.dataset.id)!==live.focus);
+  if(live.mode!=='off'){
+    const readout=$('sceneNetwork');readout.hidden=false;
+    readout.querySelector('span').textContent=live.mode==='all'?'Arterial territories · Liu 2023 group template':`${arterialLabel(rows,live.focus)} territory · Liu 2023 group template`;
+    readout.querySelector('i').style.background=live.mode==='focus'?rgbCss(rows.find(r=>r.id===live.focus).rgb):`linear-gradient(90deg,${rows.map(r=>rgbCss(r.rgb)).join(',')})`;
+    if(!currentPick&&!currentDeep){
+      $('pickedClass').textContent='Vascular context, arterial atlas';
+      $('pickedName').textContent=live.mode==='all'?'Four supply territories':`${arterialLabel(rows,live.focus)} territory`;
+      $('pickedDescription').textContent=ARTERIAL_NOTE;
+    }
+  }else if(scene.state.network.mode==='off'){$('sceneNetwork').hidden=true;}
+  syncURL();
+}
 /** Yeo-7 wash control: select + legend + URL key, one entry point (also used by lesson steps). */
 function applyNetworks(sel){
-  const s=networkSelection(sel?.mode,sel?.focus);scene.setNetworks(s);
+  const s=networkSelection(sel?.mode,sel?.focus);
+  if(s.mode!=='off'&&scene.state.arterial?.mode!=='off'){scene.setArterial(arterialSelection('off'));$('atlasArterial').value='off';$('arterialLegend').hidden=true;}
+  scene.setNetworks(s);
   const live=scene.state.network;
   $('atlasNetworks').value=live.mode==='off'?'off':live.mode==='all'?'all':String(live.focus);
   const legend=$('networkLegend');legend.hidden=live.mode==='off';
@@ -247,6 +276,7 @@ function applySceneEffects(resolved,{authored=false,keepCamera=false}={}){
   scene.setDeepHighlight(resolved.deepRegionIds,{focus:resolved.deepFocusIds||[]});
   if(resolved.surface!=null){scene.setSurface(resolved.surface);$('surfaceLevel').value=String(Math.round(resolved.surface*100));}
   if(resolved.network)applyNetworks(resolved.network);
+  if(resolved.lesion)scene.setLesion(resolved.lesion);
   if(!keepCamera){
     if(resolved.camera)scene.flyTo(authored?resolved.camera:{...resolved.camera,zoom:1,focus:true});
     else if(resolved.view)scene.setView(resolved.view==='top'?'superior':resolved.view);
@@ -380,6 +410,17 @@ try{
     netSel.addEventListener('change',()=>{pauseForExploration();
       const v=netSel.value;applyNetworks(v==='off'?networkSelection('off'):v==='all'?networkSelection('all'):networkSelection('focus',Number(v)));});
   }
+  // Arterial territories: options + legend from the installed table; disabled when the set is absent.
+  const artSel=$('atlasArterial'),artLegend=$('arterialLegend');
+  if(scene.hasArterial()){
+    artSel.append(option('all','All four territories'));
+    for(const r of scene.arterialRows){artSel.append(option(String(r.id),arterialLabel(scene.arterialRows,r.id)));
+      const li=document.createElement('li');li.dataset.id=String(r.id);
+      const sw=document.createElement('i');sw.style.background=rgbCss(r.rgb);li.append(sw,document.createTextNode(arterialLabel(scene.arterialRows,r.id)));artLegend.append(li);}
+    artSel.disabled=false;
+    artSel.addEventListener('change',()=>{pauseForExploration();
+      const v=artSel.value;applyArterial(v==='off'?arterialSelection('off'):v==='all'?arterialSelection('all'):arterialSelection('focus',Number(v),scene.arterialRows));});
+  }
   $('atlasHemisphere').value=initial.hemi;scene.setHemisphere(initial.hemi);syncMedialLabel();
   $('atlasHemisphere').addEventListener('change',()=>{
     const h=$('atlasHemisphere').value;scene.setHemisphere(h);
@@ -429,6 +470,8 @@ try{
     readRegion(['L','R','both'].includes(requestedH)?requestedH:initial.hemi,initial.area);
   }else clearPick();
   applyNetworks(initialNetwork);
+  // Read the boot-time query: applyNetworks above already rewrote location.search without `art`.
+  if(scene.hasArterial()){const a=arterialFromSearch(bootParams.toString(),scene.arterialRows);if(a.mode!=='off')applyArterial(a);}
   applyBundles([]);scene.setSurface(.8);setProfile(profile);
   const deepFromUrl=scene.subMeta.structures.find(d=>d.id===bootParams.get('deep'));if(deepFromUrl)showDeep(deepFromUrl);
   player=mountAnatomyLessons($('lessonPanel'),{
@@ -437,6 +480,14 @@ try{
     onRestore:()=>applyStep(currentLesson,currentStep),onExplore:restoreExploration,
   });
   scene.setProfile(profile);motionUI();
+  // Case Conference reference: `?case=<id>` places that case's fictional lesion marker and its
+  // authored focus set. Nothing is persisted; the marker is illustrative (case_lesions.js).
+  const caseLesion=CASE_LESIONS[bootParams.get('case')];
+  if(caseLesion&&!bootParams.has('lesson')){
+    $('atlasHemisphere').value=caseLesion.side;scene.setHemisphere(caseLesion.side);syncMedialLabel();
+    applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...lesionScene(caseLesion)}},caseLesion.side),{authored:true});
+    $('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent=`Fictional lesion marker · ${caseLesion.label}. ${LESION_NOTE}`;
+  }
   window.addEventListener('popstate',()=>{const s=atlasSelectionFromSearch(location.search),netFromUrl=networkFromSearch(location.search);
     const search=location.search,q=new URLSearchParams(search),ah=q.get('areaHemi');
     profile=s.profile;document.body.dataset.profile=profile;scene.setProfile(profile);$('atlasHemisphere').value=s.hemi;scene.setHemisphere(s.hemi);
