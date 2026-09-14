@@ -64,7 +64,7 @@ function readRegion(hemi,id,vertex=null){
   $('pickedDescription').textContent=id===0?'Unlabelled medial wall in this atlas.':
     hemi==='both'
       ? `Area ${region.code} in both hemispheres · Group reference boundary. Individual function and tract endpoints require separate evidence.`
-      : `Area ${region.code} · ${hemi==='L'?'left':'right'} hemisphere · HCP-MMP1 code ${region.raw}.${parcelNetworkNote(hemi,id)} Group reference boundary; individual function and tract endpoints require separate evidence.`;
+      : `Area ${region.code}, ${hemi==='L'?'left':'right'} hemisphere · HCP-MMP1 code ${region.raw}.${parcelNetworkNote(hemi,id)} Group reference boundary; individual function and tract endpoints require separate evidence.`;
   const paired=$('atlasPairedArea');
   paired.hidden=hemi!=='both';paired.value=`both:${id}`;paired.textContent=`Both · ${region.code}`;
   $('atlasArea').value=`${hemi}:${id}`;
@@ -146,7 +146,7 @@ function applyBundles(ids,ghostIds=[]){
     // Several primaries: one total, then the names in pick (= tint) order — the per-bundle
     // "220 sampled atlas paths" repeated N times was unreadable past three picks.
     const total=ids.reduce((n,id)=>n+(metaOf(id)?.lines||0),0);
-    summary=`${ids.length} pathways · ${total.toLocaleString('en-GB')} sampled atlas paths · ${ids.map(bundleLabel).join(', ')}`;
+    summary=`${ids.length} pathways with ${total.toLocaleString('en-GB')} sampled atlas paths · ${ids.map(bundleLabel).join(', ')}`;
   }
   // Ghost-only steps (no primary bundle) must not open with a dangling separator.
   $('pathwaySummary').textContent=summary
@@ -353,7 +353,7 @@ try{
   scene=await createAtlasScene($('atlasCanvas'),{onStatus:(text,{ready=false}={})=>{const status=$('atlasLoading');status.textContent=text;status.hidden=ready;},
     onHover:pick=>{const tip=$('atlasHover');tip.hidden=!pick;if(!pick)return;
       tip.textContent=pick.deep?`${pick.deep.name} · ${pick.deep.hemisphere==='L'?'left':'right'}`
-        :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code} · ${pick.hemi==='L'?'left':'right'} · click to select`;},
+        :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code}, ${pick.hemi==='L'?'left':'right'} · click to select`;},
     onPick:pick=>{
       if(currentLesson){inspectLessonTarget(pick.deep?{kind:'deep',id:pick.deep.id.replace(/-(lh|rh)$/,''),label:pick.deep.name}:{kind:'parcel',id:pick.id,label:regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code});}
       else{pick.deep?showDeep(pick.deep):readRegion(pick.hemi,pick.id,pick.vertex);}

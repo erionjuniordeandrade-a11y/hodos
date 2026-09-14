@@ -22,7 +22,7 @@ const supportingFiles=[
   'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
   'case-images/medial-frontal-t1c.png','case-images/insular-t1c.png','case-images/temporoparietal-t1c.png','case-images/right-medial-frontal-t1c.png','case-images/README.md',
   'case_conference.css',
-  'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css','landing.css',
+  'tokens.css','hodos.css','landing.css',
   'media/hodos-hero-1080p-20260913.mp4','media/hodos-hero-720p-20260913.mp4','media/hodos-hero-poster-20260913.jpg',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
   'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',
@@ -33,7 +33,9 @@ const supportingFiles=[
   'vendor/addons/libs/draco/LICENSE','vendor/addons/libs/draco/AUTHORS',
   'atlas/licenses/hcp-data-use-terms.txt','atlas/licenses/melbourne-subcortex.txt',
   'atlas/licenses/mni-template-license.txt','atlas/licenses/freesurfer-atlas-license.txt',
+  'favicon.ico','apple-touch-icon.png','site.webmanifest',
 ];
+const SITE_ORIGIN='https://hodosatlas.com';
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 async function safeRead(base,relative){
@@ -100,7 +102,21 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
-  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/atlas.css"><link rel="stylesheet" href="/atlas-design.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
+  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
+  // Sitemap and robots.txt are generated from the exported files, never hand-maintained: lesson
+  // ids come from the landing page's own lesson links (the same list residents see), and lastmod
+  // comes from the shipped content version.
+  const contentVersion=files.get('lesson_content.js').toString().match(/CONTENT_VERSION\s*=\s*['"]([^'"]+)/)?.[1];
+  if(!contentVersion)throw Error('Missing lesson content version');
+  const lastmod=contentVersion.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if(!lastmod)throw Error('Content version has no lastmod date');
+  const lessonIds=[...new Set([...files.get('index.html').toString().matchAll(/href="\.\/atlas\?lesson=([a-z0-9-]+)"/g)].map(m=>m[1]))];
+  if(lessonIds.length!==10)throw Error(`Expected 10 lesson ids on the landing page, found ${lessonIds.length}`);
+  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,
+    ...lessonIds.map(id=>`${SITE_ORIGIN}/atlas?lesson=${id}`)];
+  add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
+    sitemapUrls.map(u=>`  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')+`\n</urlset>\n`);
+  add('robots.txt',`User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`);
   // Long-cached assets referenced by plain path (fonts, brand files) get a content-hash query
   // key, so a changed file is fetched under a new key instead of served stale for 30 days.
   const keyed=supportingFiles.filter(n=>/^(brand|vendor\/fonts)\/.*\.(svg|png|woff2|ttf)$/.test(n));
@@ -113,8 +129,12 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   }
   // Content-Security-Policy: first-party only. The import map is the one inline script and is
   // allowed by hash; Draco decodes meshes in blob workers with WebAssembly; recordings play from
-  // blob URLs; the case reference dialog frames the same origin.
-  for(const name of ['index.html','atlas-sources.html','case-conference.html'])if(/<script(?![^>]*\bsrc=)/.test(files.get(name).toString()))throw Error(`Inline script in ${name} needs a CSP hash`);
+  // blob URLs; the case reference dialog frames the same origin. A <script type="application/ld+json">
+  // block is inert data, not a JavaScript/module/importmap MIME type, so CSP's script-src never
+  // applies to it and it needs no hash; every other bare <script> still does.
+  for(const name of ['index.html','atlas-sources.html','case-conference.html'])
+    for(const tag of files.get(name).toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g))
+      if(!/\btype="application\/ld\+json"/.test(tag[0]))throw Error(`Inline script in ${name} needs a CSP hash`);
   const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
@@ -148,9 +168,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     if(bytes.length>25*1024*1024)throw Error(`Asset exceeds Pages size limit: ${name}`);
     if(/\.(html|css|js|json|md|txt)$/.test(name)&&/\/Users\/|\/home\/|http:\/\/(?:127\.0\.0\.1|localhost)|["']\/api\//.test(bytes.toString()))throw Error(`Local-only reference in ${name}`);
   }
-  const version=files.get('lesson_content.js').toString().match(/CONTENT_VERSION\s*=\s*['"]([^'"]+)/)?.[1];
-  if(!version)throw Error('Missing lesson content version');
-  const receipt={product:'Hodos',contentVersion:version,atlasManifestSha256:expected,files:[...files].sort(([a],[b])=>a.localeCompare(b)).map(([name,bytes])=>({path:name,bytes:bytes.length,sha256:sha256(bytes)}))};
+  const receipt={product:'Hodos',contentVersion,atlasManifestSha256:expected,files:[...files].sort(([a],[b])=>a.localeCompare(b)).map(([name,bytes])=>({path:name,bytes:bytes.length,sha256:sha256(bytes)}))};
   add('release.json',JSON.stringify(receipt,null,2)+'\n');
 
   // Immutable build folders: reruns may reuse identical bytes, but never

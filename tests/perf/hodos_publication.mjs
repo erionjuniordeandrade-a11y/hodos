@@ -41,7 +41,7 @@ try{
   page.on('request',r=>{const url=new URL(r.url());if(url.protocol.startsWith('http')&&url.origin!==new URL(base).origin)report.externalRequests.push(r.url());});
   // Landing page at the site root: hero film, atlas links, no horizontal overflow at both widths.
   await page.goto(new URL('/',base).href);
-  assert.equal(await page.title(),'Hodos · Brain networks & white matter tracts for intra-axial surgery');
+  assert.equal(await page.title(),'Hodos · Neuroanatomy coursebook for residents');
   assert.equal(await page.locator('#heroFilm').count(),1);
   assert.equal(await page.locator('#open').getAttribute('href'),'./atlas');
   assert.equal(await page.locator('.lesson-rows a').count(),LESSONS.length);
@@ -56,7 +56,7 @@ try{
   report.checks.push('Landing page at / with hero film and one link per lesson');
   await page.goto(new URL('/atlas?test=1',base).href);
   await page.waitForFunction(()=>window.__atlasTest?.ready,null,{timeout:45000});
-  assert.equal(await page.title(),'Hodos · Brain networks & white matter tracts');
+  assert.equal(await page.title(),'Hodos · The atlas and lessons');
   assert.equal(await page.locator('.curriculum-row').count(),LESSONS.length);
   assert(await page.locator('canvas').isVisible());
   const creator=page.locator('.creator-credit');

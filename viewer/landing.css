@@ -30,7 +30,6 @@ main.landing{max-width:1680px;margin:0 auto;padding:0 var(--page-gutter) var(--s
 /* Three moves */
 .moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-xl)}
 .moves h3{font:500 var(--text-xl)/1.2 var(--font-display);margin:0 0 var(--space-xs);color:var(--color-ink)}
-.moves h3 span{font:500 var(--text-sm)/1 var(--font-outlier);color:var(--color-accent);margin-right:var(--space-xs);letter-spacing:.04em}
 .moves p{font-size:var(--text-base)}
 
 /* Curriculum: hairline rows */
@@ -45,7 +44,7 @@ main.landing{max-width:1680px;margin:0 auto;padding:0 var(--page-gutter) var(--s
 .lesson-rows li:first-child{border-top:0}
 .lesson-rows .lesson-name{color:var(--color-ink);font-weight:500}
 .lesson-rows .lesson-q{font-size:var(--text-sm);color:var(--color-muted);margin:0}
-.lesson-rows .lesson-hemi{font:400 var(--text-xs)/1 var(--font-outlier);color:var(--color-faint);letter-spacing:.06em}
+.lesson-rows .lesson-hemi{font:400 var(--text-xs)/1 var(--font-body);color:var(--color-faint);letter-spacing:0;white-space:nowrap}
 
 /* Provenance and cases */
 .provenance dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-lg);margin:0 0 var(--space-xl)}
@@ -61,6 +60,8 @@ main.landing{max-width:1680px;margin:0 auto;padding:0 var(--page-gutter) var(--s
   .hero,.curriculum,.cases-strip,.creator{grid-template-columns:minmax(0,1fr)}
   .moves{grid-template-columns:minmax(0,1fr);gap:var(--space-lg)}
   .lesson-rows li{grid-template-columns:minmax(0,1fr) auto;row-gap:var(--space-3xs)}
+  .lesson-rows .lesson-hemi{grid-column:2;grid-row:1}
+  .lesson-rows .lesson-q{grid-column:1/-1}
   .lesson-rows .lesson-q{grid-column:1/-1}
   .hero-copy h1{max-width:none}
 }

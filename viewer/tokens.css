@@ -13,7 +13,7 @@
   --color-control-hover:oklch(29% 0.014 248);
   --color-rule:oklch(34.9% 0.015 248);
   --color-rule-2:oklch(52.9% 0.021 246);
-  --color-faint:oklch(60.4% 0.012 248);
+  --color-faint:oklch(66% 0.012 248);
   --color-muted:oklch(74.2% 0.009 248);
   --color-ink:oklch(92.9% 0.012 85);
   --color-ink-on-ink:var(--color-paper);
@@ -28,8 +28,8 @@
   --color-parcel-context:oklch(82.8% 0.061 80);
   --color-parcel-hover:oklch(95.1% 0.014 61);
 
-  --font-display:"Playfair Display",Georgia,"Times New Roman",serif;
-  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-display:"Playfair Display","Playfair Display Fallback",Georgia,"Times New Roman",serif;
+  --font-body:"Inter","Inter Fallback",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-outlier:ui-monospace,SFMono-Regular,Menlo,monospace; /* atlas codes and coordinates only */
 
   /* Major third from 16 px. Five sizes per page. */
