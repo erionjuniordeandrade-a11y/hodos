@@ -13,6 +13,7 @@ const modules=[
   'dissection_references.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
   'lessons/resident-anatomy.js','lessons/network-lectures.js','render_pipeline.js','scene_materials.js',
+  'landing.js',
   'vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js',
   'vendor/addons/loaders/GLTFLoader.js','vendor/addons/loaders/DRACOLoader.js',
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
@@ -21,7 +22,8 @@ const supportingFiles=[
   'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
   'case-images/medial-frontal-t1c.png','case-images/insular-t1c.png','case-images/temporoparietal-t1c.png','case-images/right-medial-frontal-t1c.png','case-images/README.md',
   'case_conference.css',
-  'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css',
+  'tokens.css','lesson_player.css','atlas.css','anatomy_workbench.css','atlas-design.css','hodos.css','landing.css',
+  'media/hodos-hero-1080p-20260913.mp4','media/hodos-hero-720p-20260913.mp4','media/hodos-hero-poster-20260913.jpg',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
   'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',
   'vendor/fonts/inter-latin-regular.woff2','vendor/fonts/inter-latin-medium.woff2','vendor/fonts/inter-latin-semibold.woff2','vendor/fonts/Inter-OFL.txt',
@@ -49,7 +51,8 @@ function publicHTML(html){
   html=html.replace(/(?: · )?<a href="\.\/\?profile=clinical">Case reconstruction<\/a>/g,'');
   // Pages serves the coursebook at the site root and strips .html; public links use those paths
   // so the canonical URL, the wordmark and the sources link all agree.
-  html=html.replaceAll('href="./atlas.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"').replaceAll('href="./case-conference.html"','href="./case-conference"');
+  // The landing page is the site root; the atlas lives at /atlas (query strings on lesson links survive).
+  html=html.replace(/href="\.\/atlas\.html(\?[^"]*)?"/g,(m,q)=>`href="./atlas${q||''}"`).replaceAll('href="./index.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"').replaceAll('href="./case-conference.html"','href="./case-conference"');
   html=html.replace('THIRD_PARTY_NOTICES.md in the source checkout','<a href="./THIRD_PARTY_NOTICES.md">Third-party notices and software licenses</a>');
   if(!html.includes('name="description"'))html=html.replace('</head>','<meta name="description" content="Hodos: an interactive cortex and white matter atlas for neurosurgical residents. Explore anatomy, relationships and brain networks. Created by Dr. Erion de Andrade."></head>');
   if(/profile=clinical|Case reconstruction/.test(html))throw Error('Local case navigation remains in the public page');
@@ -94,8 +97,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     if(bytes.length!==plate.bytes||sha256(bytes)!==plate.sha256)throw Error(`Dissection asset integrity failed: ${plate.file}`);
     add(name,bytes);
   }
-  for(const name of ['atlas.html','atlas-sources.html','case-conference.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
-  add('index.html',files.get('atlas.html'));
+  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
   add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/atlas.css"><link rel="stylesheet" href="/atlas-design.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
@@ -112,7 +114,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // Content-Security-Policy: first-party only. The import map is the one inline script and is
   // allowed by hash; Draco decodes meshes in blob workers with WebAssembly; recordings play from
   // blob URLs; the case reference dialog frames the same origin.
-  for(const name of ['atlas-sources.html','case-conference.html'])if(/<script(?![^>]*\bsrc=)/.test(files.get(name).toString()))throw Error(`Inline script in ${name} needs a CSP hash`);
+  for(const name of ['index.html','atlas-sources.html','case-conference.html'])if(/<script(?![^>]*\bsrc=)/.test(files.get(name).toString()))throw Error(`Inline script in ${name} needs a CSP hash`);
   const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
@@ -124,7 +126,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const cached=['  ! Cache-Control','  Cache-Control: public, max-age=2592000'];
   add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin',`  Content-Security-Policy: ${csp}`,
     '  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=()','  Cache-Control: public, max-age=0, must-revalidate',
-    '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,''].join('\n'));
+    '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,'/media/*',...cached,''].join('\n'));
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
   for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);

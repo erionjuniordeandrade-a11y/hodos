@@ -15,7 +15,14 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const receipt=await buildHodos({root,out});
   const home=await readFile(path.join(out,'index.html'),'utf8');
   const sources=await readFile(path.join(out,'atlas-sources.html'),'utf8');
-  assert.equal(home,await readFile(path.join(out,'atlas.html'),'utf8'));
+  assert.match(home,/id="heroFilm"/);
+  assert.match(home,/href="\.\/atlas"/);
+  assert.match(home,/href="\.\/atlas\?lesson=motor-cst"/);
+  assert.doesNotMatch(home,/atlas\.html|index\.html|pages\.dev/);
+  const atlas=await readFile(path.join(out,'atlas.html'),'utf8');
+  assert.match(atlas,/<link rel="canonical" href="https:\/\/hodosatlas\.com\/atlas">/);
+  assert.match(atlas,/<a class="brand" href="\.\/"/);
+  assert.match(await readFile(path.join(out,'_headers'),'utf8'),/\/media\/\*\n  ! Cache-Control/);
   for(const html of [home,sources]){
     assert.match(html,/Dr\. Erion de Andrade/);
     assert.match(html,/https:\/\/www\.dreriondeandrade\.com\.br\//);
@@ -23,8 +30,8 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   }
   assert.match(sources,/Amy Sterling/);
   assert.match(sources,/href="\.\/THIRD_PARTY_NOTICES\.md"/);
-  assert.match(home,/<link rel="canonical" href="https:\/\/hodos-atlas\.pages\.dev\/">/);
-  assert.match(home,/property="og:image" content="https:\/\/hodos-atlas\.pages\.dev\/brand\/hodos-og\.png"/);
+  assert.match(home,/<link rel="canonical" href="https:\/\/hodosatlas\.com\/">/);
+  assert.match(home,/property="og:image" content="https:\/\/hodosatlas\.com\/brand\/hodos-og\.png"/);
   assert.match(home,/class="brand" href="\.\/"/);assert.doesNotMatch(home,/href="\.\/atlas\.html"/);
   assert.match(sources,/href="\.\/"/);assert.match(home,/href="\.\/atlas-sources"/);
   const headers=await readFile(path.join(out,'_headers'),'utf8');
