@@ -24,7 +24,8 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1200-20260914.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1920-20260914.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
-  assert(!receipt.files.some(f=>f.path==='landing.js'||/^media\/hodos-hero-/.test(f.path)));
+  assert(receipt.files.some(f=>f.path==='landing.js'));
+  assert(!receipt.files.some(f=>/^media\/hodos-hero-/.test(f.path)));
   assert.match(home,/href="\.\/atlas"/);
   assert.match(home,/href="\.\/atlas\?lesson=motor-cst"/);
   assert.doesNotMatch(home,/atlas\.html|index\.html|pages\.dev/);
