@@ -32,7 +32,8 @@ main.landing{max-width:none;margin:0;padding:0}
 .hero .studio-header nav{width:auto;gap:var(--space-xs)}
 .hero .studio-header nav a{font-size:var(--text-sm);padding:0 var(--space-sm)}
 .hero-copy{grid-column:1;grid-row:2;align-self:end;position:relative;min-width:0;max-width:calc(var(--space-3xl) * 7);padding:var(--space-2xl) var(--page-gutter) var(--space-lg);display:flex;flex-direction:column;gap:var(--space-lg)}
-.hero-copy .lede{color:var(--color-ink)}
+.hero-copy .tagline{font-family:var(--font-display);font-size:var(--text-lg);line-height:var(--lh-title);color:var(--color-ink);letter-spacing:-0.01em;margin-top:calc(var(--space-xs) * -1)}
+.hero-copy .lede{color:var(--color-muted)}
 .hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-sm) var(--space-md)}
 .hero-actions .hero-note{flex-basis:100%}
 .hero-actions .cta{flex:none}
