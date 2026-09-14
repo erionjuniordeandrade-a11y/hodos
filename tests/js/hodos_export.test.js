@@ -17,9 +17,9 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const sources=await readFile(path.join(out,'atlas-sources.html'),'utf8');
   assert.match(home,/data-hero[ >]/);
   assert.doesNotMatch(home,/heroFilm|<video|landing\.js|\sstyle=|<style[ >]/);
-  assert.equal([...home.matchAll(/href="\.\/atlas\?lesson=([^"]+)"/g)].length,10);
+  assert.equal(new Set([...home.matchAll(/href="\.\/atlas\?lesson=([^"]+)"/g)].map(m=>m[1])).size,10);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
-  assert.equal(landingAssets.length,20);
+  assert.equal(landingAssets.length,18);
   assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1200-20260914.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1920-20260914.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));

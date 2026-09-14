@@ -47,10 +47,10 @@ try{
     const img=document.querySelector('[data-hero] img');
     return img?.complete&&img.naturalWidth>0;
   });
-  assert.equal(await page.locator('#open').getAttribute('href'),'./atlas');
+  assert.equal(await page.locator('#open').getAttribute('href'),'./atlas?lesson=motor-cst');
   const lessonLinks=await page.locator('[data-lessons] a').evaluateAll(links=>links.map(a=>new URL(a.href).searchParams.get('lesson')));
   assert.deepEqual([...lessonLinks].sort(),[...LESSONS].map(lesson=>lesson.id).sort(),'Landing links one lesson each; display order is the landing\'s own');
-  assert.equal(await page.locator('a[href*="?lesson="]').count(),10);
+  assert.equal(new Set(await page.locator('a[href*="?lesson="]').evaluateAll(as=>as.map(a=>a.getAttribute('href')))).size,10);
   assert.match(await page.locator('.creator-credit').innerText(),/Created by Dr\. Erion de Andrade/);
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);

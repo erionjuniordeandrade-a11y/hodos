@@ -35,7 +35,7 @@ const supportingFiles=[
   'media/landing/lesson-language-networks-20260914.jpg',
   'media/landing/lesson-default-mode-network-20260914.jpg',
   'media/landing/lesson-salience-network-20260914.jpg',
-  'media/landing/move-orient-20260914.jpg','media/landing/move-compare-20260914.jpg','media/landing/move-explain-20260914.jpg',
+  'media/landing/lesson-demo-20260914.jpg',
   'media/landing/case-right-medial-frontal-20260914.jpg',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
   'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',
@@ -132,12 +132,14 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   add('robots.txt',`User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`);
   // Long-cached assets referenced by plain path (fonts, brand files) get a content-hash query
   // key, so a changed file is fetched under a new key instead of served stale for 30 days.
-  const keyed=supportingFiles.filter(n=>/^(brand|vendor\/fonts)\/.*\.(svg|png|woff2|ttf)$/.test(n));
+  // Stylesheets are keyed too: a page must never pair new markup with a stale sheet from cache.
+  const keyed=supportingFiles.filter(n=>/^(brand|vendor\/fonts)\/.*\.(svg|png|woff2|ttf)$/.test(n)||/^[a-z_-]+\.css$/.test(n));
   const versionRefs=text=>{for(const name of keyed){const key=sha256(files.get(name)).slice(0,12);
     text=text.replace(new RegExp(`(["'(])(\\./|/)${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(["')])`,'g'),`$1$2${name}?v=${key}$3`);}return text;};
   for(const [name,bytes] of files)if(/\.(html|css)$/.test(name)){
     const text=versionRefs(bytes.toString());
     if(/(["'(])(\.\/|\/)(brand|vendor\/fonts)\/[^"')?]+\.(svg|png|woff2|ttf)(["')])/.test(text))throw Error(`Unversioned cached asset reference in ${name}`);
+    if(/<link[^>]*rel="stylesheet"[^>]*href="[^"?]+\.css"/.test(text))throw Error(`Unversioned stylesheet reference in ${name}`);
     files.set(name,Buffer.from(text));
   }
   // Content-Security-Policy: first-party only. The import map is the one inline script and is
@@ -161,7 +163,8 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const cached=['  ! Cache-Control','  Cache-Control: public, max-age=2592000'];
   add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin',`  Content-Security-Policy: ${csp}`,
     '  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=()','  Cache-Control: public, max-age=0, must-revalidate',
-    '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,'/media/*',...cached,''].join('\n'));
+    '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,'/media/*',...cached,
+    ...keyed.filter(n=>n.endsWith('.css')).flatMap(n=>['/'+n,...cached]),''].join('\n'));
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
   for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);

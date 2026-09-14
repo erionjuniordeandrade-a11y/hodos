@@ -56,7 +56,8 @@ async function audit(page, width) {
       const cs = getComputedStyle(a);
       const fs = parseFloat(cs.fontSize) || 16;
       const lh = Number.isFinite(parseFloat(cs.lineHeight)) ? parseFloat(cs.lineHeight) : fs * 1.6;
-      const range = document.createRange(); range.selectNodeContents(a);
+      const label = a.querySelector('.lesson-name') || a;
+      const range = document.createRange(); range.selectNodeContents(label);
       const textH = range.getBoundingClientRect().height;
       if (textH > 1.6 * Math.max(lh, fs)) {
         fails.push(`two-line clickable: ${a.getAttribute('href')} textH=${Math.round(textH)} lh=${lh}`);
@@ -109,9 +110,9 @@ async function audit(page, width) {
       for (const id of set) if (!LESSONS.includes(id)) fails.push(`unknown lesson ${id}`);
       if (ids.length !== set.size) fails.push('duplicate lesson ids');
     }
-    const moves = q('[data-moves]');
-    if (!moves) fails.push('missing [data-moves]');
-    else if (qa('img', moves).length !== 3) fails.push(`[data-moves] img count ${qa('img', moves).length} != 3`);
+    const demo = q('[data-demo]');
+    if (!demo) fails.push('missing [data-demo]');
+    else if (qa('img', demo).length !== 1) fails.push(`[data-demo] img count ${qa('img', demo).length} != 1`);
     const cas = q('[data-case]');
     if (!cas) fails.push('missing [data-case]');
     else if (qa('img', cas).length !== 1) fails.push(`[data-case] img count ${qa('img', cas).length} != 1`);
