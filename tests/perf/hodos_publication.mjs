@@ -39,21 +39,51 @@ try{
   page.on('pageerror',e=>report.errors.push(e.message));
   page.on('requestfailed',r=>report.failedRequests.push(r.url()));
   page.on('request',r=>{const url=new URL(r.url());if(url.protocol.startsWith('http')&&url.origin!==new URL(base).origin)report.externalRequests.push(r.url());});
-  // Landing page at the site root: hero film, atlas links, no horizontal overflow at both widths.
+  // Landing page at the site root: loaded anatomy plate and exactly one deep link per lesson.
   await page.goto(new URL('/',base).href);
   assert.equal(await page.title(),'Hodos · Neuroanatomy coursebook for residents');
-  assert.equal(await page.locator('#heroFilm').count(),1);
+  assert.equal(await page.locator('[data-hero] img').count(),1);
+  await page.waitForFunction(()=>{
+    const img=document.querySelector('[data-hero] img');
+    return img?.complete&&img.naturalWidth>0;
+  });
   assert.equal(await page.locator('#open').getAttribute('href'),'./atlas');
-  assert.equal(await page.locator('.lesson-rows a').count(),LESSONS.length);
+  const lessonLinks=await page.locator('[data-lessons] a').evaluateAll(links=>links.map(a=>new URL(a.href).searchParams.get('lesson')));
+  assert.deepEqual([...lessonLinks].sort(),[...LESSONS].map(lesson=>lesson.id).sort(),'Landing links one lesson each; display order is the landing\'s own');
+  assert.equal(await page.locator('a[href*="?lesson="]').count(),10);
   assert.match(await page.locator('.creator-credit').innerText(),/Created by Dr\. Erion de Andrade/);
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);
     await page.evaluate(()=>document.fonts.ready);
-    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Landing horizontal overflow');
+    // Scroll each lazy frame into view before making a full-page review artifact.
+    for(const img of await page.locator('main img').all()){
+      await img.scrollIntoViewIfNeeded();
+      await img.evaluate(el=>el.decode());
+    }
+    await page.evaluate(()=>window.scrollTo(0,0));
+    await page.screenshot({path:`${out}/hodos-landing-${viewport.width}-viewport.png`});
     await page.screenshot({path:`${out}/hodos-landing-${viewport.width}.png`,fullPage:true});
   }
+  report.landingLayouts=[];
+  for(const width of [320,375,414,768,1024,1440]){
+    await page.setViewportSize({width,height:900});
+    const layout=await page.evaluate(()=>({
+      width:document.documentElement.clientWidth,
+      scrollWidth:document.documentElement.scrollWidth,
+      wrappedLinks:[...document.querySelectorAll('a.cta,nav a,footer a')]
+        .filter(a=>a.getClientRects().length>1).map(a=>a.textContent.trim()),
+      wrappedText:[...document.querySelectorAll('a.cta,nav a,footer a')].filter(a=>{
+        const range=document.createRange();range.selectNodeContents(a);
+        return new Set([...range.getClientRects()].filter(r=>r.width&&r.height).map(r=>Math.round(r.top))).size>1;
+      }).map(a=>a.textContent.trim()),
+    }));
+    assert(layout.scrollWidth<=layout.width,`Landing horizontal overflow at ${width}`);
+    assert.deepEqual(layout.wrappedLinks,[],`Fragmented clickable links at ${width}`);
+    assert.deepEqual(layout.wrappedText,[],`Wrapped clickable text at ${width}`);
+    report.landingLayouts.push(layout);
+  }
   await page.setViewportSize({width:1440,height:900});
-  report.checks.push('Landing page at / with hero film and one link per lesson');
+  report.checks.push('Landing page at / with a loaded hero plate, ten lesson links, loaded lazy frames, desktop/phone screenshots and six overflow/wrap checks');
   await page.goto(new URL('/atlas?test=1',base).href);
   await page.waitForFunction(()=>window.__atlasTest?.ready,null,{timeout:45000});
   assert.equal(await page.title(),'Hodos · The atlas and lessons');

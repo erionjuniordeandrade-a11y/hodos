@@ -15,7 +15,15 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const receipt=await buildHodos({root,out});
   const home=await readFile(path.join(out,'index.html'),'utf8');
   const sources=await readFile(path.join(out,'atlas-sources.html'),'utf8');
-  assert.match(home,/id="heroFilm"/);
+  assert.match(home,/data-hero[ >]/);
+  assert.doesNotMatch(home,/heroFilm|<video|landing\.js|\sstyle=|<style[ >]/);
+  assert.equal([...home.matchAll(/href="\.\/atlas\?lesson=([^"]+)"/g)].length,10);
+  const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
+  assert.equal(landingAssets.length,20);
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1200-20260914.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1920-20260914.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
+  assert(!receipt.files.some(f=>f.path==='landing.js'||/^media\/hodos-hero-/.test(f.path)));
   assert.match(home,/href="\.\/atlas"/);
   assert.match(home,/href="\.\/atlas\?lesson=motor-cst"/);
   assert.doesNotMatch(home,/atlas\.html|index\.html|pages\.dev/);

@@ -10,6 +10,7 @@ bone, one ice accent, sand for context parcels) and the logo A. Preserve mode: r
 brand, ids and analytics-free markup stay.
 
 ## Macrostructure family
+- Landing (/): Marquee Hero, anatomy-led. Full-bleed hero plate with a paper-to-transparent scrim (the only gradient on the site), four-family strip, lessons as a hairline gallery with frames, Case Conference band, creator and data, shared footer.
 - Home (library): Index-First. One stacked paragraph introduces the index; the live atlas is the
   only enrichment, sticky beside a categorised list with hairline rows.
 - Lesson workspace (app page): Workbench. The atlas is the frame; the lesson panel is the caption

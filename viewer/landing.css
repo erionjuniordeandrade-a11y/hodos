@@ -1,70 +1,107 @@
-/* Landing page layer. Consumes tokens.css and the shared header/footer from hodos.css. */
-main.landing{max-width:1680px;margin:0 auto;padding:0 var(--page-gutter) var(--space-3xl)}
-.landing section{padding:var(--space-2xl) 0;border-top:1px solid var(--color-rule)}
-.landing section:first-child{border-top:0;padding-top:var(--space-xl)}
-.landing h2{font:500 var(--text-title)/var(--lh-title) var(--font-display);letter-spacing:-0.01em;margin:0 0 var(--space-md);color:var(--color-ink);max-width:24ch}
-.landing p{max-width:var(--measure);color:var(--color-muted);line-height:1.6;margin:0 0 var(--space-sm)}
-.landing a{color:var(--color-accent);text-underline-offset:.2em}
+/* Direction B: anatomy-led marquee. All palette, type and spacing come from tokens.css.
+ * Zero/percentages, grid ratios and media breakpoints describe layout, not new design tokens.
+ * The hero legibility scrim is the sole gradient permitted by design.md. */
+html,body{overflow-x:clip}
+main.landing{max-width:none;margin:0;padding:0}
+.landing{font-size:var(--text-base);line-height:var(--lh-body)}
+.landing :is(h1,h2,h3){font-family:var(--font-display);font-weight:500;line-height:var(--lh-title);letter-spacing:-0.01em;margin:0;min-width:0;overflow-wrap:anywhere;color:var(--color-ink)}
+.landing h1{font-size:var(--text-display);line-height:var(--lh-display)}
+.landing h2{font-size:var(--text-title)}
+.landing h3{font-size:var(--text-md)}
+.landing p{margin:0;color:var(--color-muted)}
 .landing strong{color:var(--color-ink);font-weight:500}
-.skip-link{position:absolute;left:var(--space-sm);top:var(--space-sm);padding:var(--space-xs) var(--space-sm);border-radius:var(--radius);transform:translateY(-200%);transition:transform var(--dur-short) var(--ease-out);z-index:var(--z-modal)}
+.landing img{display:block;max-width:100%;height:auto}
+.landing :is(a.cta,nav a),footer.source-footer a{white-space:nowrap}
+.landing a:focus-visible,footer.source-footer a:focus-visible{outline:var(--radius) solid var(--color-focus);outline-offset:var(--radius)}
+.skip-link{position:absolute;left:var(--space-sm);top:var(--space-sm);padding:var(--space-xs) var(--space-sm);border-radius:var(--radius);transform:translateY(-200%);z-index:var(--z-modal)}
 .skip-link:focus{transform:none}
 
-/* Hero: copy left, film right; stacks under 900px */
-.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--space-2xl);align-items:center}
-.hero-copy h1{font:500 var(--text-display)/var(--lh-display) var(--font-display);letter-spacing:-0.01em;margin:0 0 var(--space-md);color:var(--color-ink);max-width:14ch}
-.hero-copy .lede{font-size:var(--text-md);max-width:40ch;margin-bottom:var(--space-lg)}
-.hero-actions{display:flex;flex-wrap:wrap;gap:var(--space-sm);align-items:center;margin-bottom:var(--space-md)}
 .cta{display:inline-flex;align-items:center;justify-content:center;min-height:var(--control-height);padding:0 var(--space-lg);border-radius:var(--radius);font:500 var(--text-base)/1 var(--font-body);text-decoration:none;white-space:nowrap;transition:transform var(--dur-short) var(--ease-out)}
-.cta:hover{transform:translateY(-1px)}.cta:active{transform:none}
-.cta:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+.cta:hover{transform:translateY(calc(var(--space-3xs) / -2))}
+.cta:active{transform:none}
 .landing .cta-primary{background:var(--color-ink);color:var(--color-paper)}
-.landing .cta-secondary{border:1px solid var(--color-rule-2);color:var(--color-ink)}
-.hero-note{font-size:var(--text-sm);color:var(--color-faint);max-width:44ch}
-.hero-film{position:relative;border-radius:var(--radius);overflow:hidden;background:var(--color-stage);border:1px solid var(--color-rule);aspect-ratio:16/9;max-width:100%}
-.hero-film video{display:block;width:100%;height:100%;object-fit:cover}
-.film-toggle{position:absolute;right:var(--space-sm);bottom:var(--space-sm);min-height:2.25rem;padding:0 var(--space-sm);border:1px solid var(--color-rule-2);border-radius:var(--radius);background:color-mix(in oklab,var(--color-paper) 78%,transparent);color:var(--color-muted);font:500 var(--text-xs)/1 var(--font-body);cursor:pointer}
-.film-toggle:hover{color:var(--color-ink)}
-.film-toggle:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
-.film-caption{font-size:var(--text-xs);color:var(--color-faint);margin:var(--space-xs) 0 0}
+.landing .cta-secondary{border:calc(var(--space-3xs) / 2) solid var(--color-rule-2);color:var(--color-ink)}
 
-/* Three moves */
-.moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-xl)}
-.moves h3{font:500 var(--text-xl)/1.2 var(--font-display);margin:0 0 var(--space-xs);color:var(--color-ink)}
-.moves p{font-size:var(--text-base)}
+/* Full-bleed plate, shared header, bottom-aligned copy and capture caption. */
+.hero{position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:calc(var(--space-3xl) * 8.5);background:var(--color-stage)}
+.hero-plate,.hero-scrim{position:absolute;inset:0;z-index:-1}
+.hero .hero-plate img{width:100%;height:100%;object-fit:cover;object-position:center 35%}
+.hero-scrim{background:linear-gradient(90deg,var(--color-paper) 0%,color-mix(in oklab,var(--color-paper) 55%,transparent) 45%,transparent 75%);pointer-events:none}
+.hero .studio-header{position:relative;top:auto;background:transparent;padding:var(--space-md) var(--page-gutter);min-height:calc(var(--control-height) + var(--space-xl))}
+.hero .studio-header nav{width:auto;gap:var(--space-xs)}
+.hero .studio-header nav a{font-size:var(--text-sm);padding:0 var(--space-sm)}
+.hero-copy{position:relative;min-width:0;max-width:calc(var(--space-3xl) * 7);margin-top:auto;padding:var(--space-2xl) var(--page-gutter) var(--space-lg);display:flex;flex-direction:column;gap:var(--space-lg)}
+.hero-copy .lede{color:var(--color-ink)}
+.hero-actions{display:flex;align-items:center;gap:var(--space-md)}
+.hero-actions .cta{flex:none}
+.hero-actions .hero-note{font-size:var(--text-sm)}
+.hero .hero-caption{align-self:flex-end;font-size:var(--text-sm);padding:0 var(--page-gutter) var(--space-md)}
 
-/* Curriculum: hairline rows */
-.curriculum{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:var(--space-2xl)}
-.curriculum-groups{margin:0;padding:0;list-style:none}
-.curriculum-groups>li{padding:var(--space-md) 0;border-top:1px solid var(--color-rule)}
-.curriculum-groups>li:first-child{border-top:0;padding-top:0}
-.group-title{font:500 var(--text-lg)/1.2 var(--font-display);color:var(--color-ink);margin:0 0 var(--space-3xs)}
-.group-desc{font-size:var(--text-sm);color:var(--color-faint);margin:0 0 var(--space-sm)}
-.lesson-rows{margin:0;padding:0;list-style:none}
-.lesson-rows li{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr) auto;gap:var(--space-md);align-items:baseline;padding:var(--space-xs) 0;border-top:1px solid var(--color-rule)}
-.lesson-rows li:first-child{border-top:0}
-.lesson-rows .lesson-name{color:var(--color-ink);font-weight:500}
-.lesson-rows .lesson-q{font-size:var(--text-sm);color:var(--color-muted);margin:0}
-.lesson-rows .lesson-hemi{font:400 var(--text-xs)/1 var(--font-body);color:var(--color-faint);letter-spacing:0;white-space:nowrap}
+/* Four equal family frames separated by hairlines. */
+.families{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-block:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.family{min-width:0;display:flex;flex-direction:column;gap:var(--space-sm);padding:var(--space-lg)}
+.family:not(:last-child){border-right:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.family img{width:100%;height:calc(var(--control-height) * 5);object-fit:cover;object-position:center 30%}
+.family:nth-child(2) img{object-position:center 40%}
+.family:nth-child(4) img{object-position:center}
+.family h2{font-size:var(--text-md)}
+.family p{font-size:var(--text-sm)}
 
-/* Provenance and cases */
-.provenance dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-lg);margin:0 0 var(--space-xl)}
-.provenance dt{font:500 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink);margin-bottom:var(--space-3xs)}
-.provenance dd{margin:0;font-size:var(--text-sm);color:var(--color-muted)}
-.cases-strip{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--space-2xl);align-items:start}
-.notice{border-left:2px solid var(--color-accent);padding-left:var(--space-md);font-size:var(--text-sm);color:var(--color-muted)}
+/* Sticky lesson introduction and ten framed hairline rows. */
+.curriculum{display:grid;grid-template-columns:minmax(0,21fr) minmax(0,43fr);gap:calc(var(--space-xl) * 2);padding:calc(var(--space-2xl) + var(--space-xs)) var(--page-gutter)}
+.curriculum-intro{position:sticky;top:var(--space-lg);align-self:start;display:flex;flex-direction:column;gap:var(--space-md);min-width:0}
+.moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-xs)}
+.moves img{width:100%;aspect-ratio:600/380;object-fit:cover;border:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.curriculum-intro .moves-caption{font-size:var(--text-sm);color:var(--color-faint)}
+.lesson-rows{list-style:none;padding:0;margin:0;min-width:0}
+.lesson-rows li{display:grid;grid-template-columns:minmax(0,10fr) minmax(0,32fr);gap:calc(var(--space-md) + var(--space-2xs));padding:calc(var(--space-md) + var(--space-2xs)) 0;border-top:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.lesson-rows img{width:100%;aspect-ratio:10/7;object-fit:cover;background:var(--color-stage);border:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.lesson-copy{display:flex;flex-direction:column;gap:var(--space-xs);min-width:0}
+.lesson-name{color:var(--color-ink);text-decoration:none}
+.lesson-name:hover{color:var(--color-accent)}
+.lesson-q{font-size:var(--text-sm)}
+.lesson-copy .lesson-hemi{font-size:var(--text-sm);color:var(--color-faint)}
 
-/* Creator */
-.creator{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--space-2xl)}
+/* Solid case band: no second scrim or gradient. */
+.case-band{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;min-height:calc(var(--space-2xl) * 8 + var(--space-xs));background:var(--color-stage);border-top:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.case-copy{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-md);min-width:0;padding:var(--space-xl) var(--page-gutter);max-width:var(--measure)}
+.case-copy .case-note{font-size:var(--text-sm);color:var(--color-faint)}
+.case-band>img{width:100%;height:100%;max-height:calc(var(--space-2xl) * 8 + var(--space-xs));object-fit:cover;object-position:center}
+.creator-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2xl);padding:var(--space-2xl) var(--page-gutter);border-top:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+.creator-data>div{min-width:0;display:flex;flex-direction:column;gap:var(--space-md)}
+footer.source-footer{margin:0;padding:calc(var(--space-md) * 2) var(--page-gutter) var(--space-xl)}
+footer.source-footer>div{min-width:0}
 
-@media (max-width:900px){
-  .hero,.curriculum,.cases-strip,.creator{grid-template-columns:minmax(0,1fr)}
-  .moves{grid-template-columns:minmax(0,1fr);gap:var(--space-lg)}
-  .lesson-rows li{grid-template-columns:minmax(0,1fr) auto;row-gap:var(--space-3xs)}
-  .lesson-rows .lesson-hemi{grid-column:2;grid-row:1}
-  .lesson-rows .lesson-q{grid-column:1/-1}
-  .lesson-rows .lesson-q{grid-column:1/-1}
-  .hero-copy h1{max-width:none}
+@media (max-width:1100px){
+  .families{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .family:nth-child(2){border-right:0}
+  .family:nth-child(-n+2){border-bottom:calc(var(--space-3xs) / 2) solid var(--color-rule)}
+  .curriculum{grid-template-columns:minmax(0,1fr);gap:var(--space-xl)}
+  .curriculum-intro{position:static;max-width:var(--measure)}
+  .moves{max-width:calc(var(--space-3xl) * 4.5)}
+  .lesson-rows li{grid-template-columns:minmax(0,1fr) minmax(0,3fr)}
 }
-@media (prefers-reduced-motion:reduce){
-  .cta{transition:none}
+@media (max-width:700px){
+  .hero{min-height:calc(var(--space-3xl) * 8)}
+  .hero .studio-header{gap:var(--space-xs)}
+  .hero .studio-header nav{width:100%;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2xs)}
+  .hero .studio-header nav a{padding:0;font-size:var(--text-sm);min-height:var(--control-height)}
+  .hero .studio-header nav .header-sources{margin:0}
+  .hero-copy{gap:var(--space-md);padding-top:var(--space-3xl)}
+  .hero-actions{flex-wrap:wrap;gap:var(--space-sm)}
+  .hero .hero-caption{align-self:flex-start}
+  /* Narrow crops put bright fibres behind copy and nav. Fade the plate onto its solid stage. */
+  .hero-plate{opacity:.55}
+  .family{padding:var(--space-md);gap:var(--space-xs)}
+  .family img{height:auto;aspect-ratio:5/4}
+  .curriculum{padding:var(--space-2xl) var(--page-gutter)}
+  .lesson-rows li{grid-template-columns:minmax(0,1fr);gap:var(--space-md);padding-block:var(--space-lg)}
+  .lesson-rows img{aspect-ratio:8/5}
+  .case-band,.creator-data{grid-template-columns:minmax(0,1fr)}
+  .case-copy{padding:var(--space-xl) var(--page-gutter)}
+  .case-band>img{height:auto;max-height:none;aspect-ratio:1}
+  .case-copy .cta{padding-inline:var(--space-md);font-size:var(--text-sm)}
+  .creator-data{gap:var(--space-xl)}
 }
+@media (prefers-reduced-motion:reduce){.cta{transition:none}}
+@media (max-width:360px){.landing .lesson-copy h3{font-size:var(--text-base)}}
