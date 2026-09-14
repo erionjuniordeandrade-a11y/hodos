@@ -6,15 +6,16 @@
   "source_commit": "e02876655d0216995340a9c153d37d49ff649078",
   "license_review_date": "2026-09-09",
   "coordinate_contract": "Group reference surfaces and pathways in MNI conventions. Different template constructions; illustrative juxtaposition only. No cross-atlas distance or endpoint connectivity inference, no case registration.",
-  "modifications": "GLB, tract binary and the per-vertex label binary copied unchanged (Yeo-7, Yeo-17 and HCP-MMP1 blocks with their paired hemisphere tables; vertex order unchanged). Paths shortened. No H01 assets included.",
+  "modifications": "GLB, tract binary and the per-vertex label binary copied unchanged (Yeo-7, Yeo-17 and HCP-MMP1 blocks with their paired hemisphere tables; vertex order unchanged). Paths shortened. No H01 assets included. 2026-09-14: a fourth per-vertex block (arterial2, Liu 2023 supply territories, four codes per hemisphere) appended after the original 389,904 bytes, which are unchanged; surface.json gained sets.arterial2 only.",
   "assets": [
     {
       "path": "surface-labels.bin",
-      "sha256": "af4501db39581825a841857ca32d2025829d5611c3c8cd3444008b1221c00ada",
-      "bytes": 389904,
+      "sha256": "aa00171147413621a58ca52a29a79c8996e234a93faff0987d192da2e70c85f3",
+      "bytes": 519872,
       "source_path": "data/surface-labels.bin",
       "source_sha256": "af4501db39581825a841857ca32d2025829d5611c3c8cd3444008b1221c00ada",
-      "terms": "HCP Open Access Data Use Terms + Yeo 2011 networks \u2014 FreeSurfer atlas license (fs_LR 32k via DiedrichsenLab)"
+      "terms": "HCP Open Access Data Use Terms + Yeo 2011 networks \u2014 FreeSurfer atlas license (fs_LR 32k via DiedrichsenLab) + Liu 2023 arterial territories, CC BY-SA 4.0 (block 4, arterial2)",
+      "derived_from_source_sha256": "af4501db39581825a841857ca32d2025829d5611c3c8cd3444008b1221c00ada"
     },
     {
       "path": "licenses/freesurfer-atlas-license.txt",
@@ -26,11 +27,11 @@
     },
     {
       "path": "surface.json",
-      "sha256": "74e1f2a4f4c68c657a5ee604af7a58929b613dd49046719c85101fb255b082c6",
-      "bytes": 14439,
+      "sha256": "0aefcd1c2d80d55f8fd3488469407c95cf218226ac5b5cf5ad09a14104251748",
+      "bytes": 13803,
       "source_path": "data/surface.json",
       "source_sha256": "9fe424740d61e291a88f2e8239097c09f400878a7d11d9a91f3ad42516613d3d",
-      "terms": "HCP Open Access Data Use Terms"
+      "terms": "HCP Open Access Data Use Terms + Liu 2023 arterial territories, CC BY-SA 4.0 (sets.arterial2)"
     },
     {
       "path": "cortex-L.glb",

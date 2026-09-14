@@ -7,9 +7,9 @@ import {fileURLToPath} from 'node:url';
 const repoRoot=fileURLToPath(new URL('../',import.meta.url));
 const modules=[
   'case_images.js',
-  'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js',
+  'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
-  'atlas_networks.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
+  'atlas_networks.js','atlas_arterial.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
   'dissection_references.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
   'lessons/resident-anatomy.js','lessons/network-lectures.js','render_pipeline.js','scene_materials.js',

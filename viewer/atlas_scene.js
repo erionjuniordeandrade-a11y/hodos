@@ -5,9 +5,10 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 import {ATLAS_VIEWS,decodeAtlasLabels,decodeAtlasBundle} from './atlas_data.js';
 import {paletteUnit,YEO7_SET,networkSelection} from './atlas_networks.js';
+import {ARTERIAL_SET,arterialTable,arterialPaletteUnit,arterialSelection} from './atlas_arterial.js';
 import {configContextMaterial} from './scene_materials.js';
 import {createRenderPipeline} from './render_pipeline.js';
-const MANIFEST_SHA256='d74e168623c1adb113d6c44a8b5322ea500f54c78e8d86c6e42626c5ab14fe9c';
+const MANIFEST_SHA256='1d87cebf7c68a1101afa5adb62321d28a24174e41d48fb85f65d915541eef90f';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 
 // Discrete parcel identity, separate from the published network palette.
@@ -219,7 +220,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     mesh.material?.dispose();return geo;
   }
   let surfaceMeta,tractMeta,tractBuffer,labels,networks=null,sub;
-  let networkSel=networkSelection('off');
+  let networkSel=networkSelection('off'),arterialSel=arterialSelection('off'),arterial=null,arterialRows=[];
   try {
     onStatus('Loading the reference atlas · cortical surface…');
     // The 3 MB pathway buffer downloads in the background; the cortex is framed and drawn first.
@@ -230,6 +231,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     labels=decodeAtlasLabels(surfaceMeta,labelBuffer,counts,'glasser');
     // Yeo-7 rides the same vertex order; absent set → networks stay off, never guessed.
     networks=surfaceMeta.sets?.[YEO7_SET]?decodeAtlasLabels(surfaceMeta,labelBuffer,counts,YEO7_SET):null;
+    // Arterial territories ride the same vertex order; absent set → the control stays disabled.
+    arterialRows=arterialTable(surfaceMeta);
+    arterial=surfaceMeta.sets?.[ARTERIAL_SET]?decodeAtlasLabels(surfaceMeta,labelBuffer,counts,ARTERIAL_SET):null;
     const palette=paletteUnit();
     for(const [i,h] of ['L','R'].entries()) {
       const geo=[left,right][i],count=geo.attributes.position.count;
@@ -304,6 +308,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   function applySelection(){
     const tints=Object.fromEntries(Object.entries(CORTEX_TINTS).map(([k,c])=>[k,new THREE.Color(c)]));
     const palette=paletteUnit().map(c=>new THREE.Color().setRGB(...c,THREE.SRGBColorSpace));
+    const artPalette=arterialPaletteUnit(arterialRows).map(c=>new THREE.Color().setRGB(...c,THREE.SRGBColorSpace));
+    const artOn=arterialSel.mode!=='off'&&!!arterial;
     for(const h of ['L','R']){const a=hemis[h].geo.attributes.selected;
       const colour=hemis[h].geo.attributes.color;
       for(let i=0;i<a.count;i++){const id=labels[h][i];
@@ -312,7 +318,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
           :(id!==0&&highlighted.some(r=>r.hemi===h&&r.id===id))?2:0;
         const net=networks?.[h]?.[i]||0;
         const on=net>0&&(networkSel.mode==='all'||(networkSel.mode==='focus'&&networkSel.focus===net));
-        const tint=a.array[i]===1?tints.focus:a.array[i]===2?tints.context:a.array[i]===3?tints.hover:on?palette[net]:tints.neutral;
+        const art=artOn?(arterial[h][i]||0):0;
+        const artLit=art>0&&(arterialSel.mode==='all'||arterialSel.focus===art);
+        const tint=a.array[i]===1?tints.focus:a.array[i]===2?tints.context:a.array[i]===3?tints.hover:artLit?artPalette[art]:on?palette[net]:tints.neutral;
         colour.setXYZ(i,tint.r,tint.g,tint.b);
       }
       a.needsUpdate=true;colour.needsUpdate=true;
@@ -451,6 +459,14 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(!networks)networkSel=networkSelection('off');
     applySelection();
   }
+  function setArterial(sel){
+    arterialSel=arterialSelection(sel?.mode,sel?.focus,arterialRows);
+    if(!arterial)arterialSel=arterialSelection('off');
+    applySelection();
+  }
+  /** Arterial territory id at one vertex (0 = unlabelled), or null when the set is not installed. */
+  function arterialAt(hemi,vertex){return arterial&&arterial[hemi]?arterial[hemi][vertex]??null:null;}
+  const hasArterial=()=>!!arterial;
   /** Yeo-7 id at one vertex (0 = medial wall), or null when the set is not installed. */
   function networkAt(hemi,vertex){return networks&&networks[hemi]?networks[hemi][vertex]??null:null;}
   const hasNetworks=()=>!!networks;
@@ -541,6 +557,21 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   renderer.domElement.addEventListener('pointerleave',clearHover);
   renderer.domElement.addEventListener('pointercancel',()=>{down=null;clearHover();});
   setSurface(surface);select(null);framed=true;resize();setView();onStatus('Atlas ready',{ready:true});
+  // Fictional lesion marker (case_lesions.js): one translucent sphere in atlas mm, never picked.
+  let lesion=null;
+  function setLesion(m){
+    if(lesion){scene.remove(lesion.group);lesion.group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});lesion=null;}
+    if(m){
+      const r=Math.min(40,Math.max(1,Number(m.radiusMm)||12)),group=new THREE.Group();
+      const core=new THREE.Mesh(new THREE.SphereGeometry(r,48,32),new THREE.MeshStandardMaterial({color:0x9be1f0,emissive:0x2b6f80,emissiveIntensity:.35,
+        roughness:.55,metalness:0,transparent:true,opacity:.42,depthWrite:false}));
+      const halo=new THREE.Mesh(new THREE.SphereGeometry(r*1.06,24,16),new THREE.MeshBasicMaterial({color:0x9be1f0,wireframe:true,transparent:true,opacity:.18,depthWrite:false,toneMapped:false}));
+      core.material.userData.renderRole='atlas-lesion';core.renderOrder=4;halo.renderOrder=4;
+      group.add(core,halo);group.position.set(m.x,m.y,m.z);group.userData={kind:'lesion',label:m.label,side:m.side};
+      scene.add(group);lesion={group,marker:{x:m.x,y:m.y,z:m.z,radiusMm:r,side:m.side,label:m.label}};
+    }
+    requestDraw();
+  }
   function snapshot(){return {selected:selected?{...selected}:null,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,network:{...networkSel},
     bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),deepHighlight:[...deepHighlightIds],
     surface,deepVisible,view,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};}
@@ -555,14 +586,15 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   }
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
-    setSurface,
+    setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
+    setSurface,setLesion,
     setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,
       reducedMotion:reduced.matches,time,frames,selected,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,
       bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),
-      bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},
-      vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
+      bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},
+      vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,
         cameraFrame:frameFocus?'lesson':'whole',target:controls.target.toArray(),
         labels:annotations.map(a=>({key:a.key,kind:a.kind,x:a.x,y:a.y,visibility:a.visibility,primary:a.primary}))},

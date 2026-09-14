@@ -29,6 +29,7 @@
 <link rel="modulepreload" href="./atlas_catalog.js">
 <link rel="modulepreload" href="./atlas_glossary.js">
 <link rel="modulepreload" href="./atlas_networks.js">
+<link rel="modulepreload" href="./atlas_arterial.js">
 <link rel="modulepreload" href="./anatomy_lesson_player.js">
 <link rel="modulepreload" href="./anatomy_learning.js">
 <link rel="modulepreload" href="./lesson_briefings.js">
@@ -86,6 +87,7 @@
     <div><label for="atlasHemisphere">Visible hemispheres</label><select id="atlasHemisphere"><option value="both">Both hemispheres</option><option value="L">Left hemisphere</option><option value="R">Right hemisphere</option></select></div>
     <div class="deep-control"><label><input id="deepStructures" type="checkbox"> Show deep structures</label><label for="deepRegion" class="sr-only">Inspect a deep atlas structure</label><select id="deepRegion"><option value="">Inspect a structure…</option></select></div>
     <div class="network-control"><label for="atlasNetworks">Resting-state networks <span class="picker-count">Yeo-7 group labels</span></label><select id="atlasNetworks" disabled><option value="off">Off</option></select><ul id="networkLegend" class="network-legend" hidden></ul></div>
+    <div class="network-control"><label for="atlasArterial">Arterial territories <span class="picker-count">Liu 2023 group template</span></label><select id="atlasArterial" disabled><option value="off">Off</option></select><ul id="arterialLegend" class="network-legend" hidden></ul></div>
     <div><label for="surfaceLevel">Cortical surface</label><input id="surfaceLevel" type="range" min="8" max="95" value="60"><span class="range-caption">Transparent <span>Defined</span></span></div>
     <div class="pathway-picker" id="atlasPathways" role="group" aria-labelledby="atlasPathwaysLabel"><div class="picker-head"><h2 id="atlasPathwaysLabel">Reference pathways <span id="pathwayCount" class="picker-count">loading…</span></h2><button type="button" id="pathwayClear" disabled>Clear pathways</button></div><p id="pathwayStatus" role="status"></p><div id="selectedPathways" role="group" aria-label="Displayed pathways"></div><p class="picker-help">L / R select each side. Names follow the <a href="https://brain.labsolver.org/hcp_trk_atlas.html" target="_blank" rel="noopener noreferrer">HCP1065 atlas glossary</a>; source codes remain searchable.</p><div id="pathwayGroups" class="picker-groups"></div></div>
   </section>

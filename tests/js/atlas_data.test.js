@@ -36,7 +36,8 @@ test('cortical labels preserve hemisphere-specific identities and reject a misma
   assert.equal(labels.L.length,32492);assert(labels.L.includes(8));assert(labels.R.includes(8));
   assert.equal(regionIdentity(m,'L',8).raw,'L_4_ROI');assert.equal(regionIdentity(m,'R',8).raw,'R_4_ROI');
   assert.throws(()=>decodeAtlasLabels(m,b,[32491,32493]));
-  assert.throws(()=>decodeAtlasLabels(m,b.slice(0,-2),[32492,32492]));
+  // Truncate inside the Glasser block itself: later blocks may follow it in the file.
+  assert.throws(()=>decodeAtlasLabels(m,b.slice(0,m.sets.glasser.offset+64984*2-2),[32492,32492]));
 });
 test('Yeo-7 network labels ride the same vertex order and decode from their own offset',async()=>{
   const m=await json('surface.json'),b=await bytes('surface-labels.bin');

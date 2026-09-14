@@ -84,8 +84,10 @@ export function resolveScene(step,currentHemisphere){
   // v3: optional Yeo-7 wash. Undefined/null = leave the viewer's network state alone;
   // 'off' | 'all' | a code such as 'SMN' is explicit. Unknown codes throw at resolve time.
   const network=scene.network==null?null:networkFromScene(scene.network);
+  // v4: fictional lesion marker. null = the step says nothing about a marker (leave it alone).
+  const lesion=scene.lesion==null?null:{x:scene.lesion.x,y:scene.lesion.y,z:scene.lesion.z,radiusMm:scene.lesion.radiusMm,side:scene.lesion.side,label:scene.lesion.label};
 
   return {side,bundleId,bundleIds,ghostIds,region,regions,
     deep:!!scene.deep,surface:scene.surface==null?null:scene.surface,view,trace:!!scene.trace,
-    camera,durationSec,deepRegionIds,network};
+    camera,durationSec,deepRegionIds,network,lesion};
 }
