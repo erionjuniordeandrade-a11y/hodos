@@ -2,7 +2,7 @@
  * Sources support anatomy and study findings. Scene targets name installed atlas
  * identities only; they never stand in for missing vessels, nuclei or function.
  */
-const source=(id,title,pmid,evidenceClass,scope)=>({id,title,url:`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,evidenceClass,scope});
+export const source=(id,title,pmid,evidenceClass,scope)=>({id,title,url:`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,evidenceClass,scope});
 export const RESIDENT_SOURCES={
   R11:source('R11','Giampiccolo et al., 2021 · motor deficits with preserved intraoperative MEPs','33615216','association','Retrospective peri-Rolandic tumour-surgery series with lesion-symptom mapping. Motor deficits could persist despite unchanged MEPs. This supports broader motor assessment, not a diagnosis or recovery guarantee for the hypothetical case.'),
   R1:source('R1','Frigeri et al., 2015 · microsurgical anatomy of the central lobe','25555079','experimental_anatomy','Human cadaveric dissections: precentral/postcentral gyri, paracentral lobule and vascular relationships. The atlas has no vascular layer.'),
@@ -17,18 +17,18 @@ export const RESIDENT_SOURCES={
   R10:source('R10','Yim et al., 2013 · corticobulbar distribution in the internal capsule','24034408','reconstruction','Capsular-infarct observations and a separate DTI sample placed corticobulbar relationships more posteriorly than classical genu accounts. Findings depend on level and method; this atlas cannot adjudicate the individual distribution.'),
 };
 
-const parcel=(id,label)=>({kind:'parcel',id,label});
-const deep=(id,label)=>({kind:'deep',id,label});
-const bundle=(id,label)=>({kind:'bundle',id,label});
-const cortex=(...ids)=>ids.map(id=>({id,hemi:'follow'}));
-const scene=(extra={})=>({side:'follow',bundles:[],ghost:[],regions:[],deep:false,deepRegions:[],surface:.8,camera:{view:'follow',tweenMs:650},durationSec:30,trace:false,network:null,...extra});
-const step=(title,text,observe,anatomy,surgical,question,answer,sources,sceneSpec,extra={})=>({
+export const parcel=(id,label)=>({kind:'parcel',id,label});
+export const deep=(id,label)=>({kind:'deep',id,label});
+export const bundle=(id,label)=>({kind:'bundle',id,label});
+export const cortex=(...ids)=>ids.map(id=>({id,hemi:'follow'}));
+export const scene=(extra={})=>({side:'follow',bundles:[],ghost:[],regions:[],deep:false,deepRegions:[],surface:.8,camera:{view:'follow',tweenMs:650},durationSec:30,trace:false,network:null,...extra});
+export const step=(title,text,observe,anatomy,surgical,question,answer,sources,sceneSpec,extra={})=>({
   title,text,observe,anatomy,surgical,question,answer,sources,scene:scene(sceneSpec),regions:null,
   evidenceClass:'atlas',
   notes:`Ask the learner to answer before opening the explanation. Compare the answer with the named structures and the cited method. Teaching point: ${answer}`,
   ...extra,
 });
-const lesson=(id,title,minutes,summary,goals,steps,{regionCards=['atlasProvenance'],...extra}={})=>({id,title,minutes,summary,goals,steps:steps.map(s=>({...s,regions:s.regions??regionCards})),
+export const lesson=(id,title,minutes,summary,goals,steps,{regionCards=['atlasProvenance'],...extra}={})=>({id,title,minutes,summary,goals,steps:steps.map(s=>({...s,regions:s.regions??regionCards})),
   audience:'Neurosurgical residents',reviewStatus:'draft',category:'Regional anatomy',referenceOnly:true,...extra});
 
 const motor=lesson('motor-cst','Central region & descending motor pathways',20,

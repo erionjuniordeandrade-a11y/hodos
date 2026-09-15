@@ -6,7 +6,7 @@ import {LESSONS,validateLessons} from '../../viewer/lesson_content.js';
 import {DISSECTION_PLATES} from '../../viewer/dissection_references.js';
 
 test('five distinct source photographs support existing relationships without adding a lesson',()=>{
-  assert.equal(LESSONS.length,10);assert.equal(LESSONS.reduce((n,l)=>n+l.steps.length,0),58);
+  assert.equal(LESSONS.length,14);assert.equal(LESSONS.reduce((n,l)=>n+l.steps.length,0),85);
   const uses=LESSONS.flatMap(l=>l.steps.filter(s=>s.referencePlate).map(s=>s.referencePlate));
   assert.equal(uses.length,5);assert.equal(new Set(uses).size,5);
   assert.deepEqual(uses.sort(),Object.keys(DISSECTION_PLATES).sort());

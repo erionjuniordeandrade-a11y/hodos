@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {LESSONS,SOURCES,CONTENT_VERSION,validateLessons} from '../../viewer/lesson_content.js';
 import {lessonStateFromSearch,lessonSearch,createLessonController} from '../../viewer/lesson_state.js';
 test('ten substantive drafts have resolved sources, notes and knowledge checks',()=>{
-  assert.equal(LESSONS.length,10);assert.equal(validateLessons(),true);
+  assert.equal(LESSONS.length,14);assert.equal(validateLessons(),true);
   for(const l of LESSONS){assert.equal(l.reviewStatus,'draft');assert.ok(l.steps.length>=4);
     assert.ok(l.steps.some(s=>s.question && s.answer));
     for(const s of l.steps){if(!s.question)assert.ok(s.text.length>80);assert.ok(s.notes.length>40);}}

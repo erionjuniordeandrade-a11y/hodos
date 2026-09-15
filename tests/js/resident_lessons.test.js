@@ -6,7 +6,7 @@ import {resolveScene} from '../../viewer/lesson_scene.js';
 
 test('every resident step teaches a relationship, an observation and an explained question',()=>{
   assert.notEqual(CONTENT_VERSION,'2026-09-07.1','rewritten sequences need their own link version');
-  assert.equal(LESSONS.length,10);
+  assert.equal(LESSONS.length,14);
   for(const l of LESSONS){
     assert.equal(l.audience,'Neurosurgical residents');
     assert(['Regional anatomy','Reading the evidence','Network lectures'].includes(l.category));

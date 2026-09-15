@@ -12,7 +12,7 @@ const modules=[
   'atlas_networks.js','atlas_arterial.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
   'dissection_references.js','landing.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
-  'lessons/resident-anatomy.js','lessons/network-lectures.js','render_pipeline.js','scene_materials.js',
+  'lessons/resident-anatomy.js','lessons/network-lectures.js','lessons/corpus-callosum.js','lessons/internal-capsule.js','lessons/ventral-stream.js','lessons/brainstem-corridors.js','render_pipeline.js','scene_materials.js',
   'vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js',
   'vendor/addons/loaders/GLTFLoader.js','vendor/addons/loaders/DRACOLoader.js',
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
@@ -124,7 +124,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const lastmod=contentVersion.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
   if(!lastmod)throw Error('Content version has no lastmod date');
   const lessonIds=[...new Set([...files.get('index.html').toString().matchAll(/href="\.\/atlas\?lesson=([a-z0-9-]+)"/g)].map(m=>m[1]))];
-  if(lessonIds.length!==10)throw Error(`Expected 10 lesson ids on the landing page, found ${lessonIds.length}`);
+  if(lessonIds.length!==14)throw Error(`Expected 14 lesson ids on the landing page, found ${lessonIds.length}`);
   const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,
     ...lessonIds.map(id=>`${SITE_ORIGIN}/atlas?lesson=${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+

@@ -37,10 +37,22 @@ export const TEACHING_GUIDES={
     question:'After a frontoinsular procedure, redirecting behaviour toward relevant events is difficult. What must a useful explanation include?',
     takeaways:[point(0,'Locate frontoinsular and dorsal cingulate reference territories.'),point(2,'Keep salience, ventral attention and cingulo-opercular definitions separate.'),point(5,'Describe the behaviour and task before advancing a switching or lesion-network hypothesis.')],
     comparison:{title:'Anatomical references / network partition',note:'The AVI and p32pr references and the Yeo-7 ventral-attention partition have different definitions. No dedicated cingulo-opercular partition is installed.',view:'right',options:[{label:'Insula / cingulate references',regions:[{id:111,hemi:'follow'},{id:60,hemi:'follow'}]},{label:'Yeo-7 · ventral attention',network:'VAN'}]}},
+  'internal-capsule':{shortTitle:'Internal capsule & thalamic radiations',hemisphere:'L',
+    question:'A left deep lesion is followed by right face, arm and leg weakness with hemisensory loss, while visual-field involvement is unassessed. Which capsular part leads, and what evidence remains missing?',
+    takeaways:[point(0,'Place the posterior limb between thalamus and the lentiform nucleus.'),point(1,'Compare anterior, posterior and retrolenticular relationships by their displayed pathways.'),point(6,'Use the deficit pattern to form a capsular hypothesis while preserving evidence limits.')]},
+  'corpus-callosum':{shortTitle:'Corpus callosum & interhemispheric corridor',hemisphere:'L',
+    question:'Which callosal segment and neighbouring systems matter when a posterior disconnection hypothesis affects visual transfer but spares basic motor output?',
+    takeaways:[point(0,'Orient callosal segments with the cingulate gyrus and cingulum on the medial surface.'),point(2,'Relate the anterior body to medial frontal parcels, FAT and the initiation question.'),point(6,'Use splenial topography to separate visual transfer from the descending motor pathway.')]},
+  'ventral-stream':{shortTitle:'Ventral stream & temporal stem',hemisphere:'L',
+    question:'A resident must explain a semantic or phonological deficit near the anterior temporal lobe. Which pathway relationship should be examined first?',
+    takeaways:[point(0,'Orient the UF between anterior temporal and orbitofrontal references through the limen insulae.'),point(2,'Read the temporal stem as a corridor linking mesial temporal anatomy with neighbouring pathways.'),point(5,'Contrast a dorsal AF hypothesis with a ventral IFOF hypothesis using the observed language error.') ]},
+  'brainstem-corridors':{shortTitle:'Brainstem & cranial nerve corridors',hemisphere:'L',
+    question:'Left whole-face lower motor neuron facial weakness accompanies right limb weakness. How could left pontine facial nucleus or fascicle involvement together with the left CST explain this pattern, and which trigeminal component and modality would refine the localisation?',
+    takeaways:[point(0,'Follow the CST from cerebral crus into the basis pontis with the surface nearly transparent.'),point(2,'Compare MCP, SCP, ICP and DRTT without implying that the absent nuclei are rendered.'),point(6,'Localise this crossed facial and limb pattern to the left intra-axial pons, involving the facial nucleus or fascicles and the descending CST.')]},
 };
 
 export const CURRICULUM=[
   {title:'Foundations',description:'Read the image and the evidence.',ids:['evidence-classes','sampling-support']},
-  {title:'Regional relationships',description:'Move from cortex into the deep corridors.',ids:['motor-cst','fat-language','optic-radiation','interoception']},
+  {title:'Regional relationships',description:'Move from cortex into the deep corridors.',ids:['motor-cst','internal-capsule','fat-language','corpus-callosum','optic-radiation','ventral-stream','interoception','brainstem-corridors']},
   {title:'Networks & behaviour',description:'Connect anatomy with a specific observation.',ids:['attention-networks','language-networks','default-mode-network','salience-network']},
 ];

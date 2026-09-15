@@ -1,7 +1,7 @@
 import {mkdir, writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 
-const LESSONS = ['evidence-classes', 'sampling-support', 'motor-cst', 'fat-language', 'optic-radiation', 'interoception', 'attention-networks', 'language-networks', 'default-mode-network', 'salience-network'];
+const LESSONS = ['evidence-classes', 'sampling-support', 'motor-cst', 'fat-language', 'optic-radiation', 'interoception', 'attention-networks', 'language-networks', 'default-mode-network', 'salience-network','corpus-callosum','internal-capsule','ventral-stream','brainstem-corridors'];
 const WIDTHS = [320, 375, 414, 768, 1024, 1440];
 const base = process.argv.find(v => v.startsWith('--url='))?.slice(6);
 if (!base) throw new Error('Pass --url=');
@@ -105,7 +105,7 @@ async function audit(page, width) {
         } catch { fails.push(`bad lesson href ${a.getAttribute('href')}`); }
       }
       const set = new Set(ids);
-      if (ids.length !== 10) fails.push(`[data-lessons] a count ${ids.length} != 10`);
+      if (ids.length !== 14) fails.push(`[data-lessons] a count ${ids.length} != 10`);
       for (const id of LESSONS) if (!set.has(id)) fails.push(`missing lesson ${id}`);
       for (const id of set) if (!LESSONS.includes(id)) fails.push(`unknown lesson ${id}`);
       if (ids.length !== set.size) fails.push('duplicate lesson ids');

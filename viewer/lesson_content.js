@@ -9,13 +9,17 @@ import {networkFromScene} from './atlas_networks.js';
 export {REGIONS} from './lesson_references.js';
 import {RESIDENT_LESSONS,RESIDENT_SOURCES} from './lessons/resident-anatomy.js';
 import {NETWORK_LECTURES,NETWORK_SOURCES} from './lessons/network-lectures.js';
+import {CORPUS_CALLOSUM_LESSONS,CORPUS_CALLOSUM_SOURCES} from './lessons/corpus-callosum.js';
+import {internalCapsule,INTERNAL_CAPSULE_SOURCES} from './lessons/internal-capsule.js';
+import {VENTRAL_LESSONS,VENTRAL_SOURCES} from './lessons/ventral-stream.js';
+import {BRAINSTEM_LESSONS,BRAINSTEM_SOURCES} from './lessons/brainstem-corridors.js';
 import {DISSECTION_PLATES} from './dissection_references.js';
 export const CONTENT_VERSION='2026-09-13.1';
 export const EVIDENCE_CLASSES=Object.freeze(['atlas','reconstruction','association',
   'schematic','recovery_overlay','functional_measurement','model_metric',
   'experimental_anatomy','conceptual_model']);
 
-export const SOURCES=Object.freeze({...REFERENCE_SOURCES,...RESIDENT_SOURCES,...NETWORK_SOURCES});
+export const SOURCES=Object.freeze({...REFERENCE_SOURCES,...RESIDENT_SOURCES,...CORPUS_CALLOSUM_SOURCES,...INTERNAL_CAPSULE_SOURCES,...VENTRAL_SOURCES,...BRAINSTEM_SOURCES,...NETWORK_SOURCES});
 
 // Cards can introduce a source not cited in the main prose. Both routes must be
 // reachable in the player's Sources & limits section.
@@ -37,7 +41,7 @@ export const DEFAULT_SCENE=Object.freeze({side:'follow',bundle:null,region:null,
   bundles:Object.freeze([]),ghost:Object.freeze([]),regions:Object.freeze([]),
   camera:null,durationSec:null,deepRegions:Object.freeze([]),network:null,lesion:null});
 
-export const LESSONS=Object.freeze([...RESIDENT_LESSONS,...NETWORK_LECTURES].map(l=>({...l,version:CONTENT_VERSION,
+export const LESSONS=Object.freeze([...RESIDENT_LESSONS,internalCapsule,...CORPUS_CALLOSUM_LESSONS,...VENTRAL_LESSONS,...BRAINSTEM_LESSONS,...NETWORK_LECTURES].map(l=>({...l,version:CONTENT_VERSION,
   steps:l.steps.map(s=>({...s,scene:{...DEFAULT_SCENE,...s.scene}}))})));
 
 const SCENE_SIDES=Object.freeze(['follow','L','R']);
