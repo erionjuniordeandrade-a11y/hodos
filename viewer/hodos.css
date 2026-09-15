@@ -66,6 +66,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,su
 .brand span{font:11px var(--mono);letter-spacing:.17em;color:var(--gold);margin-left:12px}
 .studio-header nav{display:flex;align-items:center;gap:24px;font-size:12px}
 .studio-header nav a{text-decoration:none}
+.studio-header nav .nav-short{display:none}
 .studio-header nav button{padding:8px 12px}
 main{max-width:1680px;margin:auto;padding:28px 36px 18px}
 .intro{display:flex;align-items:center;justify-content:space-between;gap:32px;margin-bottom:24px}
@@ -250,7 +251,10 @@ body[data-profile=presenter] #lessonPanel .lesson-capability,body[data-profile=p
 @media(max-width:600px){main{padding:16px}
 .intro h1,body[data-profile=presenter] .intro h1{font-size:30px}
 .intro>p{margin-top:12px}
-.studio-header nav{gap:8px 16px;flex-wrap:wrap;font-size:13px}
+.studio-header nav{gap:6px 8px;flex-wrap:wrap;font-size:12px;width:100%;justify-content:space-between}
+.studio-header nav button,.studio-header #lessonProfile{padding-inline:8px}
+.studio-header nav .nav-long{display:none}
+.studio-header nav .nav-short{display:inline}
 .brand{font-size:22px}
 .brand span{font-size:11px}
 .search-field{flex-wrap:wrap}

@@ -35,7 +35,7 @@ const supportingFiles=[
   'media/landing/lesson-language-networks-20260914.jpg',
   'media/landing/lesson-default-mode-network-20260914.jpg',
   'media/landing/lesson-salience-network-20260914.jpg',
-  'media/landing/lesson-demo-20260914.jpg','media/landing/hero-superior-loop-1400-20260914.mp4','media/landing/hero-superior-loop-880-20260914.mp4',
+  'media/landing/lesson-demo-20260914.jpg','media/landing/lesson-demo-phone-20260915.jpg','media/landing/hero-superior-loop-1400-20260914.mp4','media/landing/hero-superior-loop-880-20260914.mp4',
   'media/landing/case-right-medial-frontal-20260914.jpg',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
   'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',

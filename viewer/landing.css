@@ -106,7 +106,10 @@ footer.source-footer>div{min-width:0}
 @media (max-width:700px){
   .hero{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto;column-gap:0}
   .hero-plate{grid-column:1;grid-row:2;justify-content:center;padding:var(--space-md) var(--page-gutter) 0}
-  .hero .hero-plate img{height:clamp(calc(var(--space-3xl) * 3.5),52vh,calc(var(--space-3xl) * 6))}
+  .hero .hero-plate img{height:clamp(calc(var(--space-3xl) * 2.25),30vh,calc(var(--space-3xl) * 3.5))}
+  .landing h1{font-size:var(--text-2xl)}
+  /* Phones: promise, then the action, then the detail. */
+  .hero-copy .lede{order:5}
   .hero-copy{grid-column:1;grid-row:3}
   .hero .hero-caption{grid-column:1;grid-row:4;justify-self:start}
   .hero .studio-header{gap:var(--space-xs)}
