@@ -9,7 +9,8 @@ import {ARTERIAL_SET,arterialTable,arterialPaletteUnit,arterialSelection} from '
 import {configContextMaterial} from './scene_materials.js';
 import {createRenderPipeline} from './render_pipeline.js';
 import {createCorridorOverlay} from './corridor_overlay.js';
-const MANIFEST_SHA256='1d87cebf7c68a1101afa5adb62321d28a24174e41d48fb85f65d915541eef90f';
+import {createTractRangeLoader} from './tract_ranges.js';
+const MANIFEST_SHA256='4d03204569136df62809aef15fa3778e5d631270005d6f2739afd3c475f2494d';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 
 // Discrete parcel identity, separate from the published network palette.
@@ -221,12 +222,12 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const geo=mesh.geometry;geo.applyMatrix4(mesh.matrixWorld);geo.computeVertexNormals();
     mesh.material?.dispose();return geo;
   }
-  let surfaceMeta,tractMeta,tractBuffer,labels,networks=null,sub;
+  let surfaceMeta,tractMeta,tractRangeLoader,labels,networks=null,sub,bundleError='';
   let networkSel=networkSelection('off'),arterialSel=arterialSelection('off'),arterial=null,arterialRows=[];
   try {
     onStatus('Loading the reference atlas · cortical surface…');
-    // The 3 MB pathway buffer downloads in the background; the cortex is framed and drawn first.
-    const pathways=Promise.all([json('tracts.json'),checked('tracts.bin')]);pathways.catch(()=>{});
+    // Pathway metadata is small; bundle bytes are fetched by range when a scene needs them.
+    const pathways=Promise.all([json('tracts.json'),json('tracts-ranges.json')]);pathways.catch(()=>{});
     const [left,right,labelBuffer,surfaceJson]=await Promise.all([geometry('cortex-L.glb'),geometry('cortex-R.glb'),checked('surface-labels.bin'),json('surface.json')]);
     surfaceMeta=surfaceJson;
     const counts=[left.attributes.position.count,right.attributes.position.count];
@@ -254,9 +255,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     }
     {const bounds=new THREE.Box3();for(const geo of frameGeometry){geo.computeBoundingBox();bounds.union(geo.boundingBox);}bounds.getCenter(centre);}
     framed=true;resize();setView();requestDraw();
-    onStatus('Loading the reference atlas · pathways (3 MB)…');
+    onStatus('Loading the reference atlas · pathway index…');
     const [pathwayData,contextGeometry]=await Promise.all([pathways,geometry('inferior-context.glb')]);
-    [tractMeta,tractBuffer]=pathwayData;
+    const tractIndex=pathwayData[1],tractBin=manifest.assets.find(asset=>asset.path==='tracts.bin'),tractJson=manifest.assets.find(asset=>asset.path==='tracts.json');
+    [tractMeta]=pathwayData;
+    tractRangeLoader=createTractRangeLoader({url:`./atlas/tracts.bin?v=${tractBin.sha256.slice(0,12)}`,bin:tractBin,index:tractIndex,metadata:tractJson,bundleMeta:tractMeta.bundles});
     onStatus('Loading the reference atlas · deep structures…');
     const context=new THREE.Mesh(contextGeometry,new THREE.MeshStandardMaterial({
       color:0x8e8794,roughness:.8,side:THREE.DoubleSide,
@@ -487,49 +490,59 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const GHOST_TINT=0x818d99;
   /** Show a set of bundles at once. `ghost` ids are rendered dimmer, untinted-by-index and
    * without the animated trace — a "kept visible but de-emphasised" layer under the primaries. */
-  function setBundles(ids,{ghost=[]}={}) {
-    clearBundles();
+  let bundleRequest=0;
+  async function setBundles(ids,{ghost=[]}={}) {
+    const request=++bundleRequest;
     const ghostSet=new Set(ghost);
     const primaryIds=[...new Set(ids)].filter(id=>!ghostSet.has(id));
     const ghostIds=[...new Set(ghost)].filter(id=>!primaryIds.includes(id));
     const ordered=[...primaryIds.map(id=>({id,isGhost:false})),...ghostIds.map(id=>({id,isGhost:true}))].slice(0,MAX_BUNDLES);
-    let colourIndex=0;
-    for(const {id,isGhost} of ordered) {
-      const meta=tractMeta.bundles.find(b=>b.id===id);if(!meta)continue;
-      const lines=decodeAtlasBundle(meta,tractBuffer),positions=[],arc=[],tracePositions=[],traceArc=[];
-      for(const [li,line] of lines.entries()) {
-        let length=0;const lengths=[0];
-        for(let i=1;i<line.length;i++){length+=Math.hypot(...line[i].map((x,j)=>x-line[i-1][j]));lengths.push(length);}
-        for(let i=1;i<line.length;i++) {
-          positions.push(...line[i-1],...line[i]);arc.push(lengths[i-1]/length,lengths[i]/length);
-          if(li%Math.ceil(lines.length/18)===0){tracePositions.push(...line[i-1],...line[i]);traceArc.push(lengths[i-1]/length,lengths[i]/length);}
+    const entries=ordered.map(item=>({...item,meta:tractMeta.bundles.find(b=>b.id===item.id)})).filter(item=>item.meta);
+    clearBundles();
+    try{
+      const loaded=await tractRangeLoader.load(entries.map(item=>item.id));
+      if(request!==bundleRequest||disposed)return;
+      bundleError='';onStatus('Atlas ready',{ready:true});
+      let colourIndex=0;
+      for(const {id,isGhost,meta} of entries) {
+        const lines=decodeAtlasBundle({...meta,offset:0},loaded.get(id)),positions=[],arc=[],tracePositions=[],traceArc=[];
+        for(const [li,line] of lines.entries()) {
+          let length=0;const lengths=[0];
+          for(let i=1;i<line.length;i++){length+=Math.hypot(...line[i].map((x,j)=>x-line[i-1][j]));lengths.push(length);}
+          for(let i=1;i<line.length;i++) {
+            positions.push(...line[i-1],...line[i]);arc.push(lengths[i-1]/length,lengths[i]/length);
+            if(li%Math.ceil(lines.length/18)===0){tracePositions.push(...line[i-1],...line[i]);traceArc.push(lengths[i-1]/length,lengths[i]/length);}
+          }
         }
-      }
-      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-      geo.setAttribute('arc',new THREE.Float32BufferAttribute(arc,1));
-      const tint=isGhost?GHOST_TINT:BUNDLE_TINTS[colourIndex%BUNDLE_TINTS.length];
-      const alpha=isGhost?.12:.30;
-      if(!isGhost)colourIndex++;
-      const group=new THREE.Group();group.add(new THREE.LineSegments(geo,new THREE.ShaderMaterial({
-        uniforms:{tint:{value:new THREE.Color(tint)},alpha:{value:alpha}},
-        vertexShader:'attribute float arc; varying float t; void main(){t=arc;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-        fragmentShader:'uniform vec3 tint; uniform float alpha; varying float t; void main(){float feather=smoothstep(0.0,0.06,min(t,1.0-t));gl_FragColor=vec4(tint,alpha*feather);}',
-        transparent:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false})));
-      if(!isGhost){
-        const traceGeo=new THREE.BufferGeometry();traceGeo.setAttribute('position',new THREE.Float32BufferAttribute(tracePositions,3));
-        traceGeo.setAttribute('arc',new THREE.Float32BufferAttribute(traceArc,1));
-        const material=new THREE.ShaderMaterial({uniforms:{time:{value:time},phase:{value:colourIndex*.7}},
+        const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+        geo.setAttribute('arc',new THREE.Float32BufferAttribute(arc,1));
+        const tint=isGhost?GHOST_TINT:BUNDLE_TINTS[colourIndex%BUNDLE_TINTS.length];
+        const alpha=isGhost?.12:.30;
+        if(!isGhost)colourIndex++;
+        const group=new THREE.Group();group.add(new THREE.LineSegments(geo,new THREE.ShaderMaterial({
+          uniforms:{tint:{value:new THREE.Color(tint)},alpha:{value:alpha}},
           vertexShader:'attribute float arc; varying float t; void main(){t=arc;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-          fragmentShader:`uniform float time; uniform float phase; varying float t;
-            void main(){float p=0.18+0.27*(1.0-cos(time*0.7+phase));
-              float a=max(exp(-pow((t-p)/0.025,2.0)),exp(-pow((t-(1.0-p))/0.025,2.0)));
-              if(a<0.02)discard; gl_FragColor=vec4(1.0,0.78,0.36,a*0.85);}`,
-          transparent:true,depthWrite:false,depthTest:false,blending:THREE.NormalBlending,toneMapped:false});
-        const trace=new THREE.LineSegments(traceGeo,material);trace.visible=profile==='teaching';trace.renderOrder=5;
-        group.add(trace);traces.push(trace);
+          fragmentShader:'uniform vec3 tint; uniform float alpha; varying float t; void main(){float feather=smoothstep(0.0,0.06,min(t,1.0-t));gl_FragColor=vec4(tint,alpha*feather);}',
+          transparent:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false})));
+        if(!isGhost){
+          const traceGeo=new THREE.BufferGeometry();traceGeo.setAttribute('position',new THREE.Float32BufferAttribute(tracePositions,3));
+          traceGeo.setAttribute('arc',new THREE.Float32BufferAttribute(traceArc,1));
+          const material=new THREE.ShaderMaterial({uniforms:{time:{value:time},phase:{value:colourIndex*.7}},
+            vertexShader:'attribute float arc; varying float t; void main(){t=arc;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+            fragmentShader:`uniform float time; uniform float phase; varying float t;
+              void main(){float p=0.18+0.27*(1.0-cos(time*0.7+phase));
+                float a=max(exp(-pow((t-p)/0.025,2.0)),exp(-pow((t-(1.0-p))/0.025,2.0)));
+                if(a<0.02)discard; gl_FragColor=vec4(1.0,0.78,0.36,a*0.85);}`,
+            transparent:true,depthWrite:false,depthTest:false,blending:THREE.NormalBlending,toneMapped:false});
+          const trace=new THREE.LineSegments(traceGeo,material);trace.visible=profile==='teaching';trace.renderOrder=5;
+          group.add(trace);traces.push(trace);
+        }
+        bundles.set(id,{group,ghost:isGhost,alpha});scene.add(group);
       }
-      bundles.set(id,{group,ghost:isGhost,alpha});scene.add(group);
-    }requestDraw();
+      requestDraw();
+    }catch(error){
+      if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${error.message}. Reload to retry.`);console.error(error);}
+    }
   }
   const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let down,hoverFrame=0;
   function pickAt(e){
@@ -598,7 +611,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,
       reducedMotion:reduced.matches,time,frames,selected,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,
-      bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),
+      bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),tractError:bundleError,
       bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
       vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,

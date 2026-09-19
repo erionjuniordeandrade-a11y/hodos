@@ -66,6 +66,15 @@
       "terms": "CC BY-SA 4.0 + HCP acknowledgement"
     },
     {
+      "path": "tracts-ranges.json",
+      "sha256": "dd12d3ee1d20e653d484053046f69a5ebae665b294f60542637928ba9c0c0184",
+      "bytes": 14599,
+      "source_path": "scripts/generate-tract-ranges.mjs",
+      "source_sha256": "f20c065c2c95f5cff806b6d318aa1503f4e95460ca5f1b5601c74f568c8d549d",
+      "derived_from": ["tracts.bin", "tracts.json"],
+      "terms": "Hodos first-party derived byte-range index"
+    },
+    {
       "path": "inferior-context.glb",
       "sha256": "5ac4c54e89b62ecfa733a7a3022c67e495c61ab229ff316674d18a8e8ccaa56e",
       "bytes": 1447108,
