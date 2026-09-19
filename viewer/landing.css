@@ -62,6 +62,8 @@ main.landing{max-width:none;margin:0;padding:0}
 /* Lessons: intro, one real lesson capture, three featured lessons, the rest as a hairline list. */
 .curriculum{display:flex;flex-direction:column;gap:var(--space-xl);padding:calc(var(--space-2xl) + var(--space-xs)) var(--page-gutter)}
 .curriculum-intro{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:var(--space-2xl);align-items:end;min-width:0}
+/* inline-block so a wrapped two-line link stays one hit-testable box: no dead zone between lines. */
+.curriculum-intro .lessons-link{display:inline-block}
 .lesson-demo{margin:0;display:flex;flex-direction:column;gap:var(--space-xs)}
 .lesson-demo img{width:100%;height:auto;border:calc(var(--space-3xs) / 2) solid var(--color-rule);background:var(--color-stage)}
 .lesson-demo figcaption{font-size:var(--text-sm);color:var(--color-faint)}

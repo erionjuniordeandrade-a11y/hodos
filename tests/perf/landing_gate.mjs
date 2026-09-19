@@ -105,7 +105,7 @@ async function audit(page, width) {
         } catch { fails.push(`bad lesson href ${a.getAttribute('href')}`); }
       }
       const set = new Set(ids);
-      if (ids.length !== 14) fails.push(`[data-lessons] a count ${ids.length} != 10`);
+      if (ids.length !== 14) fails.push(`[data-lessons] a count ${ids.length} != 14`);
       for (const id of LESSONS) if (!set.has(id)) fails.push(`missing lesson ${id}`);
       for (const id of set) if (!LESSONS.includes(id)) fails.push(`unknown lesson ${id}`);
       if (ids.length !== set.size) fails.push('duplicate lesson ids');
