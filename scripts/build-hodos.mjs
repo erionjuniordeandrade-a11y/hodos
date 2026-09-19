@@ -3,6 +3,7 @@ import {readFile,writeFile,mkdir,lstat,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {generateLessonPages,lessonIdsFromLanding,lessonIdsInCurriculum} from './lesson-pages.mjs';
 
 const repoRoot=fileURLToPath(new URL('../',import.meta.url));
 const modules=[
@@ -22,7 +23,7 @@ const supportingFiles=[
   'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
   'case-images/medial-frontal-t1c.png','case-images/insular-t1c.png','case-images/temporoparietal-t1c.png','case-images/right-medial-frontal-t1c.png','case-images/README.md',
   'case_conference.css','mips.css',
-  'tokens.css','hodos.css','landing.css',
+  'tokens.css','hodos.css','landing.css','lesson-page.css',
   'media/landing/hero-superior-commissural-1920-20260914.jpg','media/landing/hero-superior-commissural-1200-20260914.jpg',
   'media/landing/family-association-20260914.jpg','media/landing/family-projection-limbic-20260914.jpg',
   'media/landing/family-language-20260914.jpg','media/landing/family-networks-20260914.jpg',
@@ -72,6 +73,7 @@ function publicHTML(html){
   // Pages serves the coursebook at the site root and strips .html; public links use those paths
   // so the canonical URL, the wordmark and the sources link all agree.
   // The landing page is the site root; the atlas lives at /atlas (query strings on lesson links survive).
+  html=html.replaceAll('href="./lessons.html"','href="./lessons"');
   html=html.replace(/href="\.\/atlas\.html(\?[^"]*)?"/g,(m,q)=>`href="./atlas${q||''}"`).replaceAll('href="./index.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"').replaceAll('href="./case-conference.html"','href="./case-conference"');
   html=html.replace('THIRD_PARTY_NOTICES.md in the source checkout','<a href="./THIRD_PARTY_NOTICES.md">Third-party notices and software licenses</a>');
   html=html.replaceAll('href="./mips.html"','href="./mips"');
@@ -118,7 +120,13 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     if(bytes.length!==plate.bytes||sha256(bytes)!==plate.sha256)throw Error(`Dissection asset integrity failed: ${plate.file}`);
     add(name,bytes);
   }
-  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
+  const processedPages=new Map();
+  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html']){
+    const html=publicHTML((await safeRead(viewer,name)).toString());
+    processedPages.set(name,html);add(name,html);
+  }
+  const lessonPages=generateLessonPages({landingHTML:processedPages.get('index.html'),headerSourceHTML:processedPages.get('atlas-sources.html'),footerSourceHTML:processedPages.get('case-conference.html')});
+  for(const [name,html] of lessonPages)add(name,html);
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
   add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
@@ -129,10 +137,12 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   if(!contentVersion)throw Error('Missing lesson content version');
   const lastmod=contentVersion.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
   if(!lastmod)throw Error('Content version has no lastmod date');
-  const lessonIds=[...new Set([...files.get('index.html').toString().matchAll(/href="\.\/atlas\?lesson=([a-z0-9-]+)"/g)].map(m=>m[1]))];
-  if(lessonIds.length!==14)throw Error(`Expected 14 lesson ids on the landing page, found ${lessonIds.length}`);
-  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,
-    ...lessonIds.map(id=>`${SITE_ORIGIN}/atlas?lesson=${id}`)];
+  const lessonIds=lessonIdsInCurriculum();
+  if(lessonIds.length!==14)throw Error(`Expected exactly 14 lesson ids, found ${lessonIds.length}`);
+  const landingLessonIds=lessonIdsFromLanding(processedPages.get('index.html'));
+  if(landingLessonIds.length!==14||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
+  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/lessons`,
+    ...lessonIds.map(id=>`${SITE_ORIGIN}/lessons/${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
     sitemapUrls.map(u=>`  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')+`\n</urlset>\n`);
   add('robots.txt',`User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`);
@@ -153,12 +163,13 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // blob URLs; the case reference dialog frames the same origin. A <script type="application/ld+json">
   // block is inert data, not a JavaScript/module/importmap MIME type, so CSP's script-src never
   // applies to it and it needs no hash; every other bare <script> still does.
+  const isLdJson=attributes=>/\btype\s*=\s*(['"])application\/ld\+json\1/i.test(attributes);
   for(const name of ['index.html','atlas-sources.html','case-conference.html'])
-    for(const tag of files.get(name).toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g))
-      if(!/\btype="application\/ld\+json"/.test(tag[0]))throw Error(`Inline script in ${name} needs a CSP hash`);
-  const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+    for(const tag of files.get(name).toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>/gi))
+      if(!isLdJson(tag[1]))throw Error(`Inline script in ${name} needs a CSP hash`);
+  const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m=>!isLdJson(m[1])).map(m=>m[2]);
   if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
-  const mipsInline=[...files.get('mips.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  const mipsInline=[...files.get('mips.html').toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m=>!isLdJson(m[1])).map(m=>m[2]);
   if(mipsInline.length!==1||mipsInline[0]!==inlineScripts[0])throw Error('MIPS must use the same single import map as the atlas');
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
   // Cloudflare Web Analytics (auto-injected beacon) is the only third-party script allowed; it is
@@ -169,9 +180,12 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // every matching rule and appends same-named headers, so the asset rules detach the page-level
   // Cache-Control ("! Header") before setting their own.
   const cached=['  ! Cache-Control','  Cache-Control: public, max-age=2592000'];
+  const vendorCached=['  ! Cache-Control','  Cache-Control: public, max-age=14400, must-revalidate'];
   add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin',`  Content-Security-Policy: ${csp}`,
     '  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=()','  Cache-Control: public, max-age=0, must-revalidate',
     '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,'/media/*',...cached,
+    '/vendor/addons/*',...vendorCached,'/vendor/addons/libs/draco/*',...vendorCached,
+    'https://hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://:version.hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://www.hodosatlas.com/*','  X-Robots-Tag: noindex',
     ...keyed.filter(n=>n.endsWith('.css')).flatMap(n=>['/'+n,...cached]),''].join('\n'));
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
