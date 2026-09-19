@@ -41,6 +41,12 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(home,/href="\.\/atlas\?lesson=motor-cst"/);
   assert.doesNotMatch(home,/atlas\.html|index\.html|pages\.dev/);
   const atlas=await readFile(path.join(out,'atlas.html'),'utf8');
+  const mips=await readFile(path.join(out,'mips.html'),'utf8');
+  assert.match(home,/href="\.\/mips"/);
+  assert.match(mips,/rel="canonical" href="https:\/\/hodosatlas\.com\/mips"/);
+  assert.match(mips,/src="\.\/mips\.js"/);
+  for(const asset of ['mips.js','mips_content.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
+  assert.match(await readFile(path.join(out,'sitemap.xml'),'utf8'),/<loc>https:\/\/hodosatlas\.com\/mips<\/loc>/);
   for(const [tag] of atlas.matchAll(/<link\b[^>]*rel="modulepreload"[^>]*>/g)){
     assert.match(tag,/\bdata-document-preload\b/,'Cloudflare must not promote import-map-dependent modules into HTTP Link headers');
   }

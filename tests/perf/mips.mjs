@@ -1,0 +1,105 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+
+const base=process.argv.find(a=>a.startsWith('--url='))?.slice(6);
+if(!base)throw Error('Pass --url=');
+const out=process.argv.find(a=>a.startsWith('--out='))?.slice(6)||'output/mips';
+await mkdir(out,{recursive:true});
+const report={url:base,checks:[],errors:[]};
+const browser=await chromium.launch({headless:true});
+const context=await browser.newContext({viewport:{width:1440,height:1200},reducedMotion:'reduce'});
+const page=await context.newPage();page.setDefaultTimeout(15000);
+const watch=p=>{p.on('pageerror',e=>report.errors.push(e.message));p.on('console',m=>{if(m.type()==='error')report.errors.push(m.text());});};
+watch(page);
+const ready=async p=>{await p.waitForFunction(()=>window.__mipsTest?.ready||window.__mipsTest?.error,null,{timeout:45000});assert.equal((await p.evaluate(()=>window.__mipsTest)).error,null);};
+const get=()=>page.evaluate(()=>window.__mipsTest);
+const storage=()=>page.evaluate(()=>({local:{...localStorage},session:{...sessionStorage}}));
+const noOverflow=async p=>assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no horizontal page overflow');
+const screenshot=async(name)=>{
+  await page.evaluate(async()=>{window.scrollTo(0,0);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+  await page.screenshot({path:`${out}/${name}.png`,fullPage:true});
+};
+try{
+  await page.goto(new URL('/mips?test=1',base).href,{waitUntil:'domcontentloaded'});await ready(page);
+  const initialStorage=await storage();
+  let model=await get();assert.equal(model.state.phase,'orient');assert.deepEqual(model.scene.corridors,[]);
+  assert.equal(model.scene.hemisphere,'L');assert.deepEqual(model.scene.bundles,['FAT_L','CST_L','SLF1_L']);
+  assert.equal(await page.getByRole('button',{name:'Only A'}).isDisabled(),true);
+  await noOverflow(page);await screenshot('desktop-orient');
+  report.checks.push('Orient: reference anatomy, target, pathways, no corridor geometry');
+  await page.getByRole('button',{name:'Compare corridors',exact:true}).click();
+  await page.waitForFunction(()=>window.__mipsTest.scene.corridors.length===2);
+  model=await get();const narrow=model.scene.corridors;
+  for(const c of narrow)assert.deepEqual(c.end,[model.scene.lesion.x,model.scene.lesion.y,model.scene.lesion.z]);
+  assert.deepEqual(await page.locator('.corridor-label').allTextContents(),['A','B']);
+  await screenshot('desktop-compare');
+  await page.getByRole('button',{name:'Only A'}).click();assert.deepEqual((await get()).scene.corridors.map(c=>c.id),['A']);
+  await page.getByRole('button',{name:'Only B'}).click();assert.deepEqual((await get()).scene.corridors.map(c=>c.id),['B']);
+  await page.getByRole('button',{name:'Both',exact:true}).click();
+  await page.locator('#corridorWidth').selectOption('wide');
+  const wide=(await get()).scene.corridors;
+  for(let i=0;i<2;i++){assert.deepEqual(wide[i].start,narrow[i].start);assert.deepEqual(wide[i].end,narrow[i].end);assert(wide[i].radiusMm>narrow[i].radiusMm);}
+  report.checks.push('A/B/both controls and wider volume preserve the common target and axes');
+  for(const [label,key] of [['Superior','superior'],['Anterior','anterior'],['Lateral','left']]){
+    await page.getByRole('button',{name:label,exact:true}).click();
+    await page.waitForFunction(view=>window.__mipsTest.scene.view===view,key);
+    assert.equal(await page.getByRole('button',{name:label,exact:true}).getAttribute('aria-pressed'),'true');
+    await screenshot(`view-${key}`);
+  }
+  const canvas=page.locator('#atlasCanvas canvas');await canvas.focus();const camera=(await get()).scene.camera;
+  await page.keyboard.press('ArrowRight');
+  assert.notDeepEqual((await get()).scene.camera,camera);
+  await page.waitForFunction(()=>document.getElementById('viewStatus').textContent==='Free rotation');
+  await page.getByRole('button',{name:'Only A'}).click();
+  assert.equal(await page.locator('[data-view][aria-pressed="true"]').count(),0,'corridor changes preserve the free camera indication');
+  await page.getByRole('button',{name:'Both',exact:true}).click();
+  const box=await canvas.boundingBox();await page.mouse.move(box.x+box.width*.5,box.y+box.height*.5);await page.mouse.down();await page.mouse.move(box.x+box.width*.65,box.y+box.height*.6,{steps:8});await page.mouse.up();
+  assert.notDeepEqual((await get()).scene.camera,camera);
+  report.checks.push('Three named views, keyboard and pointer rotation');
+  await page.getByRole('button',{name:'Explain trade-offs',exact:true}).click();
+  const note='I notice a different axis. I cannot infer tissue strain. I would need vascular anatomy.';
+  await page.locator('#reasoningNote').fill(note);
+  await page.getByText('Compare with discussion prompts',{exact:true}).click();
+  const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Download notes',exact:true}).click();
+  const download=await downloadEvent;assert.equal(download.suggestedFilename(),'hodos-corridor-reflection.txt');
+  assert((await readFile(await download.path(),'utf8')).includes(note));
+  await page.locator('[data-phase="compare"]').click();await page.locator('[data-phase="explain"]').click();
+  assert.equal(await page.locator('#reasoningNote').inputValue(),note);
+  assert.deepEqual(await storage(),initialStorage);
+  assert.deepEqual([...new URL(page.url()).searchParams.keys()].sort(),['corridor','phase','test','view','width']);
+  assert(!decodeURIComponent(page.url()).includes(note));
+  await page.getByRole('button',{name:'Superior',exact:true}).click();
+  const expected=(await get()).state;
+  await page.reload({waitUntil:'domcontentloaded'});await ready(page);
+  assert.deepEqual((await get()).state,expected);assert.equal(await page.locator('#reasoningNote').inputValue(),'');
+  assert.deepEqual(await storage(),initialStorage);
+  report.checks.push('Explain prompts, literal note download, tab-only note retention, URL reload and unchanged storage');
+  await page.getByRole('link',{name:'Case Conference',exact:true}).click();
+  await page.waitForURL(/\/case-conference(?:\.html)?$/);await page.goBack();await ready(page);
+  await page.locator('#atlasCanvas canvas').focus();const restoredCamera=(await get()).scene.camera;
+  await page.keyboard.press('ArrowLeft');assert.notDeepEqual((await get()).scene.camera,restoredCamera,'restored scene remains interactive');
+  report.checks.push('Navigate away and back restores an interactive atlas');
+  await page.locator('[data-phase="orient"]').click();assert.equal((await get()).scene.corridors.length,0);assert.equal(await page.locator('.corridor-label').count(),0);
+  await page.goBack();assert.equal((await get()).state.phase,'explain');
+  report.checks.push('History navigation restores phase; Orient clears overlay');
+  for(const width of [320,390,768]){
+    await page.setViewportSize({width,height:844});await page.goto(new URL('/mips?phase=compare&test=1',base).href,{waitUntil:'domcontentloaded'});await ready(page);await noOverflow(page);
+    await page.getByRole('button',{name:'Only B'}).click();assert.equal((await get()).scene.corridors[0].id,'B');
+    await page.getByRole('button',{name:'Both',exact:true}).click();
+    await screenshot(`mobile-${width}`);
+  }
+  report.checks.push('320, 390 and 768 px layouts and corridor controls');
+  await page.goto(new URL('/',base).href);await page.getByRole('link',{name:'One target, two corridors',exact:true}).click();await page.waitForURL(/\/mips(?:\.html)?$/);
+  await page.goto(new URL('/case-conference',base).href);await page.getByRole('link',{name:'Open corridor exercise',exact:true}).click();await page.waitForURL(/\/mips(?:\.html)?$/);
+  report.checks.push('Home and Case Conference links open the exercise');
+  const fallback=await context.newPage();
+  await fallback.route('**/atlas_scene.js',r=>r.abort());
+  await fallback.goto(new URL('/mips?test=1',base).href);
+  await fallback.getByRole('button',{name:'Retry atlas',exact:true}).waitFor();
+  assert(await fallback.getByText('The 3D atlas could not load.',{exact:false}).isVisible());
+  await fallback.locator('[data-phase="explain"]').click();assert(await fallback.locator('#reasoningNote').isVisible());
+  await fallback.close();report.checks.push('Unavailable renderer leaves actionable retry and readable exercise');
+  assert.deepEqual(report.errors,[],'no unexpected browser errors');
+  console.log(JSON.stringify(report,null,2));
+}finally{await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');await browser.close();}

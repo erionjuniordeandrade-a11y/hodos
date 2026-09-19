@@ -89,6 +89,7 @@ try{
   assert.equal(await page.title(),'Hodos · The atlas and lessons');
   assert.equal(await page.locator('.curriculum-row').count(),LESSONS.length);
   assert(await page.locator('canvas').isVisible());
+  assert.equal(await page.locator('.corridor-labels').count(),0,'the ordinary atlas does not instantiate the optional MIPS overlay');
   const creator=page.locator('.creator-credit');
   assert.match(await creator.innerText(),/Created by Dr\. Erion de Andrade/);
   assert.equal(await creator.locator('a').getAttribute('href'),'https://www.dreriondeandrade.com.br/');

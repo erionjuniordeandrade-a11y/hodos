@@ -8,6 +8,7 @@ import {paletteUnit,YEO7_SET,networkSelection} from './atlas_networks.js';
 import {ARTERIAL_SET,arterialTable,arterialPaletteUnit,arterialSelection} from './atlas_arterial.js';
 import {configContextMaterial} from './scene_materials.js';
 import {createRenderPipeline} from './render_pipeline.js';
+import {createCorridorOverlay} from './corridor_overlay.js';
 const MANIFEST_SHA256='1d87cebf7c68a1101afa5adb62321d28a24174e41d48fb85f65d915541eef90f';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 
@@ -40,6 +41,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   let playing=false,profile='teaching',frame=0,last=0,time=0,disposed=false,view='left';
   let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
   let deepHighlightIds=[],deepFocusIds=[],cameraTween=null,frameFocus=false;
+  let corridorOverlay=null;
   let annotations=[],annotationStamp='',annotationTime=-Infinity;
   const annotationLayer=document.createElement('div');annotationLayer.className='atlas-annotations';
   annotationLayer.setAttribute('role','list');annotationLayer.setAttribute('aria-label','Labelled atlas structures');
@@ -73,7 +75,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(moving&&last)time+=Math.min((now-last)/1000,.05);
     last=moving?now:0;
     for(const trace of traces)trace.material.uniforms.time.value=time;
-    const changed=controls.update();pipeline.render();updateAnnotations(now);updateOrientation();frames++;
+    const changed=controls.update();pipeline.render();updateAnnotations(now);updateOrientation();corridorOverlay?.update(camera);frames++;
     if(moving||changed)requestDraw();
   }
   function requestDraw(){if(!frame&&!disposed&&!contextLost)frame=requestAnimationFrame(draw);}
@@ -575,6 +577,10 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   function snapshot(){return {selected:selected?{...selected}:null,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,network:{...networkSel},
     bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),deepHighlight:[...deepHighlightIds],
     surface,deepVisible,view,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};}
+  function setCorridors(specs){
+    if(!corridorOverlay&&specs.length) corridorOverlay=createCorridorOverlay({THREE,scene,mount,requestDraw});
+    corridorOverlay?.set(specs);
+  }
   function restore(state){
     cameraTween=null;
     select(state.selected?.hemi??null,state.selected?.id);highlight(state.highlighted||[]);
@@ -587,18 +593,18 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
-    setSurface,setLesion,
+    setSurface,setLesion,setCorridors,
     setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,
       reducedMotion:reduced.matches,time,frames,selected,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,
       bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),
-      bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},
+      bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
       vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,
         cameraFrame:frameFocus?'lesson':'whole',target:controls.target.toArray(),
         labels:annotations.map(a=>({key:a.key,kind:a.kind,x:a.x,y:a.y,visibility:a.visibility,primary:a.primary}))},
       camera:camera.position.toArray(),cameraTransition:cameraTween?{elapsed:performance.now()-cameraTween.start,duration:cameraTween.duration}:null};},
-    dispose(){clearHover();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});disposeBase();},
+    dispose(){clearHover();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});disposeBase();},
   };
 }

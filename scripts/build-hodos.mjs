@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 const repoRoot=fileURLToPath(new URL('../',import.meta.url));
 const modules=[
   'case_images.js',
+  'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','atlas_arterial.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
@@ -20,7 +21,7 @@ const modules=[
 const supportingFiles=[
   'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
   'case-images/medial-frontal-t1c.png','case-images/insular-t1c.png','case-images/temporoparietal-t1c.png','case-images/right-medial-frontal-t1c.png','case-images/README.md',
-  'case_conference.css',
+  'case_conference.css','mips.css',
   'tokens.css','hodos.css','landing.css',
   'media/landing/hero-superior-commissural-1920-20260914.jpg','media/landing/hero-superior-commissural-1200-20260914.jpg',
   'media/landing/family-association-20260914.jpg','media/landing/family-projection-limbic-20260914.jpg',
@@ -73,6 +74,7 @@ function publicHTML(html){
   // The landing page is the site root; the atlas lives at /atlas (query strings on lesson links survive).
   html=html.replace(/href="\.\/atlas\.html(\?[^"]*)?"/g,(m,q)=>`href="./atlas${q||''}"`).replaceAll('href="./index.html"','href="./"').replaceAll('href="./atlas-sources.html"','href="./atlas-sources"').replaceAll('href="./case-conference.html"','href="./case-conference"');
   html=html.replace('THIRD_PARTY_NOTICES.md in the source checkout','<a href="./THIRD_PARTY_NOTICES.md">Third-party notices and software licenses</a>');
+  html=html.replaceAll('href="./mips.html"','href="./mips"');
   if(!html.includes('name="description"'))html=html.replace('</head>','<meta name="description" content="Hodos: an interactive cortex and white matter atlas for neurosurgical residents. Explore anatomy, relationships and brain networks. Created by Dr. Erion de Andrade."></head>');
   if(/profile=clinical|Case reconstruction/.test(html))throw Error('Local case navigation remains in the public page');
   return html;
@@ -116,7 +118,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     if(bytes.length!==plate.bytes||sha256(bytes)!==plate.sha256)throw Error(`Dissection asset integrity failed: ${plate.file}`);
     add(name,bytes);
   }
-  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
+  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html'])add(name,publicHTML((await safeRead(viewer,name)).toString()));
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
   add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
@@ -129,7 +131,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   if(!lastmod)throw Error('Content version has no lastmod date');
   const lessonIds=[...new Set([...files.get('index.html').toString().matchAll(/href="\.\/atlas\?lesson=([a-z0-9-]+)"/g)].map(m=>m[1]))];
   if(lessonIds.length!==14)throw Error(`Expected 14 lesson ids on the landing page, found ${lessonIds.length}`);
-  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,
+  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,
     ...lessonIds.map(id=>`${SITE_ORIGIN}/atlas?lesson=${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
     sitemapUrls.map(u=>`  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')+`\n</urlset>\n`);
@@ -156,6 +158,8 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
       if(!/\btype="application\/ld\+json"/.test(tag[0]))throw Error(`Inline script in ${name} needs a CSP hash`);
   const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
   if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
+  const mipsInline=[...files.get('mips.html').toString().matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+  if(mipsInline.length!==1||mipsInline[0]!==inlineScripts[0])throw Error('MIPS must use the same single import map as the atlas');
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
   // Cloudflare Web Analytics (auto-injected beacon) is the only third-party script allowed; it is
   // the site's usage signal and carries no user identity beyond Cloudflare's own privacy terms.

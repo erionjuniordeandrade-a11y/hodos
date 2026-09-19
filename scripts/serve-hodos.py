@@ -9,7 +9,7 @@ from urllib.parse import urlsplit, urlunsplit
 class HodosHandler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         parts = urlsplit(path)
-        if parts.path in ("/atlas", "/atlas-sources", "/case-conference"):
+        if parts.path in ("/atlas", "/atlas-sources", "/case-conference", "/mips"):
             path = urlunsplit(parts._replace(path=parts.path + ".html"))
         return super().translate_path(path)
 
