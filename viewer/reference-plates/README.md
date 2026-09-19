@@ -10,14 +10,16 @@ The five PNGs are unchanged embedded images from the owner-supplied
 the deck hash, actual slide numbers, package members, dimensions and image hashes.
 Original highlights and visible Rhoton / K. Yagmurlu credits remain intact.
 No image was cropped, flipped, recoloured, reconstructed or generated for Hodos.
+The public export ships WebP transcodes of those PNGs (same pixel dimensions;
+`cwebp -q 88` or `-q 90 -m 6 -sharp_yuv`). Archival PNGs stay in this directory.
 
 | File | Slide | Existing Compare relationship |
 |---|---|---|
-| lateral-association.png | 56 | Language, relationship 2: dorsal system |
-| ifof.png | 82 | Language, relationship 3: ventral route |
-| uncinate.png | 98 | Language, relationship 4: temporal pathways |
-| optic-radiation.png | 124 | Optic radiation, relationship 1: thalamic–occipital course |
-| temporal-horn.png | 127 | Optic radiation, relationship 2: anterior turn |
+| lateral-association.webp | 56 | Language, relationship 2: dorsal system |
+| ifof.webp | 82 | Language, relationship 3: ventral route |
+| uncinate.webp | 98 | Language, relationship 4: temporal pathways |
+| optic-radiation.webp | 124 | Optic radiation, relationship 1: thalamic–occipital course |
+| temporal-horn.webp | 127 | Optic radiation, relationship 2: anterior turn |
 
 All are left lateral dissections, with anterior at image left. The photographs
 represent selected dissection planes, not patient anatomy or registration to
@@ -47,5 +49,6 @@ Hodos MIT license; this educational distribution preserves their original terms.
   inference. They do not import the deck’s categorical surgical shorthand.
 
 The reference component lazy-loads only the selected photograph. The enlarged
-view reuses its source URL. The five originals total about 13.6 MB; no picture
-requests are needed at library entry or in unrelated relationships.
+view reuses its source URL. The five archival PNGs total about 13.6 MB; the five
+shipped WebP files total about 1.4 MB. No picture requests are needed at library
+entry or in unrelated relationships.
