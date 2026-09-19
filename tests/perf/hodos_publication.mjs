@@ -126,7 +126,16 @@ try{
   await page.screenshot({path:`${out}/sources.png`,fullPage:true});
   assert.deepEqual(report.errors,[]);
   assert.deepEqual(report.failedRequests,[]);
-  assert.deepEqual(report.externalRequests,[]);
+  // build-hodos.mjs already permits Pages' auto-injected Cloudflare analytics.
+  // Keep every observed URL in the report and reject any other external request.
+  report.analyticsRequests=report.externalRequests.filter(value=>{
+    const url=new URL(value);
+    return url.protocol==='https:' && (
+      (url.hostname==='static.cloudflareinsights.com' && /^\/beacon\.min\.js(?:\/v[a-f0-9]+)?$/.test(url.pathname)) ||
+      (url.hostname==='cloudflareinsights.com' && url.pathname==='/cdn-cgi/rum')
+    );
+  });
+  assert.deepEqual(report.externalRequests.filter(value=>!report.analyticsRequests.includes(value)),[],'No unexpected external requests');
   report.checks.push('Root coursebook, 14 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
   console.log(JSON.stringify({url:base,assets:report.assets.length,lessons:report.lessons.length,layouts:report.layouts.length,errors:report.errors.length}));
 }finally{

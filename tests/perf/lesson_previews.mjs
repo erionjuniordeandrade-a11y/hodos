@@ -100,7 +100,7 @@ async function assertAtlasState(page, link, preview) {
   const testUrl = new URL(openedUrl.href);
   testUrl.searchParams.set('test', '1');
   await page.goto(testUrl.href, {waitUntil: 'domcontentloaded'});
-  await page.waitForFunction(() => window.__atlasTest?.ready, {timeout: 45000});
+  await page.waitForFunction(() => window.__atlasTest?.ready, null, {timeout: 45000});
   const state = await page.evaluate(() => window.__atlasTest);
   assert.equal(state.lesson.lessonId, link.params.get('lesson'), `${preview.lesson} atlas lesson state`);
   assert.equal(state.lesson.step, Number(link.params.get('step')), `${preview.lesson} atlas step follows markup`);
