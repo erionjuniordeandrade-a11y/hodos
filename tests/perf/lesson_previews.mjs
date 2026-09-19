@@ -97,6 +97,13 @@ async function assertAtlasState(page, link, preview) {
   assert.equal(openedUrl.searchParams.get('step'), link.params.get('step'), `${preview.lesson} clicked Explore link keeps its step`);
   assert.equal(openedUrl.searchParams.get('phase'), link.params.get('phase'), `${preview.lesson} clicked Explore link keeps its phase`);
   assert.equal(openedUrl.searchParams.get('hemi'), link.params.get('hemi'), `${preview.lesson} clicked Explore link keeps its hemisphere`);
+  // Verify the clicked view finishes initializing before testing its reload.
+  // Route commitment precedes the asynchronous atlas and lesson initialization.
+  await page.waitForFunction(
+    heading => document.querySelector('#lessonCurrentTitle')?.textContent === heading,
+    preview.lessonHeading,
+    {timeout: 45000},
+  );
   const testUrl = new URL(openedUrl.href);
   testUrl.searchParams.set('test', '1');
   await page.goto(testUrl.href, {waitUntil: 'domcontentloaded'});
@@ -151,7 +158,18 @@ try {
     await page.evaluate(() => window.scrollBy(0, 56));
     const scrollBefore = await page.evaluate(() => window.scrollY);
     await opener.focus();
-    await opener.dispatchEvent('click', {button: 0, metaKey: true});
+    const modifierFallsThrough = await opener.evaluate(anchor => {
+      let fallsThrough = false;
+      // Observe the app handler, then suppress the synthetic event's OS-specific
+      // native action. A Meta click on Linux otherwise navigates this very tab.
+      document.addEventListener('click', event => {
+        fallsThrough = !event.defaultPrevented;
+        event.preventDefault();
+      }, {once: true});
+      anchor.dispatchEvent(new MouseEvent('click', {button: 0, metaKey: true, bubbles: true, cancelable: true}));
+      return fallsThrough;
+    });
+    assert(modifierFallsThrough, `${preview.lesson} modifier click is not intercepted by the preview`);
     assert.equal(await dialog.evaluate(node => node.open), false, `${preview.lesson} modifier click keeps its link behaviour`);
     await opener.click();
     await dialog.waitFor({state: 'visible'});
