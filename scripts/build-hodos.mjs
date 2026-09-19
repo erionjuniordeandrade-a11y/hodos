@@ -9,7 +9,7 @@ const modules=[
   'case_images.js',
   'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
-  'atlas_app.js','atlas_scene.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
+  'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','atlas_arterial.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js',
   'dissection_references.js','landing.js','lesson_previews.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
@@ -51,6 +51,7 @@ const supportingFiles=[
   'vendor/addons/libs/draco/LICENSE','vendor/addons/libs/draco/AUTHORS',
   'atlas/licenses/hcp-data-use-terms.txt','atlas/licenses/melbourne-subcortex.txt',
   'atlas/licenses/mni-template-license.txt','atlas/licenses/freesurfer-atlas-license.txt',
+  'atlas/tracts-ranges.json',
   'favicon.ico','apple-touch-icon.png','site.webmanifest',
 ];
 const SITE_ORIGIN='https://hodosatlas.com';
