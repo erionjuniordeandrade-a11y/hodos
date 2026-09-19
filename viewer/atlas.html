@@ -25,32 +25,34 @@
 <link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/inter-latin-regular.woff2" crossorigin><link rel="preload" as="font" type="font/ttf" href="./vendor/fonts/playfair-display.ttf" crossorigin>
 <link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/":"./vendor/addons/"}}</script>
-<link rel="modulepreload" href="./atlas_app.js">
-<link rel="modulepreload" href="./atlas_scene.js">
-<link rel="modulepreload" href="./atlas_data.js">
-<link rel="modulepreload" href="./atlas_catalog.js">
-<link rel="modulepreload" href="./atlas_glossary.js">
-<link rel="modulepreload" href="./atlas_networks.js">
-<link rel="modulepreload" href="./atlas_arterial.js">
-<link rel="modulepreload" href="./anatomy_lesson_player.js">
-<link rel="modulepreload" href="./anatomy_learning.js">
-<link rel="modulepreload" href="./lesson_briefings.js">
-<link rel="modulepreload" href="./dissection_references.js">
-<link rel="modulepreload" href="./lesson_scene.js">
-<link rel="modulepreload" href="./lesson_content.js">
-<link rel="modulepreload" href="./lesson_state.js">
-<link rel="modulepreload" href="./lesson_references.js">
-<link rel="modulepreload" href="./bundle_picker.js">
-<link rel="modulepreload" href="./lessons/resident-anatomy.js">
-<link rel="modulepreload" href="./lessons/network-lectures.js">
-<link rel="modulepreload" href="./render_pipeline.js">
-<link rel="modulepreload" href="./scene_materials.js">
-<link rel="modulepreload" href="./vendor/three.module.js">
-<link rel="modulepreload" href="./vendor/three.core.js">
-<link rel="modulepreload" href="./vendor/OrbitControls.js">
-<link rel="modulepreload" href="./vendor/addons/loaders/GLTFLoader.js">
-<link rel="modulepreload" href="./vendor/addons/loaders/DRACOLoader.js">
-<link rel="modulepreload" href="./vendor/addons/utils/BufferGeometryUtils.js">
+<!-- The extra attribute keeps Cloudflare Pages from moving these into HTTP Link
+     headers, where imports can resolve before this document's import map exists. -->
+<link rel="modulepreload" data-document-preload href="./atlas_app.js">
+<link rel="modulepreload" data-document-preload href="./atlas_scene.js">
+<link rel="modulepreload" data-document-preload href="./atlas_data.js">
+<link rel="modulepreload" data-document-preload href="./atlas_catalog.js">
+<link rel="modulepreload" data-document-preload href="./atlas_glossary.js">
+<link rel="modulepreload" data-document-preload href="./atlas_networks.js">
+<link rel="modulepreload" data-document-preload href="./atlas_arterial.js">
+<link rel="modulepreload" data-document-preload href="./anatomy_lesson_player.js">
+<link rel="modulepreload" data-document-preload href="./anatomy_learning.js">
+<link rel="modulepreload" data-document-preload href="./lesson_briefings.js">
+<link rel="modulepreload" data-document-preload href="./dissection_references.js">
+<link rel="modulepreload" data-document-preload href="./lesson_scene.js">
+<link rel="modulepreload" data-document-preload href="./lesson_content.js">
+<link rel="modulepreload" data-document-preload href="./lesson_state.js">
+<link rel="modulepreload" data-document-preload href="./lesson_references.js">
+<link rel="modulepreload" data-document-preload href="./bundle_picker.js">
+<link rel="modulepreload" data-document-preload href="./lessons/resident-anatomy.js">
+<link rel="modulepreload" data-document-preload href="./lessons/network-lectures.js">
+<link rel="modulepreload" data-document-preload href="./render_pipeline.js">
+<link rel="modulepreload" data-document-preload href="./scene_materials.js">
+<link rel="modulepreload" data-document-preload href="./vendor/three.module.js">
+<link rel="modulepreload" data-document-preload href="./vendor/three.core.js">
+<link rel="modulepreload" data-document-preload href="./vendor/OrbitControls.js">
+<link rel="modulepreload" data-document-preload href="./vendor/addons/loaders/GLTFLoader.js">
+<link rel="modulepreload" data-document-preload href="./vendor/addons/loaders/DRACOLoader.js">
+<link rel="modulepreload" data-document-preload href="./vendor/addons/utils/BufferGeometryUtils.js">
 </head><body data-mode="library">
 <a class="skip-link" href="#atlasControls">Skip to atlas controls</a>
 <header class="studio-header"><a class="brand" href="./index.html" title="Brain networks and white matter tracts for intra-axial surgery"><svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true" focusable="false"><path d="M10 46 C 24 44, 30 30, 40 24 S 54 16, 56 14" fill="none" stroke-width="4" stroke-linecap="round"/><path class="f" d="M8 40 C 22 40, 28 26, 38 20 S 50 12, 54 10" fill="none" stroke-width="3" stroke-linecap="round"/><path class="f" d="M12 52 C 26 50, 34 36, 44 30 S 56 22, 58 20" fill="none" stroke-width="3" stroke-linecap="round"/><circle class="n" cx="10" cy="46" r="5"/><circle class="n" cx="40" cy="24" r="5"/><circle class="d" cx="56" cy="14" r="5"/></svg><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a>
