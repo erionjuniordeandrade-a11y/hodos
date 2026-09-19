@@ -145,7 +145,7 @@ try{
   assert.equal(await page.locator('details.lesson-explanation[open]').count(),0);
   await page.screenshot({path:`${out}/lesson-motor-cst.png`,fullPage:true});
   await page.goto(new URL('/atlas-sources.html',base).href);
-  assert.match(await page.locator('.creator-credit').innerText(),/neurosurgeon based in Porto Alegre/);
+  assert.match(await page.locator('main .creator-credit').innerText(),/neurosurgeon based in Porto Alegre/);
   assert.equal(await page.getByRole('link',{name:'Professional website'}).getAttribute('href'),'https://www.dreriondeandrade.com.br/');
   assert(await page.getByRole('link',{name:'Amy Sterling, human-brain'}).isVisible());
   assert.equal(await page.getByRole('link',{name:'Third-party notices and software licenses'}).getAttribute('href'),'./THIRD_PARTY_NOTICES.md');
