@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildHodos} from '../../scripts/build-hodos.mjs';
+import {lessonIdsInCurriculum} from '../../scripts/lesson-pages.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 
@@ -46,7 +47,13 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(mips,/rel="canonical" href="https:\/\/hodosatlas\.com\/mips"/);
   assert.match(mips,/src="\.\/mips\.js"/);
   for(const asset of ['mips.js','mips_content.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
-  assert.match(await readFile(path.join(out,'sitemap.xml'),'utf8'),/<loc>https:\/\/hodosatlas\.com\/mips<\/loc>/);
+  const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
+  const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
+  assert.equal(sitemapLocs.length,20);
+  assert(sitemapLocs.includes('https://hodosatlas.com/lessons'));
+  assert.deepEqual(sitemapLocs.filter(url=>url.startsWith('https://hodosatlas.com/lessons/')),lessonIdsInCurriculum().map(id=>`https://hodosatlas.com/lessons/${id}`));
+  assert(!sitemap.includes('/atlas?lesson='));
+  assert.match(sitemap,/<loc>https:\/\/hodosatlas\.com\/mips<\/loc>/);
   for(const [tag] of atlas.matchAll(/<link\b[^>]*rel="modulepreload"[^>]*>/g)){
     assert.match(tag,/\bdata-document-preload\b/,'Cloudflare must not promote import-map-dependent modules into HTTP Link headers');
   }
@@ -69,6 +76,10 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(headers,/Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval' https:\/\/static\.cloudflareinsights\.com; style-src 'self'/);
   assert.match(headers,/Permissions-Policy: microphone=\(self\), camera=\(\)/);
   assert.doesNotMatch(headers,/^\/vendor\/\*$/m);assert.match(headers,/\/vendor\/fonts\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
+  assert.match(headers,/\/vendor\/addons\/libs\/draco\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=14400, must-revalidate/);
+  assert.match(headers,/https:\/\/hodos-atlas\.pages\.dev\/\*\n  X-Robots-Tag: noindex/);
+  assert.match(headers,/https:\/\/:version\.hodos-atlas\.pages\.dev\/\*\n  X-Robots-Tag: noindex/);
+  assert.match(headers,/https:\/\/www\.hodosatlas\.com\/\*\n  X-Robots-Tag: noindex/);
   assert.match(home,/href="\.\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}"/);
   assert.match(await readFile(path.join(out,'hodos.css'),'utf8'),/inter-latin-regular\.woff2\?v=[a-f0-9]{12}/);
   assert.match(await readFile(path.join(out,'404.html'),'utf8'),/\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}/);
@@ -113,4 +124,30 @@ test('corrupt atlas bytes and symlinked assets stop publication',async t=>{
   await rm(asset);
   await symlink(path.join(root,'viewer/atlas/tracts.bin'),asset);
   await assert.rejects(buildHodos({root:fixture,out:path.join(temp,'linked')}),/Symlink refused/);
+});
+
+test('atlas and MIPS JSON-LD is inert and does not enter the import-map CSP hash',async t=>{
+  const temp=await mkdtemp(path.join(os.tmpdir(),'hodos-ldjson-'));
+  t.after(()=>rm(temp,{recursive:true,force:true}));
+  const fixture=path.join(temp,'fixture'),viewer=path.join(fixture,'viewer');
+  await cp(path.join(root,'viewer'),viewer,{recursive:true});
+  await cp(path.join(root,'THIRD_PARTY_NOTICES.md'),path.join(fixture,'THIRD_PARTY_NOTICES.md'));
+  await cp(path.join(root,'LICENSE'),path.join(fixture,'LICENSE'));
+  const block='<script type="application/ld+json">{"@context":"https://schema.org","name":"fixture"}</script>';
+  for(const name of ['atlas.html','mips.html']){
+    const file=path.join(viewer,name),html=await readFile(file,'utf8');
+    await writeFile(file,html.replace('</head>',`${block}</head>`));
+  }
+  const out=path.join(temp,'site');
+  await buildHodos({root:fixture,out});
+  const headers=await readFile(path.join(out,'_headers'),'utf8');
+  assert.equal((headers.match(/sha256-/g)||[]).length,1);
+  for(const name of ['atlas.html','mips.html']){
+    const html=await readFile(path.join(out,name),'utf8');
+    assert.equal((html.match(/<script type="importmap">/g)||[]).length,1);
+    assert.equal((html.match(/<script type="application\/ld\+json">/g)||[]).length,1);
+  }
+  const atlasFile=path.join(viewer,'atlas.html'),atlasHTML=await readFile(atlasFile,'utf8');
+  await writeFile(atlasFile,atlasHTML.replace('</head>','<script>window.invalidInlineScript=true;</script></head>'));
+  await assert.rejects(buildHodos({root:fixture,out:path.join(temp,'bad-inline')}),/Expected exactly one inline script/);
 });

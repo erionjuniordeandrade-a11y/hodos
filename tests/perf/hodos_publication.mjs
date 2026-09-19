@@ -3,6 +3,7 @@ import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {chromium,request} from 'playwright';
 import {LESSONS,CONTENT_VERSION} from '../../viewer/lesson_content.js';
+import {lessonIdsInCurriculum} from '../../scripts/lesson-pages.mjs';
 
 const base=process.argv.find(v=>v.startsWith('--url='))?.slice(6);
 assert(base,'Pass --url for the built or published Hodos site');
@@ -17,6 +18,13 @@ try{
   const release=await http.get('/release.json');
   assert.equal(release.status(),200);
   assert.deepEqual(await release.json(),expected,'Published release must match the reviewed local build');
+  const sitemap=await http.get('/sitemap.xml');
+  assert.equal(sitemap.status(),200);
+  const sitemapLocs=[...await sitemap.text().then(text=>text.matchAll(/<loc>([^<]+)<\/loc>/g))].map(match=>{const url=new URL(match[1]);return url.pathname+url.search;});
+  assert.equal(sitemapLocs.length,20);
+  assert(sitemapLocs.includes('/lessons'));
+  assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));
+  assert(!sitemapLocs.some(pathname=>pathname.startsWith('/atlas?lesson=')));
   const assets=expected.files.filter(f=>f.path!=='_headers');
   for(let start=0;start<assets.length;start+=6){
     await Promise.all(assets.slice(start,start+6).map(async asset=>{
@@ -52,6 +60,15 @@ try{
   assert.deepEqual([...lessonLinks].sort(),[...LESSONS].map(lesson=>lesson.id).sort(),'Landing links one lesson each; display order is the landing\'s own');
   assert.equal(new Set(await page.locator('a[href*="?lesson="]').evaluateAll(as=>as.map(a=>new URL(a.href).searchParams.get('lesson')))).size,14);
   assert.match(await page.locator('.creator-credit').innerText(),/Created by Dr\. Erion de Andrade/);
+  const lessonsIndex=await http.get('/lessons');
+  assert.equal(lessonsIndex.status(),200);
+  assert.equal(new Set((await lessonsIndex.text()).match(/href="\/lessons\/[a-z0-9-]+"/g)||[]).size,14);
+  for(const lesson of LESSONS){
+    const lessonPage=await http.get(`/lessons/${lesson.id}`);
+    assert.equal(lessonPage.status(),200,`Static lesson route: ${lesson.id}`);
+    const lessonHTML=await lessonPage.text();
+    assert(lessonHTML.includes(`<h1>${lesson.title.replaceAll('&','&amp;')}</h1>`),`Static lesson heading: ${lesson.id}`);
+  }
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);
     await page.evaluate(()=>document.fonts.ready);
@@ -119,6 +136,14 @@ try{
     report.layouts.push(viewport);
   }
   await page.setViewportSize({width:1440,height:900});
+  await page.goto(new URL('/lessons',base).href);
+  assert.equal(await page.title(),'Lessons · Hodos');
+  assert.equal(await page.locator('.lessons-index-list>li').count(),14);
+  await page.goto(new URL('/lessons/motor-cst',base).href);
+  assert.equal(await page.title(),'Central region & descending motor pathways · Hodos');
+  assert.equal(await page.locator('h1').innerText(),'Central region & descending motor pathways');
+  assert.equal(await page.locator('details.lesson-explanation[open]').count(),0);
+  await page.screenshot({path:`${out}/lesson-motor-cst.png`,fullPage:true});
   await page.goto(new URL('/atlas-sources.html',base).href);
   assert.match(await page.locator('.creator-credit').innerText(),/neurosurgeon based in Porto Alegre/);
   assert.equal(await page.getByRole('link',{name:'Professional website'}).getAttribute('href'),'https://www.dreriondeandrade.com.br/');
@@ -137,7 +162,7 @@ try{
     );
   });
   assert.deepEqual(report.externalRequests.filter(value=>!report.analyticsRequests.includes(value)),[],'No unexpected external requests');
-  report.checks.push('Root coursebook, 14 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
+  report.checks.push('Root coursebook, 14 static lesson routes and JSON-LD pages, 14 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
   console.log(JSON.stringify({url:base,assets:report.assets.length,lessons:report.lessons.length,layouts:report.layouts.length,errors:report.errors.length}));
 }finally{
   await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');
