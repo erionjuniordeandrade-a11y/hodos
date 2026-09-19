@@ -43,7 +43,7 @@ try{
   report.checks.push('A/B/both controls and wider volume preserve the common target and axes');
   for(const [label,key] of [['Superior','superior'],['Anterior','anterior'],['Lateral','left']]){
     await page.getByRole('button',{name:label,exact:true}).click();
-    await page.waitForFunction(view=>window.__mipsTest.scene.view===view,key);
+    await page.waitForFunction(view=>window.__mipsTest.scene.view===view&&document.querySelector(`[data-view="${view}"]`)?.getAttribute('aria-pressed')==='true',key);
     assert.equal(await page.getByRole('button',{name:label,exact:true}).getAttribute('aria-pressed'),'true');
     await screenshot(`view-${key}`);
   }
@@ -94,7 +94,7 @@ try{
   await page.goto(new URL('/case-conference',base).href);await page.getByRole('link',{name:'Open corridor exercise',exact:true}).click();await page.waitForURL(/\/mips(?:\.html)?$/);
   report.checks.push('Home and Case Conference links open the exercise');
   const fallback=await context.newPage();
-  await fallback.route('**/atlas_scene.js',r=>r.abort());
+  await fallback.route('**/atlas_scene.js*',r=>r.abort());
   await fallback.goto(new URL('/mips?test=1',base).href);
   await fallback.getByRole('button',{name:'Retry atlas',exact:true}).waitFor();
   assert(await fallback.getByText('The 3D atlas could not load.',{exact:false}).isVisible());

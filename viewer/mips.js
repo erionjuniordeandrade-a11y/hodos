@@ -43,7 +43,9 @@ $('downloadNote').addEventListener('click',()=>{
 $('retryScene').addEventListener('click',()=>location.reload());
 render();
 try{
-  const {createAtlasScene}=await import('./atlas_scene.js');
+  // The exercise needs the corridor API. Separate this dependency from a renderer
+  // cached by an earlier visit to the atlas during a Pages deployment transition.
+  const {createAtlasScene}=await import('./atlas_scene.js?v=mips-20260919-1');
   scene=await createAtlasScene($('atlasCanvas'),{
     onStatus(message,detail){$('sceneStatus').textContent=message;$('sceneStatus').hidden=!!detail?.ready;},
     onView({view}){
@@ -60,6 +62,7 @@ try{
   scene.setLesion(MIPS_TARGET);render();scene.flyTo({view:state.view,tweenMs:0});
   }
 }catch(cause){
+  scene?.dispose();scene=null;
   error=String(cause?.message||cause);
   $('sceneStatus').hidden=false;
   $('sceneStatus').textContent='The 3D atlas could not load. Retry it, or continue with the prompts and evidence below.';
