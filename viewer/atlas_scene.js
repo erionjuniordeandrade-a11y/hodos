@@ -21,7 +21,12 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const scene=new THREE.Scene();
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,3));renderer.setClearColor(0x070c12,0);
+  // Bug fix: fill-rate cost on a high-DPI phone GPU is too high at 3x; cap at 2x below a 700px
+  // viewport (matches the codebase's other 700px breakpoint, hodos.css:680), keep 3x above it.
+  // This initial call only covers the instant before the first resize; the real, live-updating
+  // cap lives in resize() below, since render_pipeline.js's own quality config is fixed at
+  // pipeline-creation time and cannot be re-passed per resize.
+  renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?2:3));renderer.setClearColor(0x070c12,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.localClippingEnabled=true;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
@@ -90,7 +95,14 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     onStatus('Graphics context lost. Waiting for the browser to restore it; reload if the atlas stays blank.');});
   renderer.domElement.addEventListener('webglcontextrestored',()=>{contextLost=false;annotationStamp='';resize();onStatus('Atlas ready',{ready:true});requestDraw();});
   const resize=()=>{const w=mount.clientWidth,h=mount.clientHeight;
-    if(w<=0||h<=0)return;camera.aspect=w/h;camera.updateProjectionMatrix();pipeline.resize(w,h,devicePixelRatio);
+    if(w<=0||h<=0)return;camera.aspect=w/h;camera.updateProjectionMatrix();
+    // Bug fix (continued from the renderer.setPixelRatio call above): render_pipeline.js resolves
+    // its own pixel ratio as min(dpr, maxPixelRatio, budgetRatio), and maxPixelRatio is fixed to 3
+    // at pipeline creation with no per-resize override. Pre-clamping the dpr argument itself below
+    // 700px viewport width achieves the same 2x cap without needing to touch render_pipeline.js.
+    // Verified empirically: at 390px width with a forced 3x device pixel ratio, the live canvas
+    // rendered at an uncapped 3x before this change and at 2x after it.
+    pipeline.resize(w,h,Math.min(devicePixelRatio,innerWidth<700?2:3));
     annotationStamp='';
     if(framed&&autoFrame){
       if(cameraTween){const target=computeViewTarget(view,cameraTween.zoom,frameFocus);
