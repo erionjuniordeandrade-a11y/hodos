@@ -1,8 +1,9 @@
 # Hodos
 
-Interactive cortex and white-matter anatomy coursebook: ten lessons, 58 relationships,
+Interactive cortex and white-matter anatomy coursebook: 14 lessons, 85 relationships,
 a reference 3D atlas (HCP S1200 surface, HCP-MMP1 parcels, HCP1065 tractography), and
-credited dissection photographs. Public at https://hodosatlas.com/ (landing at /, atlas at /atlas; hodos-atlas.pages.dev still serves).
+credited dissection photographs. Public at https://hodosatlas.com/ (landing at /, atlas at /atlas,
+lesson pages at /lessons and /lessons/<id>, the MIPS exercise at /mips; hodos-atlas.pages.dev still serves).
 
 **Educational draft, not a clinical tool.** Reference geometry, tractography and
 photographs do not establish individual anatomy, functional localization or surgical
