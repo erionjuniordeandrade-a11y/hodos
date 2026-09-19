@@ -44,7 +44,7 @@ try{
     assert.deepEqual(await scene(),before);
     await page.locator('#phase-explain').click();assert.equal(await page.locator('[data-dissection]').count(),0);
     assert.equal(await page.locator('dialog').count(),0);
-    page.off('request',capture);assert(images.length>0);assert(images.every(url=>new URL(url).pathname.endsWith(`/${id}.png`)&&/[?&]v=[0-9a-f]{12}$/.test(url)),'plate URLs carry their content-hash version');
+    page.off('request',capture);assert(images.length>0);assert(images.every(url=>new URL(url).pathname.endsWith(`/${id}.webp`)&&/[?&]v=[0-9a-f]{12}$/.test(url)),'plate URLs carry their content-hash version');
     report.plates.push({lesson,step,id,requests:[...new Set(images)]});
   }
   for(const [width,height] of [[1440,900],[1157,601],[851,900],[390,844],[320,700]]){
@@ -81,7 +81,7 @@ try{
   const receipt=await page.request.get(`${base}/reference-plates/manifest.json`);assert.equal(receipt.status(),200);
   assert.equal((await receipt.json()).plates.length,5);
   await visit('motor-cst',0);assert.equal(await page.locator('[data-dissection]').count(),0);
-  await page.route(/\/reference-plates\/uncinate\.png(\?.*)?$/,r=>r.fulfill({status:404,body:'Missing fixture'}));
+  await page.route(/\/reference-plates\/uncinate\.webp(\?.*)?$/,r=>r.fulfill({status:404,body:'Missing fixture'}));
   await visit('language-networks',3);await page.locator('[data-dissection]').scrollIntoViewIfNeeded();
   await page.locator('.dissection-status').waitFor({state:'visible'});
   assert(await page.locator('.dissection-open').isDisabled());

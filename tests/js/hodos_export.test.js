@@ -88,7 +88,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert(receipt.files.some(f=>f.path==='404.html'));
   assert(receipt.files.some(f=>f.path==='LICENSE'));
   assert(receipt.files.some(f=>f.path==='dissection_references.js'));
-  assert.equal(receipt.files.filter(f=>/^reference-plates\/.*\.png$/.test(f.path)).length,5);
+  assert.equal(receipt.files.filter(f=>/^reference-plates\/.*\.webp$/.test(f.path)).length,5);
   assert(!receipt.files.some(f=>/^(data\.json|app\.js|cases\/|api\/|handoff\/|\.env)/.test(f.path)));
   const repeated=await buildHodos({root,out});
   assert.deepEqual(repeated,receipt,'an unchanged build is repeatable');
@@ -134,8 +134,10 @@ test('atlas and MIPS JSON-LD is inert and does not enter the import-map CSP hash
   await cp(path.join(root,'THIRD_PARTY_NOTICES.md'),path.join(fixture,'THIRD_PARTY_NOTICES.md'));
   await cp(path.join(root,'LICENSE'),path.join(fixture,'LICENSE'));
   const block='<script type="application/ld+json">{"@context":"https://schema.org","name":"fixture"}</script>';
+  const authored={};
   for(const name of ['atlas.html','mips.html']){
     const file=path.join(viewer,name),html=await readFile(file,'utf8');
+    authored[name]=(html.match(/<script type="application\/ld\+json">/g)||[]).length;
     await writeFile(file,html.replace('</head>',`${block}</head>`));
   }
   const out=path.join(temp,'site');
@@ -145,7 +147,7 @@ test('atlas and MIPS JSON-LD is inert and does not enter the import-map CSP hash
   for(const name of ['atlas.html','mips.html']){
     const html=await readFile(path.join(out,name),'utf8');
     assert.equal((html.match(/<script type="importmap">/g)||[]).length,1);
-    assert.equal((html.match(/<script type="application\/ld\+json">/g)||[]).length,1);
+    assert.equal((html.match(/<script type="application\/ld\+json">/g)||[]).length,authored[name]+1);
   }
   const atlasFile=path.join(viewer,'atlas.html'),atlasHTML=await readFile(atlasFile,'utf8');
   await writeFile(atlasFile,atlasHTML.replace('</head>','<script>window.invalidInlineScript=true;</script></head>'));

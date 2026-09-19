@@ -70,8 +70,13 @@ class HodosHandler(SimpleHTTPRequestHandler):
 
     def translate_path(self, path):
         parts = urlsplit(path)
-        if parts.path in ("/atlas", "/atlas-sources", "/case-conference", "/mips"):
-            path = urlunsplit(parts._replace(path=parts.path + ".html"))
+        # Mirror Cloudflare Pages: an extensionless route serves its sibling .html file, and that
+        # file wins over a same-named asset directory (/atlas, /lessons, /lessons/<id>).
+        route = parts.path.rstrip("/")
+        if route and "." not in route.rsplit("/", 1)[-1]:
+            candidate = super().translate_path(route + ".html")
+            if os.path.isfile(candidate):
+                return candidate
         return super().translate_path(path)
 
     def list_directory(self, path):

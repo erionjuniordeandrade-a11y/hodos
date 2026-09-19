@@ -21,7 +21,7 @@ try{
  const next=()=>page.locator('.stage-actions .primary').click();
  const savedLearning=()=>page.evaluate(()=>localStorage.getItem('tractlab.anatomy.learning.v1'));
  await page.goto(new URL('case-conference.html',base).href);await page.getByRole('heading',{name:'Bring your reasoning to the conference.'}).waitFor();
- assert.equal(await page.locator('.case-row').count(),4);await shot('catalog-desktop');
+ assert.equal(await page.locator('.case-row').count(),5);assert.equal(await page.locator('.case-row').getByRole('button',{name:'Begin case'}).count(),4);await shot('catalog-desktop');
  for(const [index,id] of ['medial-frontal','insular','temporoparietal','right-medial-frontal'].entries()){
   await page.locator('.case-row').nth(index).getByRole('button',{name:'Begin case'}).click();
   await page.getByRole('heading',{name:'Read the case'}).waitFor();
