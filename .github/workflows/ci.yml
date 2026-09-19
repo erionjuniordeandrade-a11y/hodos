@@ -25,6 +25,7 @@ jobs:
           node tests/perf/lesson_previews.mjs --url=http://127.0.0.1:51038 --out=output/ci/previews
           node tests/perf/mips.mjs --url=http://127.0.0.1:51038 --out=output/ci/mips
           node tests/perf/views_menu.mjs --url=http://127.0.0.1:51038 --out=output/ci/views-menu
+          node tests/perf/tract_ranges.mjs --url=http://127.0.0.1:51038 --out=output/ci/tract-ranges
       - uses: actions/upload-artifact@v4
         if: always()
         with:

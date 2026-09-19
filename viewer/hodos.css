@@ -719,9 +719,6 @@ main{padding-top:var(--space-md)}
 #lessonPanel .lesson-top{gap:var(--space-xs);margin:0 0 var(--space-xs)}
 #lessonPanel #lessonLibrary{font-size:var(--text-sm);color:var(--color-muted);padding:0;min-height:2.5rem;background:transparent;border:0}
 #lessonPanel #lessonLibrary:hover{color:var(--color-ink);transform:none;background:transparent}
-/* Bug fix: a native <select> clips its selected option mid-word with no ellipsis by default;
-   the option text is "<module number> · <lesson title>" and can be longer than the control at
-   narrow widths (viewer/anatomy_lesson_player.js). */
 #lessonPanel #lessonSelect{min-height:2.5rem;font-size:var(--text-sm);color:var(--color-muted);background-color:transparent;border:0;padding:0 var(--space-xl) 0 var(--space-xs);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #lessonPanel .lesson-outline{border-bottom:1px solid var(--color-rule)}
 #lessonPanel .lesson-outline>summary{font:400 var(--text-sm)/1.3 var(--font-body);color:var(--color-muted);min-height:2.5rem;padding:var(--space-xs) 0;display:flex;align-items:center;gap:var(--space-xs);list-style:none;letter-spacing:0}
@@ -764,12 +761,7 @@ body[data-mode=library] #lessonPanel #lessonCurrentTitle{font-size:var(--text-xl
 #lessonPanel .lesson-error{border-left:1px solid var(--color-accent);padding:var(--space-xs) var(--space-sm);background:transparent}
 #lessonPanel .lesson-controls{border-top:1px solid var(--color-rule);padding:var(--space-sm) 0 0;background:var(--color-paper)}
 #lessonPanel .lesson-nav{gap:var(--space-xs)}
-/* Bug fix: the recap's "Continue: <next lesson>" button (viewer/anatomy_lesson_player.js) can carry a
-   long dynamic title; flex items default to min-width:auto (refusing to shrink below their text), so
-   without this the label silently overflowed past the button and off the screen edge, invisible to
-   scrollWidth checks because of the page's overflow-x:clip. overflow:hidden here also zeroes that
-   automatic minimum (CSS Flexbox §4.5), letting flex-shrink actually shrink the button so
-   text-overflow can ellipsis the label instead. */
+/* overflow:hidden lets the flex button shrink so a long next-lesson title gets an ellipsis. */
 #lessonPanel .lesson-nav button{min-height:var(--control-height);font-size:var(--text-sm);padding:0 var(--space-md);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #lessonPanel .lesson-nav button:first-child{background:transparent;border-color:var(--color-rule-2);color:var(--color-ink)}
 #lessonPanel .lesson-nav button:first-child:hover{background:var(--color-control)}
@@ -944,13 +936,7 @@ body.sources main,.sources-page main{max-width:none}
   .scene-readout #lessonSceneStatus,.scene-readout #explorationStatus{display:none}
   .scene-details>summary{min-height:2rem}
   .scene-details-body{right:var(--space-xs);bottom:calc(100% + var(--space-2xs));width:min(22rem,calc(100vw - 2 * var(--space-xs)));max-height:60dvh}
-  /* Bug fix: the legacy `.views{max-width:100%}` rule (above) still matches this popover and
-     resolves against `.atlas-view-menu`'s own (trigger-sized, ~55px) containing block, capping
-     the menu far below its declared width; grid items then refuse to shrink under that cap and
-     paint past the box, off the right edge of narrow viewports. Override max-width explicitly to
-     the real available width so the existing two-column grid has room to lay out every button
-     (a single column was tried and rejected: at 320x700 it grew tall enough to push the last two
-     buttons below the viewport). */
+  /* The base .views max-width:100% resolves against the trigger-sized details box; size to the viewport. */
   .atlas-view-menu .views{width:14rem;max-width:calc(100vw - 2 * var(--space-xs));grid-template-columns:1fr 1fr;gap:var(--space-2xs)}
   .atlas-view-menu .views button{min-height:var(--control-height)}
   #atlasWorkspace #lessonPanel,#atlasWorkspace #lessonPanel[data-active-lesson=true]{padding:var(--space-sm) 0 0}

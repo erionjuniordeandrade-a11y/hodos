@@ -363,8 +363,11 @@ $('openAnatomySearch').addEventListener('click',()=>{const open=$('anatomySearch
 $('openAtlasTools').addEventListener('click',()=>{const docked=document.body.dataset.mode==='explore';$('anatomyDrawer').open=docked?true:!$('anatomyDrawer').open;if(docked)$('atlasArea').focus({preventScroll:false});});
 $('anatomyDrawer').addEventListener('toggle',()=>{$('openAtlasTools').setAttribute('aria-expanded',String($('anatomyDrawer').open));});
 document.querySelector('.skip-link').addEventListener('click',()=>{$('anatomyDrawer').open=true;$('atlasControls').focus();});
+const viewMenu=document.querySelector('.atlas-view-menu');
+document.addEventListener('pointerdown',event=>{if(viewMenu.open&&!viewMenu.contains(event.target))viewMenu.open=false;});
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;
-  if(!$('anatomySearch').hidden)closeSearch();
+  if(viewMenu.open){viewMenu.open=false;viewMenu.querySelector('summary').focus();}
+  else if(!$('anatomySearch').hidden)closeSearch();
   else if($('anatomyDrawer').open&&document.body.dataset.mode!=='explore'){$('anatomyDrawer').open=false;$('openAtlasTools').focus();}
 });
 $('expandAnatomy').addEventListener('click',()=>{const open=document.body.dataset.expanded!=='true';document.body.dataset.expanded=String(open);

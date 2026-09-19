@@ -188,14 +188,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
       if(phase==='brief')body.append(el('p',{class:'lesson-version'},`Educational draft ${CONTENT_VERSION}, anatomical review pending.`));body.scrollTop=scrollTop;
       const footer=el('div',{class:'lesson-controls'}),nav=el('div',{class:'lesson-nav'});
       if(phase==='recap'){
-        // Bug fix: the pinned primary (last-child, accent-styled) control used to be "All lessons".
-        // When a next lesson exists, that primary slot becomes "Continue: <next lesson>" (reusing the
-        // same nextId/nextGuide derivation as the in-body "Continue with..." button above) and "All
-        // lessons" moves into the secondary slot, keeping id="lessonNext" so it still closes the
-        // lesson exactly as before (tests/perf/atlas_v1.mjs clicks #lessonNext at recap and expects
-        // that). "Final relationship" drops out only in this case, since three nowrap flex buttons
-        // would overflow narrow phones with a long lesson title. With no next lesson, today's exact
-        // two-button layout is unchanged.
+        // With a next lesson, the pinned primary continues to it; #lessonNext still closes the lesson.
         const nextId=ORDERED_IDS[ORDERED_IDS.indexOf(lesson.id)+1],nextGuide=TEACHING_GUIDES[nextId];
         if(nextGuide)nav.append(button('All lessons','lessonNext',library),button(`Continue: ${nextGuide.shortTitle}`,'lessonContinueTopic',()=>start(nextId)));
         else nav.append(button('Final relationship','lessonPrev',previous),button('All lessons','lessonNext',library));
@@ -212,12 +205,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     lastReading=readingId;
     if(focusHeading){
       const heading=root.querySelector('#lessonCurrentTitle');
-      // Bug fix: on phone the atlas stage is sticky at top:0 and the lesson nav is sticky at
-      // bottom:0 (viewer/hodos.css, the <=760px "phone keeps the page scroll" rules), so a learner
-      // can move through every phase via the pinned nav without ever scrolling the page; each new
-      // phase then opens at whatever scroll position the previous one left, showing only the
-      // heading and a sliver of body text wedged between the two sticky bars. Bring the new
-      // heading up to just under the sticky stage so its body text is visible on the first screen.
+      // Phone: stage and nav are sticky, so bring the new heading just under the stage.
       if(heading&&matchMedia('(max-width:760px)').matches){
         const stageBottom=document.querySelector('.atlas-stage')?.getBoundingClientRect().bottom??0;
         const delta=heading.getBoundingClientRect().top-stageBottom-16;
