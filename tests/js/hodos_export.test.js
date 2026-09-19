@@ -18,13 +18,24 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(home,/data-hero[ >]/);
   assert.doesNotMatch(home,/heroFilm|\sstyle=|<style[ >]/);
   assert.match(home,/<video id="heroLoop"[^>]*muted[^>]*playsinline/);
-  assert.equal(new Set([...home.matchAll(/href="\.\/atlas\?lesson=([^"]+)"/g)].map(m=>m[1])).size,14);
+  const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
+  assert.equal(new Set(lessonIds).size,14);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
   assert.equal(landingAssets.length,21);
   assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1200-20260914.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1920-20260914.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
   assert(receipt.files.some(f=>f.path==='landing.js'));
+  assert(receipt.files.some(f=>f.path==='lesson_previews.js'));
+  assert.match(home,/<script src="\.\/lesson_previews\.js" defer><\/script>/);
+  for(const id of ['motor-cst','fat-language','default-mode-network']){
+    assert(home.includes(`data-preview-target="preview-${id}"`));
+    assert(home.includes(`href="./atlas?lesson=${id}&amp;step=0&amp;phase=orient&amp;hemi=L"`));
+    const plate=`media/lesson-previews/plate-${id}-20260919.jpg`;
+    assert(home.includes(`data-src="./${plate}"`));
+    assert(!home.includes(` src="./${plate}"`),'Large plates load only after opening a preview');
+    assert(receipt.files.some(f=>f.path===plate),`Preview plate is exported: ${plate}`);
+  }
   assert(!receipt.files.some(f=>/^media\/hodos-hero-/.test(f.path)));
   assert.match(home,/href="\.\/atlas"/);
   assert.match(home,/href="\.\/atlas\?lesson=motor-cst"/);

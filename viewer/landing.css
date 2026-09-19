@@ -78,6 +78,9 @@ main.landing{max-width:none;margin:0;padding:0}
 .lesson-name:hover{color:var(--color-accent)}
 .lesson-q{font-size:var(--text-sm)}
 .lesson-copy .lesson-hemi{font-size:var(--text-sm);color:var(--color-faint)}
+.lesson-preview-cue:not([hidden]){display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);padding-top:var(--space-xs);color:var(--color-accent);font-size:var(--text-sm)}
+.lesson-preview-cue span{transition:transform var(--dur-short) var(--ease-out)}
+.lesson-card:hover .lesson-preview-cue span{transform:translateY(calc(var(--space-3xs) / -2))}
 .lesson-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--space-2xl);margin-top:var(--space-md)}
 .lesson-list li{display:flex;flex-direction:column;gap:var(--space-2xs);padding:var(--space-md) 0;border-top:calc(var(--space-3xs) / 2) solid var(--color-rule)}
 .lesson-list h3{font-size:var(--text-md)}
@@ -131,3 +134,35 @@ footer.source-footer>div{min-width:0}
 }
 @media (prefers-reduced-motion:reduce){.cta{transition:none}}
 @media (max-width:420px){.landing .lesson-list h3,.landing .lesson-card .lesson-name{font-size:var(--text-base)}}
+
+/* An anatomy plate and its caption form one native modal, with the real lesson as its exit. */
+html.has-lesson-preview{overflow:hidden;scrollbar-gutter:stable}
+.lesson-preview{box-sizing:border-box;width:calc(100% - var(--space-xl));max-width:calc(var(--space-3xl) * 14);max-height:calc(100dvh - var(--space-xl));padding:0;border:calc(var(--space-3xs) / 2) solid var(--color-rule-2);border-radius:var(--radius);background:var(--color-paper);color:var(--color-ink);overflow:auto;overscroll-behavior:contain;font:400 var(--text-base)/var(--lh-body) var(--font-body)}
+.lesson-preview:not([open]){display:none}
+.lesson-preview::backdrop{background:color-mix(in oklab,var(--color-stage) 88%,transparent)}
+.preview-close{position:sticky;top:0;z-index:var(--z-raised);display:flex;align-items:center;justify-content:center;gap:var(--space-sm);min-height:var(--control-height);margin:var(--space-sm) var(--space-sm) 0 auto;padding:0 var(--space-md);border:calc(var(--space-3xs) / 2) solid var(--color-rule-2);border-radius:var(--radius);background:var(--color-paper);color:var(--color-ink);font:500 var(--text-sm)/1 var(--font-body);cursor:pointer}
+.preview-close span{font-size:var(--text-md)}
+.preview-layout{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,4fr);align-items:center;gap:var(--space-xl);padding:var(--space-sm) var(--space-xl) var(--space-xl)}
+.preview-plate{min-width:0;margin:0;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:var(--space-sm)}
+.preview-plate img{display:block;width:100%;height:auto;max-height:calc(100dvh - var(--space-3xl) * 2);object-fit:contain;background:var(--color-stage);color:var(--color-muted)}
+.preview-plate figcaption{font-size:var(--text-sm);line-height:var(--lh-body);color:var(--color-faint)}
+.preview-copy{min-width:0;display:flex;flex-direction:column;gap:var(--space-lg);padding-block:var(--space-md)}
+.preview-copy h2{margin:0;font:500 var(--text-title)/var(--lh-title) var(--font-display);letter-spacing:-0.01em;color:var(--color-ink)}
+.preview-copy p{margin:0;color:var(--color-muted)}
+.preview-observe{border-top:calc(var(--space-3xs) / 2) solid var(--color-rule);padding-top:var(--space-lg)}
+.preview-observe h3{margin:0 0 var(--space-xs);font:500 var(--text-sm)/var(--lh-body) var(--font-body);color:var(--color-ink)}
+.preview-copy .preview-limit{font-size:var(--text-sm);color:var(--color-faint)}
+.preview-actions{display:flex;flex-direction:column;align-items:flex-start;gap:var(--space-sm);margin-top:var(--space-xs)}
+.lesson-preview .cta-primary{background:var(--color-ink);color:var(--color-paper)}
+.preview-sources{display:inline-flex;align-items:center;min-height:var(--control-height);font-size:var(--text-sm);color:var(--color-accent);text-underline-offset:var(--space-2xs)}
+.lesson-preview :is(a,button):focus-visible{outline:var(--radius) solid var(--color-focus);outline-offset:var(--radius)}
+@media (max-width:900px){
+  .lesson-preview{width:calc(100% - var(--space-lg));max-height:calc(100dvh - var(--space-lg))}
+  .preview-layout{grid-template-columns:minmax(0,1fr);gap:var(--space-lg);padding:var(--space-sm) var(--space-lg) var(--space-lg)}
+  .preview-plate img{max-height:44dvh}
+  .preview-copy{padding:0;gap:var(--space-md)}
+  .preview-copy h2{font-size:var(--text-lg)}
+  .preview-observe{padding-top:var(--space-md)}
+  .preview-actions{gap:var(--space-xs)}
+}
+@media (prefers-reduced-motion:reduce){.lesson-preview-cue span,.lesson-preview .cta{transition:none}}

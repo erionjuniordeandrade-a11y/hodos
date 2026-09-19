@@ -19,9 +19,10 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Serve the export and run the publication gate
         run: |
-          python3 -m http.server 51038 --bind 127.0.0.1 --directory dist/ci &
+          python3 scripts/serve-hodos.py --port 51038 --bind 127.0.0.1 --directory dist/ci &
           sleep 2
           node tests/perf/hodos_publication.mjs --url=http://127.0.0.1:51038 --release=dist/ci/release.json --out=output/ci
+          node tests/perf/lesson_previews.mjs --url=http://127.0.0.1:51038 --out=output/ci/previews
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -50,7 +50,7 @@ try{
   assert.equal(await page.locator('#open').getAttribute('href'),'./atlas?lesson=motor-cst');
   const lessonLinks=await page.locator('[data-lessons] a').evaluateAll(links=>links.map(a=>new URL(a.href).searchParams.get('lesson')));
   assert.deepEqual([...lessonLinks].sort(),[...LESSONS].map(lesson=>lesson.id).sort(),'Landing links one lesson each; display order is the landing\'s own');
-  assert.equal(new Set(await page.locator('a[href*="?lesson="]').evaluateAll(as=>as.map(a=>a.getAttribute("href")))).size,14);
+  assert.equal(new Set(await page.locator('a[href*="?lesson="]').evaluateAll(as=>as.map(a=>new URL(a.href).searchParams.get('lesson')))).size,14);
   assert.match(await page.locator('.creator-credit').innerText(),/Created by Dr\. Erion de Andrade/);
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);
@@ -83,7 +83,7 @@ try{
     report.landingLayouts.push(layout);
   }
   await page.setViewportSize({width:1440,height:900});
-  report.checks.push('Landing page at / with a loaded hero plate, ten lesson links, loaded lazy frames, desktop/phone screenshots and six overflow/wrap checks');
+  report.checks.push('Landing page at / with a loaded hero plate, fourteen lesson links, loaded lazy frames, desktop/phone screenshots and six overflow/wrap checks');
   await page.goto(new URL('/atlas?test=1',base).href);
   await page.waitForFunction(()=>window.__atlasTest?.ready,null,{timeout:45000});
   assert.equal(await page.title(),'Hodos · The atlas and lessons');
@@ -127,7 +127,7 @@ try{
   assert.deepEqual(report.errors,[]);
   assert.deepEqual(report.failedRequests,[]);
   assert.deepEqual(report.externalRequests,[]);
-  report.checks.push('Root coursebook, 10 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
+  report.checks.push('Root coursebook, 14 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
   console.log(JSON.stringify({url:base,assets:report.assets.length,lessons:report.lessons.length,layouts:report.layouts.length,errors:report.errors.length}));
 }finally{
   await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');

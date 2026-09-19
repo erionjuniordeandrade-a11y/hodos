@@ -134,6 +134,7 @@ async function audit(page, width) {
       if (!overlay) fails.push('scrim has no linear-gradient or alpha>0 background-color');
     }
     for (const img of qa('img')) {
+      if (img.matches('[data-preview-image]') && img.closest('dialog:not([open])')) continue;
       img.scrollIntoView({block: 'nearest'});
       try { await Promise.race([img.decode(), new Promise(r => setTimeout(r, 4000))]); } catch {}
     }
@@ -143,6 +144,12 @@ async function audit(page, width) {
       const inHero = !!img.closest('[data-hero]');
       if (!img.hasAttribute('width') || !img.hasAttribute('height')) fails.push(`img missing width/height: ${src}`);
       if (!img.hasAttribute('alt')) fails.push(`img missing alt: ${src}`);
+      // Closed previews are deliberately unloaded; their decode and interaction checks
+      // run in lesson_previews.mjs when the visitor actually opens each plate.
+      if (img.matches('[data-preview-image]') && img.closest('dialog:not([open])')) {
+        if (src || !img.dataset.src) fails.push('closed preview must retain an unloaded plate URL');
+        continue;
+      }
       if (!img.complete || img.naturalWidth <= 0) fails.push(`img not decoded: ${src}`);
       if (!inHero && img.getAttribute('loading') !== 'lazy') fails.push(`img missing loading=lazy: ${src}`);
       if ((img.getAttribute('fetchpriority') || '').toLowerCase() === 'high') {

@@ -20,7 +20,7 @@ Use Node.js 22 or later and Python 3 for the preview server:
 npm ci
 npm test
 npm run build
-python3 -m http.server 51038 --bind 127.0.0.1 --directory dist/hodos
+python3 scripts/serve-hodos.py --port 51038 --bind 127.0.0.1 --directory dist/hodos
 ```
 
 Open http://127.0.0.1:51038. Runtime dependencies and fonts are vendored and
@@ -35,10 +35,13 @@ npx playwright install chromium
 node tests/perf/atlas_dissection.mjs --url=http://127.0.0.1:51038 --out=output/dissection
 node tests/perf/atlas_v1.mjs --url=http://127.0.0.1:51038 --out=output/v1
 node tests/perf/hodos_publication.mjs --url=http://127.0.0.1:51038 --release=dist/hodos/release.json --out=output/publication
+node tests/perf/lesson_previews.mjs --url=http://127.0.0.1:51038 --out=output/previews
 ```
 
 GitHub Actions runs the unit tests, a fresh export and the publication gate against
 that export on every push to `main` and on pull requests (`.github/workflows/ci.yml`).
+It also exercises the three anatomy previews and their real lesson links. The
+preview server supports the same extensionless page paths used in production.
 The export ships a first-party Content-Security-Policy and a Permissions-Policy in
 `_headers`; fonts and brand files are referenced with content-hash keys so long caches
 never serve stale bytes.
