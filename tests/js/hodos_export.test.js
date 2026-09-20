@@ -23,8 +23,8 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.equal(new Set(lessonIds).size,14);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
   assert.equal(landingAssets.length,21);
-  assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1200-20260914.jpg'));
-  assert(landingAssets.some(f=>f.path==='media/landing/hero-superior-commissural-1920-20260914.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1200-20260919.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1920-20260919.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
   assert(receipt.files.some(f=>f.path==='landing.js'));
   assert(receipt.files.some(f=>f.path==='lesson_previews.js'));
