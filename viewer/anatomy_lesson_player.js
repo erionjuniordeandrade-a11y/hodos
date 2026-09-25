@@ -1,6 +1,7 @@
 import {LESSONS,CONTENT_VERSION,SOURCES,REGIONS,sourceIdsForStep} from './lesson_content.js';
 import {createLessonController,lessonSearch} from './lesson_state.js';
-import {createLearningProgress,learningPhase,LEARNING_PHASES} from './anatomy_learning.js';
+import {createLearningProgress,createPostopReplay,learningPhase,LEARNING_PHASES,POSTOP_REPLAY_MAX} from './anatomy_learning.js';
+import {matchTeachback,teachbackTerms} from './teachback.js';
 import {CURRICULUM,TEACHING_GUIDES} from './lesson_briefings.js';
 // Home page order is the teaching order: module numbers and the dropdown follow it.
 const ORDERED_IDS=CURRICULUM.flatMap(group=>group.ids);
@@ -20,8 +21,11 @@ const phaseFromSearch=search=>{const value=new URLSearchParams(search).get('phas
  * legacy lesson player. Callbacks expose only local reference display actions. */
 export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onRestore=()=>{},onExplore=()=>{},onMode=()=>{},onCompare=()=>{},readOnlyProgress=false}={}){
   let storage;if(!readOnlyProgress)try{storage=localStorage;}catch{/* Session-only progress still works. */}
-  const progress=createLearningProgress(storage),revealed=new Set();
+  const progress=createLearningProgress(storage),postop=createPostopReplay(storage),revealed=new Set();
   let phase=phaseFromSearch(location.search),controller,lastScene='',lastReading='',focusHeading=false,noticeFor=null;
+  // Teach-back UI state is in memory only; the transcript lives in the textarea and is never kept.
+  let explainOpen=false,recognition=null;
+  function stopListening(){if(!recognition)return;const active=recognition;recognition=null;try{active.abort();}catch{/* already stopped */}}
   const lessonNow=()=>LESSONS.find(l=>l.id===controller.state.lessonId);
   function sync(){
     const params=new URLSearchParams(lessonSearch(location.search,controller.state));
@@ -30,7 +34,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
   }
   function start(id,{resume=false}={}){
     const saved=resume?progress.get(id):null;
-    phase=saved?.phase||'brief';focusHeading=true;
+    phase=saved?.phase||'brief';focusHeading=true;explainOpen=false;
     // Restore emits once, so a resumed lesson never renders/saves step zero first.
     const params=new URLSearchParams();params.set('lesson',id);params.set('step',String(saved?.step||0));params.set('lessonVersion',CONTENT_VERSION);
     controller.restore(`?${params}`);
@@ -75,6 +79,76 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     }
     root.append(catalog,progressNote());
   }
+  function teachbackResult(lesson,guide,record){
+    const out=el('div',{id:'teachbackResult',role:'status','aria-live':'polite'});
+    if(!record?.teachback)return out;
+    const missing=teachbackTerms(guide.takeaways).filter(term=>record.teachback.missingIds.includes(term.id));
+    const when=new Date(record.teachback.at).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
+    if(!missing.length){out.append(el('p',{class:'teachback-none'},`Last explanation (${when}): every listed relationship was named.`));return out;}
+    out.append(el('p',{},`Last explanation (${when}): not yet named`));
+    const items=el('ul',{class:'teachback-missing'});
+    for(const [index,term] of missing.entries()){const li=el('li');
+      li.append(el('span',{},term.label),button(`Go to relationship ${term.step+1}`,`teachbackStep-${index}`,()=>goStep(term.step,'compare')));items.append(li);}
+    out.append(items);return out;
+  }
+  /** Explain it: typed box, plus a microphone only where the browser offers speech recognition.
+   * Only the missing relationships are shown; no score, no grade. Hidden when no terms exist. */
+  function appendTeachback(body,lesson,guide,state){
+    if(!teachbackTerms(guide.takeaways).length)return;
+    const section=el('section',{class:'lesson-teachback','aria-label':'Explain it'});
+    const toggle=button('Explain it','teachbackOpen',()=>{explainOpen=!explainOpen;if(!explainOpen)stopListening();panel.hidden=!explainOpen;toggle.setAttribute('aria-expanded',String(explainOpen));if(explainOpen)text.focus();});
+    toggle.setAttribute('aria-expanded',String(explainOpen));toggle.setAttribute('aria-controls','teachbackPanel');
+    section.append(el('h3',{},'Explain it in your own words'),el('p',{},'Explain the three relationships aloud or in writing. You will see only what was not yet named.'),toggle);
+    const panel=el('form',{id:'teachbackPanel',class:'teachback-panel'});panel.hidden=!explainOpen;
+    const text=el('textarea',{id:'teachbackText',rows:'6','aria-label':'Your explanation',autocomplete:'off',spellcheck:'true'});
+    const lang=el('select',{id:'teachbackLang','aria-label':'Explanation language'});
+    lang.append(el('option',{value:'en-US'},'English'),el('option',{value:'pt-BR'},'Português (Brasil)'));
+    const controls=el('div',{class:'teachback-controls'});controls.append(lang);
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const note=el('p',{class:'learning-save-note',id:'teachbackMicStatus'});
+    if(Recognition){
+      const mic=button('Speak','teachbackMic',()=>{
+        if(recognition){stopListening();mic.textContent='Speak';mic.setAttribute('aria-pressed','false');return;}
+        let active;
+        try{active=new Recognition();}catch{note.textContent='Speech recognition is unavailable here; type your explanation instead.';return;}
+        active.lang=lang.value;active.continuous=true;active.interimResults=false;
+        active.onresult=event=>{if(recognition!==active)return;
+          let heard='';for(let i=event.resultIndex;i<event.results.length;i++)if(event.results[i].isFinal)heard+=event.results[i][0].transcript;
+          if(heard.trim())text.value=`${text.value}${text.value&&!/\s$/.test(text.value)?' ':''}${heard.trim()}`;};
+        active.onerror=event=>{if(recognition!==active)return;note.textContent=event.error==='not-allowed'?'Microphone permission was declined; type your explanation instead.':'Speech recognition stopped; you can keep typing.';};
+        active.onend=()=>{if(recognition===active){recognition=null;mic.textContent='Speak';mic.setAttribute('aria-pressed','false');}};
+        recognition=active;mic.textContent='Stop';mic.setAttribute('aria-pressed','true');note.textContent='Listening…';
+        try{active.start();}catch{recognition=null;mic.textContent='Speak';mic.setAttribute('aria-pressed','false');note.textContent='Speech recognition could not start; type your explanation instead.';}
+      });mic.setAttribute('aria-pressed','false');controls.append(mic);
+      panel.append(text,controls,el('p',{class:'learning-save-note teachback-disclosure'},'Chrome may send audio to Google for recognition; typing keeps everything on this device.'),note);
+    }else panel.append(text,controls);
+    const submit=el('button',{type:'submit',id:'teachbackCheck'},'Show what is missing');panel.append(submit);
+    const result=teachbackResult(lesson,guide,progress.get(lesson.id));
+    panel.addEventListener('submit',event=>{event.preventDefault();stopListening();
+      if(!text.value.trim()){note.textContent='Write or speak an explanation first.';return;}
+      const {missing}=matchTeachback(text.value,guide.takeaways);
+      if(!progress.get(lesson.id))progress.visit(lesson.id,state.step,'explain');
+      progress.teachback(lesson.id,missing.map(m=>m.termId));
+      text.value='';note.textContent='';
+      result.replaceWith(teachbackResult(lesson,guide,progress.get(lesson.id)));
+    });
+    section.append(panel,result);body.append(section);
+  }
+  /** Revisit after a case: one local free-text note per lesson; nothing leaves the device. */
+  function appendPostopReplay(body,lesson){
+    const box=el('details',{class:'postop-replay',id:'postopReplay'});box.append(el('summary',{},'Revisit after a case'));
+    const saved=postop.get(lesson.id);
+    const text=el('textarea',{id:'postopReplayText',rows:'5',maxlength:String(POSTOP_REPLAY_MAX),'aria-describedby':'postopReplayWarning',autocomplete:'off'});
+    text.value=saved?.text||'';
+    const label=el('label',{for:'postopReplayText'},'What did the operation confirm or contradict?');
+    const status=el('p',{class:'learning-save-note',role:'status',id:'postopReplayStatus'},saved?`Saved on this device ${new Date(saved.at).toLocaleDateString()}.`:'');
+    const actions=el('div',{class:'teachback-controls'});
+    actions.append(button('Save note','postopReplaySave',()=>{const note=postop.save(lesson.id,text.value);
+      status.textContent=!postop.persistent?'Device storage is unavailable; the note was not saved.':note?'Saved on this device.':'Note cleared.';}),
+    button('Clear','postopReplayClear',()=>{postop.clear(lesson.id);text.value='';status.textContent=postop.persistent?'Note cleared.':'Device storage is unavailable.';}));
+    box.append(label,text,el('p',{class:'learning-save-note postop-warning',id:'postopReplayWarning'},'Do not enter patient names, dates, record numbers or any identifier. Stored only on this device.'),actions,status);
+    body.append(box);
+  }
   function appendReferences(body,step){
     const notes=el('details',{class:'lesson-reference-drawer'});notes.append(el('summary',{},'Sources & anatomy notes'));
     const sources=el('section',{class:'lesson-sources'}),ids=sourceIdsForStep(step);
@@ -113,6 +187,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     }compare.append(controls);body.append(compare);
   }
   function render(state){
+    stopListening();
     const focusId=root.contains(document.activeElement)?document.activeElement.id:null;
     const readingId=`${state.lessonId}:${state.step}:${phase}`;
     const scrollTop=readingId===lastReading?root.querySelector('.lesson-scroll')?.scrollTop||0:0;
@@ -156,6 +231,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
         body.append(el('p',{class:'lesson-lead'},'Three relationships to keep. Revisit a scene, then explain the opening question in your own words.'));
         const takeaways=el('ol',{class:'recap-takeaways'});
         for(const point of guide.takeaways){const li=el('li');li.append(el('p',{},point.text),button(`Revisit relationship ${point.step+1}`,`recapStep-${point.step}`,()=>goStep(point.step,'compare')));takeaways.append(li);}body.append(takeaways);
+        appendTeachback(body,lesson,guide,state);
         const challenge=el('section',{class:'lesson-check'});challenge.append(el('h3',{},'Return to the question'),el('p',{},guide.question));
         const answer=el('details',{id:'lessonAnswer'});answer.append(el('summary',{},'Review the explanation'),el('p',{},lesson.steps.at(-1).answer));challenge.append(answer);body.append(challenge);
         const record=progress.get(lesson.id);body.append(button(record?.reviewed?'Marked reviewed':'Mark reviewed','lessonReview',()=>{
@@ -163,6 +239,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
         }),progressNote());
         body.append(el('p',{class:'learning-save-note'},'Reviewed records your own review. It is not an assessment of competence.'));
         const nextId=ORDERED_IDS[ORDERED_IDS.indexOf(lesson.id)+1],nextGuide=TEACHING_GUIDES[nextId];if(nextGuide)body.append(button(`Continue with ${nextGuide.shortTitle}`,'lessonNextTopic',()=>start(nextId)));
+        appendPostopReplay(body,lesson);
         appendReferences(body,lesson.steps.at(-1));
       }else{
         const article=el('article',{id:'lessonCurrent','aria-labelledby':'lessonCurrentTitle'});
