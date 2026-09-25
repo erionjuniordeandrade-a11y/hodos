@@ -9,7 +9,8 @@
   "scripts": {
     "test": "node --test 'tests/js/*.test.js'",
     "build": "node scripts/build-hodos.mjs",
-    "build:hodos": "node scripts/build-hodos.mjs"
+    "build:hodos": "node scripts/build-hodos.mjs",
+    "review-sheets": "node scripts/review-sheets.mjs"
   },
   "devDependencies": {"playwright": "1.62.1"},
   "engines": {"node": ">=22"}
