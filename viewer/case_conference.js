@@ -6,7 +6,9 @@ import {CASE_LESIONS,LESION_NOTE} from './case_lesions.js';
 
 const $=id=>document.getElementById(id),main=$('caseMain');
 let storage;try{storage=localStorage;}catch{}
-const store=createCaseStore(storage),stages=['Case','Interpret','Explore','Reconsider','Respond','Debrief'];
+const store=createCaseStore(storage);
+const STAGE_TITLES={Case:'Read the case',Interpret:'State your interpretation',Explore:'Explore the relationships',Reconsider:'Consider the new finding',Decide:'Make the call',Respond:'Prepare your response',Debrief:'Compare your reasoning'};
+const lastStage=id=>store.stages(id).length-1;
 let active=null,audio=null,audioURL=null,referenceTrigger=null,currentHash='';
 const el=(tag,attrs={},text='')=>{const n=document.createElement(tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));if(text)n.textContent=text;return n;};
 const p=(text,cls='')=>el('p',cls?{class:cls}:{},text);
@@ -18,15 +20,15 @@ function canMove(){if(!busy())return true;if(!confirm('Stop recording and contin
 function initAudio(){audio=createCaseAudio({onChange:s=>{if(active&&['ready','requesting'].includes(s.status))store.update(active.id,{spokenDone:s.status==='ready'});renderAudio();}});}
 function navigate(id='',stage=0,{review=false}={}){
  if(!canMove())return;
- if(id!==active?.id){cleanupAudio();active=CASES.find(c=>c.id===id)||null;if(active)initAudio();}
+ if(id!==active?.id){cleanupAudio();pendingChoice=null;active=CASES.find(c=>c.id===id)||null;if(active)initAudio();}
  if(active){const r=store.get(active.id);store.update(active.id,{stage,maxStage:review?r.maxStage:Math.max(stage,r.maxStage),reviewOnly:review});}
  currentHash=active?`#${active.id}/${review?'review':stage}`:'';history.pushState(null,'',`${location.pathname}${location.search}${currentHash}`);render(true);
 }
 function route(){
  const [id,part]=location.hash.slice(1).split('/'),c=CASES.find(c=>c.id===id);
  if(!canMove()){history.replaceState(null,'',`${location.pathname}${location.search}${currentHash}`);return;}
- if(c?.id!==active?.id){cleanupAudio();active=c||null;if(active)initAudio();}
- if(active){const r=store.get(active.id),review=part==='review';const requested=Number(part),stage=review?5:Number.isInteger(requested)&&requested>=0&&requested<=5?Math.min(requested,r.maxStage):r.maxStage;store.update(active.id,{stage,reviewOnly:review});currentHash=`#${active.id}/${review?'review':stage}`;history.replaceState(null,'',`${location.pathname}${location.search}${currentHash}`);}
+ if(c?.id!==active?.id){cleanupAudio();pendingChoice=null;active=c||null;if(active)initAudio();}
+ if(active){const r=store.get(active.id),review=part==='review';const requested=Number(part),last=lastStage(active.id),stage=review?last:Number.isInteger(requested)&&requested>=0&&requested<=last?Math.min(requested,r.maxStage):r.maxStage;store.update(active.id,{stage,reviewOnly:review});currentHash=`#${active.id}/${review?'review':stage}`;history.replaceState(null,'',`${location.pathname}${location.search}${currentHash}`);}
  else currentHash='';render(true);
 }
 function sourceLink(c,id){const s=c.sources.find(s=>s.id===id);return s?el('a',{href:s.url,target:'_blank',rel:'noopener noreferrer',class:'source-link'},s.title):document.createTextNode('');}
@@ -70,12 +72,31 @@ function draftField(container,id,label,key,placeholder){
 }
 function updateSaveStatus(){const n=$('saveStatus');if(n&&active)n.textContent=store.persistent(active.id)?'Text and self-assessment saved on this device. Audio is never saved here.':store.notice||'Session only. Download your text before leaving, or choose device saving.';const cb=$('rememberCase');if(cb&&active)cb.checked=store.persistent(active.id);}
 function download(blob,name){const url=URL.createObjectURL(blob),a=el('a',{href:url,download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
-function exportText(){const r=store.get(active.id);download(new Blob([`${active.title}\nFictional teaching case | ${CASE_VERSION}\n\nInitial interpretation\n${r.initial}\n\nAfter the finding\n${r.revision}\n\nWritten response\n${r.response}\n\nResponse modality: ${r.mode}\nAudio is downloaded separately.\n\nSelf-assessment\n${active.rubric.map((v,i)=>`${v.title}: ${r.ratings[i]||'not assessed'}`).join('\n')}\n`],{type:'text/plain'}),`hodos-${active.id}-response.txt`);}
+function exportText(){const r=store.get(active.id);download(new Blob([`${active.title}\nFictional teaching case | ${CASE_VERSION}\n\nInitial interpretation\n${r.initial}\n\nAfter the finding\n${r.revision}${decisionText(r)}\n\nWritten response\n${r.response}\n\nResponse modality: ${r.mode}\nAudio is downloaded separately.\n\nSelf-assessment\n${active.rubric.map((v,i)=>`${v.title}: ${r.ratings[i]||'not assessed'}`).join('\n')}\n`],{type:'text/plain'}),`hodos-${active.id}-response.txt`);}
+function decisionText(r){if(!active.decision)return '';const o=active.decision.options.find(o=>o.id===r.decision?.optionId);return `\n\nDecision: ${active.decision.question}\n${o?o.label:'No choice committed.'}`;}
+let pendingChoice=null;
+function sourceLine(c,ids){if(!ids?.length)return null;const line=el('p',{class:'option-sources'});for(const id of ids)line.append(sourceLink(c,id));return line;}
+function decide(body){
+ const d=active.decision,r=store.get(active.id),chosen=r.decision?.optionId;
+ body.append(p(d.question,'prompt'),p('Commit to one option. Your choice is locked for this attempt; afterwards the author’s rationale for every option is shown. Reset this case to choose again.','muted'));
+ const set=el('fieldset',{class:'decision-options'});set.append(el('legend',{class:'sr-only'},d.question));
+ d.options.forEach((o,i)=>{const id=`decision-${i}`,row=el('div',{class:'decision-option'}),input=el('input',{type:'radio',name:'decision',id,value:o.id});
+  input.checked=chosen?chosen===o.id:pendingChoice===o.id;input.disabled=Boolean(chosen);
+  input.addEventListener('change',()=>{pendingChoice=o.id;commit.disabled=false;});
+  row.append(input,el('label',{for:id},o.label));set.append(row);});
+ body.append(set);
+ const commit=button('Commit choice',()=>{const pick=set.querySelector('input:checked')?.value;if(!pick)return;store.decide(active.id,pick);pendingChoice=null;updateSaveStatus();render(true);},{class:'primary'});
+ commit.disabled=!pendingChoice||Boolean(chosen);
+ if(chosen){commit.hidden=true;body.append(p('Choice committed. The rationale for every option follows.','status'));
+  for(const o of d.options){const section=el('section',{class:`debrief-block decision-rationale${o.id===chosen?' chosen':''}`});section.append(el('h3',{},o.id===chosen?`${o.label} · your choice`:o.label),p(o.rationale));const src=sourceLine(active,o.sourceIds);if(src)section.append(src);body.append(section);}
+  body.append(p('Draft teaching rationale. Source-linked and awaiting independent clinical review; not an individualized recommendation.','draft-note'));
+ }else body.append(commit);
+}
 function saveTools(body){
  const label=el('label',{class:'save-label',for:'rememberCase'}),cb=el('input',{type:'checkbox',id:'rememberCase'});cb.checked=store.persistent(active.id);
  cb.addEventListener('change',()=>{store.remember(active.id,cb.checked);updateSaveStatus();});label.append(cb,document.createTextNode('Save this case’s text on this device'));
  body.append(label,el('p',{id:'saveStatus',class:'save-status',role:'status'}));
- const tools=el('div',{class:'session-tools'});tools.append(button('Download text',exportText),button('Reset this case',()=>{if(confirm('Clear this case’s responses and self-assessment? Other cases and atlas lessons will remain.')){cleanupAudio();store.clear(active.id);initAudio();navigate(active.id,0);}}));
+ const tools=el('div',{class:'session-tools'});tools.append(button('Download text',exportText),button('Reset this case',()=>{if(confirm('Clear this case’s responses and self-assessment? Other cases and atlas lessons will remain.')){cleanupAudio();store.clear(active.id);pendingChoice=null;initAudio();navigate(active.id,0);}}));
  if(store.notice)tools.append(button('Clear saved drafts',()=>{if(confirm('Clear all saved Case Conference drafts? Atlas lesson progress will remain.')){store.clearSaved();updateSaveStatus();}}));body.append(tools);updateSaveStatus();
 }
 function renderAudio(){
@@ -102,6 +123,7 @@ function debrief(body){
  body.append(p(practiced&&!r.reviewOnly?'Practice response completed. Compare your reasoning below.':'Review mode. You can read the debrief without completing a practice response.','status'));
  body.append(p('Draft teaching debrief. Source-linked and awaiting independent clinical review; not an individualized recommendation.','draft-note'));
  const mine=el('details');mine.append(el('summary',{},'Your interpretation and response'),p(r.initial||'No initial interpretation entered.','response-copy'),p(r.revision||'No reconsideration entered.','response-copy'),p(r.response||'No written final response entered.','response-copy'));
+ if(active.decision){const o=active.decision.options.find(o=>o.id===r.decision?.optionId);mine.append(p(o?`Decision: ${o.label}`:'No decision was committed.','response-copy'));}
  if(r.mode==='spoken')mine.append(p(audio?.state.blob?'Use your local recording below to compare.':'No replayable audio is available in this session. Any saved spoken-practice check is a self-report.'));
  body.append(mine);if(r.mode==='spoken'){body.append(el('div',{id:'audioPanel'}));renderAudio();}
  for(const b of active.debrief){const section=el('section',{class:'debrief-block'});section.append(el('h3',{},b.title),p(b.text));for(const id of b.sourceIds)section.append(sourceLink(active,id));body.append(section);}
@@ -114,26 +136,28 @@ function render(focus=false){
  main.replaceChildren();
  if(!active){
   const intro=el('section',{class:'catalog-intro'});intro.append(el('h1',{tabindex:'-1'},'Bring your reasoning to the conference.'),p('Four staged glioma cases for senior neurosurgical residents. Interpret the findings, explore the relationships, then defend what you think and what you still need to know.'),p('About ten minutes per case. Speak or write. No account or automated grading.','muted'),p('Fictional teaching pilot. Schematics are not patient imaging. Debriefs are drafts awaiting independent clinical review.','draft-note'));main.append(intro);
-  const catalogue=el('div',{class:'case-list'});for(const c of CASES){const r=store.get(c.id),row=el('article',{class:'case-row'}),copy=el('div'),actions=el('div',{class:'row-actions'});copy.append(p(c.location),el('h2',{},c.title),p(c.summary));actions.append(button(r.maxStage?'Continue case':'Begin case',()=>navigate(c.id,r.reviewOnly?r.maxStage:r.stage),{class:'primary'}),button('Review debrief',()=>navigate(c.id,5,{review:true}),{class:'text-button'}));row.append(copy,actions);catalogue.append(row);}main.append(catalogue);
+  const catalogue=el('div',{class:'case-list'});for(const c of CASES){const r=store.get(c.id),row=el('article',{class:'case-row'}),copy=el('div'),actions=el('div',{class:'row-actions'});copy.append(p(c.location),el('h2',{},c.title),p(c.summary));actions.append(button(r.maxStage?'Continue case':'Begin case',()=>navigate(c.id,r.reviewOnly?r.maxStage:r.stage),{class:'primary'}),button('Review debrief',()=>navigate(c.id,lastStage(c.id),{review:true}),{class:'text-button'}));row.append(copy,actions);catalogue.append(row);}main.append(catalogue);
   const exercise=el('article',{class:'case-row'}),copy=el('div');copy.append(p('MIPS concepts'),el('h2',{},'One target, two corridors'),p('Orient in the reference atlas, compare two illustrative access volumes, then explain the trade-offs.'));exercise.append(copy,el('a',{href:'./mips.html'},'Open corridor exercise'));main.append(exercise);
  }else{
   const r=store.get(active.id),top=el('div',{class:'case-top'});top.append(button('All cases',()=>navigate(),{class:'text-button'}),p(`Fictional teaching case ${active.number} · Senior level`));main.append(top);
-  const nav=el('ol',{class:'stage-nav','aria-label':'Case stages'});stages.forEach((name,i)=>{const li=el('li'),b=button(name,()=>navigate(active.id,i));if(i===r.stage)b.setAttribute('aria-current','step');b.disabled=i>r.maxStage;li.append(b);nav.append(li);});main.append(nav);
+  const stages=store.stages(active.id),name=stages[r.stage],last=stages.length-1;
+  const nav=el('ol',{class:`stage-nav${stages.length===7?' has-decision':''}`,'aria-label':'Case stages'});stages.forEach((name,i)=>{const li=el('li'),b=button(name,()=>navigate(active.id,i));if(i===r.stage)b.setAttribute('aria-current','step');b.disabled=i>r.maxStage;li.append(b);nav.append(li);});main.append(nav);
   const work=el('div',{class:'case-workbench'}),aside=el('aside',{class:'case-aside','aria-label':'Case context'}),body=el('section',{class:'stage-body'});
   const schematic=el('details',{class:'schematic'});schematic.open=!CASE_IMAGES[active.id]&&matchMedia('(min-width:851px)').matches;schematic.append(el('summary',{},'Schematic location'),diagram(active));
   const panels=[];
   if(CASE_IMAGES[active.id]){const imaging=el('details',{class:'case-imaging'});imaging.open=r.stage===0||matchMedia('(min-width:851px)').matches;imaging.append(el('summary',{},'Fictional MRI-style illustrations'),caseImage(active));panels.push(imaging);}
   aside.append(p(active.location,'location'),el('h1',{class:'case-name'},active.title),...panels,schematic);const context=el('details');context.append(el('summary',{},'Case context'),p(active.vignette),p(active.diagram.description));aside.append(context,p('Fictional scenario. Reference relationships, not individual anatomy.','draft-note'),referenceButtons(active));work.append(aside,body);main.append(work);
-  body.append(p(`Stage ${r.stage+1} of 6`,'stage-index'),el('h2',{id:'stageTitle',tabindex:'-1'},['Read the case','State your interpretation','Explore the relationships','Consider the new finding','Prepare your response','Compare your reasoning'][r.stage]));
-  if(r.stage===0){body.append(p(active.vignette,'lead'));const cols=el('div',{class:'fact-columns'});for(const [title,items] of [['What is supplied',active.known],['What remains unknown',active.unknown]]){const c=el('section');c.append(el('h3',{},title),list(items));cols.append(c);}body.append(cols,p('The exercise asks you to explain relationships and uncertainty. It does not ask you to choose a surgical margin.','draft-note'));}
-  if(r.stage===1){body.append(p(active.prompt,'prompt'));draftField(body,'initialResponse','Your initial interpretation','initial','State your interpretation and one important uncertainty.');}
-  if(r.stage===2){body.append(list(active.explore),referenceButtons(active),p('Open a reference, inspect the anatomy, then close it to return here. These views use session-only lesson progress.','muted'));}
-  if(r.stage===3){body.append(p(active.finding.text,'finding'),p(active.finding.prompt,'prompt'));const prev=el('details');prev.append(el('summary',{},'Your initial interpretation'),p(r.initial||'No initial interpretation was entered.','response-copy'));body.append(prev);draftField(body,'revisedResponse','What changes, or remains defensible?','revision','You may revise or defend your interpretation. Explain why.');}
-  if(r.stage===4)respond(body);
-  if(r.stage===5)debrief(body);
+  body.append(p(`Stage ${r.stage+1} of ${stages.length}`,'stage-index'),el('h2',{id:'stageTitle',tabindex:'-1'},STAGE_TITLES[name]));
+  if(name==='Case'){body.append(p(active.vignette,'lead'));const cols=el('div',{class:'fact-columns'});for(const [title,items] of [['What is supplied',active.known],['What remains unknown',active.unknown]]){const c=el('section');c.append(el('h3',{},title),list(items));cols.append(c);}body.append(cols,p('The exercise asks you to explain relationships and uncertainty. It does not ask you to choose a surgical margin.','draft-note'));}
+  if(name==='Interpret'){body.append(p(active.prompt,'prompt'));draftField(body,'initialResponse','Your initial interpretation','initial','State your interpretation and one important uncertainty.');}
+  if(name==='Explore'){body.append(list(active.explore),referenceButtons(active),p('Open a reference, inspect the anatomy, then close it to return here. These views use session-only lesson progress.','muted'));}
+  if(name==='Reconsider'){body.append(p(active.finding.text,'finding'),p(active.finding.prompt,'prompt'));const prev=el('details');prev.append(el('summary',{},'Your initial interpretation'),p(r.initial||'No initial interpretation was entered.','response-copy'));body.append(prev);draftField(body,'revisedResponse','What changes, or remains defensible?','revision','You may revise or defend your interpretation. Explain why.');}
+  if(name==='Decide')decide(body);
+  if(name==='Respond')respond(body);
+  if(name==='Debrief')debrief(body);
   saveTools(body);
   const actions=el('div',{class:'stage-actions'}),back=button('Previous',()=>navigate(active.id,r.stage-1));back.disabled=r.stage===0||r.reviewOnly;actions.append(back);if(r.reviewOnly)actions.append(button('Practice this case',()=>navigate(active.id,r.maxStage),{class:'primary'}));
-  actions.append(r.stage<5?button(r.stage===4?'View debrief':'Continue',()=>navigate(active.id,r.stage+1),{class:'primary'}):button('Return to cases',()=>navigate(),{class:'primary'}));body.append(actions);
+  actions.append(r.stage<last?button(name==='Respond'?'View debrief':'Continue',()=>navigate(active.id,r.stage+1),{class:'primary'}):button('Return to cases',()=>navigate(),{class:'primary'}));body.append(actions);
  }
  if(focus)(document.getElementById('stageTitle')||main.querySelector('h1'))?.focus({preventScroll:true});
 }
