@@ -41,6 +41,48 @@ function sourceLookupFor(sourceIds, sourcesById) {
   return sourceIds.map((id) => sourcesById[id]).filter(Boolean);
 }
 
+// Everything a learner can read must reach the reviewer, so the extra fields are
+// chosen by EXCLUSION: any field not listed here as structural or already printed
+// is rendered generically, including fields added to the content later.
+const STEP_SHOWN_OR_STRUCTURAL = new Set(['title', 'text', 'sources', 'scene', 'regions', 'targets']);
+const LESSON_SHOWN_OR_STRUCTURAL = new Set(['id', 'title', 'minutes', 'reviewStatus', 'steps', 'version', 'referenceOnly', 'category']);
+const CASE_SHOWN_OR_STRUCTURAL = new Set(['id', 'fictional', 'title', 'location', 'number', 'prompt', 'debrief', 'sources']);
+
+function label(key) {
+  return key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (c) => c.toUpperCase());
+}
+
+// Renders any JSON-like value as Markdown lines under a bold label; nested objects
+// and arrays of objects become indented bullet lists so nothing is dropped.
+export function renderField(key, value, indent = '') {
+  if (value === undefined || value === null || value === '') return [];
+  const head = `${indent}${indent ? '- ' : ''}**${label(key)}:**`;
+  if (typeof value !== 'object') return [`${head} ${value}`];
+  const entries = Array.isArray(value) ? value.map((v, i) => [String(i + 1), v]) : Object.entries(value);
+  const lines = [head];
+  const inner = indent + '  ';
+  for (const [k, v] of entries) {
+    if (v !== null && typeof v === 'object') {
+      lines.push(...renderField(Array.isArray(value) ? `${label(key)} ${k}` : k, v, inner));
+    } else if (Array.isArray(value)) {
+      lines.push(`${inner}- ${v}`);
+    } else {
+      lines.push(...renderField(k, v, inner));
+    }
+  }
+  return lines;
+}
+
+function renderRest(obj, exclude) {
+  const lines = [];
+  for (const [k, v] of Object.entries(obj)) {
+    if (exclude.has(k)) continue;
+    const rendered = renderField(k, v);
+    if (rendered.length) lines.push(...rendered, '');
+  }
+  return lines;
+}
+
 // --- Lessons -----------------------------------------------------------
 
 export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions = REGIONS) {
@@ -48,6 +90,7 @@ export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions =
   const lines = [];
   lines.push(`# ${lesson.title}`, '');
   lines.push(`Lesson id: \`${lesson.id}\` · Minutes: ${lesson.minutes} · Review status: ${lesson.reviewStatus}`, '');
+  lines.push(...renderRest(lesson, LESSON_SHOWN_OR_STRUCTURAL));
   lines.push('## Opening question', '', guide.question, '');
   lines.push('## Three takeaways', '');
   guide.takeaways.forEach((point, i) => {
@@ -62,6 +105,7 @@ export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions =
     stepSourceIds.forEach((id) => allSourceIds.add(id));
     lines.push(`### Step ${i}: ${step.title}`, '');
     lines.push(`**Claim:** ${step.text}`, '');
+    lines.push(...renderRest(step, STEP_SHOWN_OR_STRUCTURAL));
     if (stepSourceIds.length) {
       lines.push('**Sources:**');
       sourceLookupFor(stepSourceIds, sourcesById).forEach((s) => lines.push(formatSourceLine(s)));
@@ -98,6 +142,8 @@ export function buildCaseSheet(case_) {
   lines.push(`# ${case_.title} (fictional case)`, '');
   lines.push(`Case id: \`${case_.id}\` · Location: ${case_.location} · Number: ${case_.number} · Minutes: N/A (case, not a timed lesson)`, '');
   lines.push('## Opening question (conference prompt)', '', case_.prompt, '');
+  lines.push('## Case content', '');
+  lines.push(...renderRest(case_, CASE_SHOWN_OR_STRUCTURAL));
   lines.push('## Takeaways (debrief titles, in place of a lesson\'s three takeaways)', '');
   (case_.debrief ?? []).forEach((d, i) => lines.push(`${i + 1}. ${d.title}`));
   lines.push('');

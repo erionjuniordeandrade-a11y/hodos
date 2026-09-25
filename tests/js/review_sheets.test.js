@@ -6,7 +6,7 @@ import path from 'node:path';
 import {LESSONS, SOURCES, REGIONS, sourceIdsForStep} from '../../viewer/lesson_content.js';
 import {TEACHING_GUIDES} from '../../viewer/lesson_briefings.js';
 import {CASES} from '../../viewer/case_content.js';
-import {writeReviewSheets, buildLessonSheet, citationTag} from '../../scripts/review-sheets.mjs';
+import {writeReviewSheets, buildLessonSheet, buildCaseSheet, citationTag} from '../../scripts/review-sheets.mjs';
 
 async function withTempDir(fn) {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'hodos-review-sheets-'));
@@ -88,4 +88,37 @@ test('citationTag prefers PMID over DOI and falls back to the raw URL', () => {
   assert.equal(citationTag({url: 'https://doi.org/10.1093/brain/awt163'}), 'DOI 10.1093/brain/awt163');
   assert.equal(citationTag({url: 'https://example.org/paper'}), 'https://example.org/paper');
   assert.equal(citationTag(null), null);
+});
+
+// Every string a learner can read (outside ids and scene/geometry) must reach the
+// reviewer; a field added to the content later fails this test until rendered.
+function readableStrings(value, skip, out = []) {
+  if (typeof value === 'string') out.push(value);
+  else if (Array.isArray(value)) value.forEach((v) => readableStrings(v, skip, out));
+  else if (value && typeof value === 'object') {
+    for (const [k, v] of Object.entries(value)) if (!skip.has(k)) readableStrings(v, skip, out);
+  }
+  return out;
+}
+
+test('completeness: every learner-visible string of every lesson step and case is on its sheet', () => {
+  const structural = new Set(['id', 'url', 'lesson', 'scene', 'regions', 'targets', 'sources', 'sourceIds', 'category', 'version', 'reviewStatus']);
+  for (const lesson of LESSONS) {
+    const sheet = buildLessonSheet(lesson, TEACHING_GUIDES[lesson.id]);
+    for (const s of readableStrings(lesson, structural)) {
+      assert.ok(sheet.includes(s), `${lesson.id}: missing ${JSON.stringify(s.slice(0, 80))}`);
+    }
+  }
+  for (const case_ of CASES) {
+    const sheet = buildCaseSheet(case_);
+    for (const s of readableStrings(case_, structural)) {
+      assert.ok(sheet.includes(s), `${case_.id}: missing ${JSON.stringify(s.slice(0, 80))}`);
+    }
+  }
+});
+
+test('negative control: the completeness check catches a dropped step field', () => {
+  const lesson = LESSONS[0];
+  const sheet = buildLessonSheet(lesson, TEACHING_GUIDES[lesson.id]).replace(lesson.steps[0].surgical, '');
+  assert.ok(!sheet.includes(lesson.steps[0].surgical));
 });
