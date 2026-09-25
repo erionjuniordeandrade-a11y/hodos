@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LESSONS,CONTENT_VERSION} from '../../viewer/lesson_content.js';
-import {createLearningProgress,resolveTeachingScene,focusTeachingTarget,learningPhase,LEARNING_KEY} from '../../viewer/anatomy_learning.js';
+import {createLearningProgress,createPostopReplay,resolveTeachingScene,focusTeachingTarget,learningPhase,LEARNING_KEY,POSTOP_REPLAY_KEY,POSTOP_REPLAY_MAX} from '../../viewer/anatomy_learning.js';
 import {TEACHING_GUIDES} from '../../viewer/lesson_briefings.js';
 
 const store=()=>{const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};};
@@ -59,4 +59,57 @@ test('inspecting cortical, deep and bundle targets retains the authored neighbou
   const bundle=focusTeachingTarget(capsule,{kind:'bundle',id:'CBT'});
   assert.deepEqual(new Set([...bundle.bundleIds,...bundle.ghostIds]),new Set([...capsule.bundleIds,...capsule.ghostIds]));
   assert.deepEqual(bundle.regions,capsule.regions);assert.deepEqual(bundle.bundleIds,['CBT_L']);
+});
+test('teach-back stores only a timestamp and missing term ids, and survives a reload',()=>{
+  const storage=store(),p=createLearningProgress(storage);
+  assert.equal(p.teachback('motor-cst',['thalamus-medial']),null,'no record, no teach-back');
+  p.visit('motor-cst',9,'explain');
+  const saved=p.teachback('motor-cst',['thalamus-medial','level-cerebellar']);
+  assert.deepEqual(saved.missingIds,['thalamus-medial','level-cerebellar']);
+  assert.ok(Number.isFinite(Date.parse(saved.at)));
+  const raw=storage.getItem(LEARNING_KEY);
+  assert.deepEqual(Object.keys(JSON.parse(raw).lessons['motor-cst'].teachback).sort(),['at','missingIds']);
+  assert.doesNotMatch(raw,/transcript|text|patient/);
+  const again=createLearningProgress(storage);
+  assert.deepEqual(again.get('motor-cst').teachback,saved);
+  again.visit('motor-cst',3,'compare');assert.deepEqual(again.get('motor-cst').teachback,saved,'a later visit keeps the record');
+  again.get('motor-cst').teachback.missingIds.push('mutated');assert.deepEqual(again.get('motor-cst').teachback,saved,'get() returns a copy');
+  assert.deepEqual(p.teachback('motor-cst',[]).missingIds,[]);
+  assert.throws(()=>p.teachback('motor-cst',['Not An Id']));assert.throws(()=>p.teachback('motor-cst','thalamus'));
+});
+test('malformed teach-back records are dropped on restore without losing the lesson record',()=>{
+  const storage=store();
+  for(const teachback of [{at:'not a date',missingIds:[]},{at:'2026-09-25T00:00:00.000Z',missingIds:'thalamus'},
+    {at:'2026-09-25T00:00:00.000Z',missingIds:[1]},{missingIds:[]},'x',{at:'2026-09-25T00:00:00.000Z',missingIds:['ok','<script>']},
+    {at:'2026-09-25T00:00:00.000Z',missingIds:Array.from({length:65},(_,i)=>`t${i}`)}]){
+    storage.setItem(LEARNING_KEY,JSON.stringify({version:CONTENT_VERSION,lastLesson:'motor-cst',lessons:{'motor-cst':{step:2,phase:'compare',visited:[2],teachback}}}));
+    assert.deepEqual(createLearningProgress(storage).get('motor-cst'),{step:2,phase:'compare',visited:[2],reviewed:false},JSON.stringify(teachback));
+  }
+  storage.setItem(LEARNING_KEY,JSON.stringify({version:CONTENT_VERSION,lastLesson:'motor-cst',lessons:{'motor-cst':{step:2,phase:'compare',visited:[2],
+    teachback:{at:'2026-09-25T00:00:00.000Z',missingIds:['level-cerebellar'],transcript:'should vanish'}}}}));
+  assert.deepEqual(createLearningProgress(storage).get('motor-cst').teachback,{at:'2026-09-25T00:00:00.000Z',missingIds:['level-cerebellar']});
+});
+test('post-op replay notes stay on the device, cap at 2000 characters, clear, and drop malformed entries',()=>{
+  const storage=store(),r=createPostopReplay(storage);
+  assert.equal(r.get('motor-cst'),null);
+  const long='x'.repeat(POSTOP_REPLAY_MAX+500);
+  assert.equal(r.save('motor-cst',long).text.length,POSTOP_REPLAY_MAX);
+  const stored=JSON.parse(storage.getItem(POSTOP_REPLAY_KEY));
+  assert.deepEqual(Object.keys(stored),['motor-cst']);assert.equal(stored['motor-cst'].text.length,POSTOP_REPLAY_MAX);
+  assert.ok(Number.isFinite(Date.parse(stored['motor-cst'].at)));
+  assert.equal(createPostopReplay(storage).get('motor-cst').text.length,POSTOP_REPLAY_MAX);
+  r.save('optic-radiation','Confirmed the lateral relationship.');r.clear('motor-cst');
+  assert.equal(createPostopReplay(storage).get('motor-cst'),null);
+  assert.equal(createPostopReplay(storage).get('optic-radiation').text,'Confirmed the lateral relationship.');
+  assert.equal(r.save('optic-radiation','   '),null,'blank note clears');assert.equal(r.get('optic-radiation'),null);
+  assert.throws(()=>r.save('not-installed','text'));
+  storage.setItem(POSTOP_REPLAY_KEY,JSON.stringify({unknown:{at:'2026-09-25T00:00:00.000Z',text:'a'},'motor-cst':{at:'bad',text:'a'},
+    'optic-radiation':{at:'2026-09-25T00:00:00.000Z',text:42},'internal-capsule':{at:'2026-09-25T00:00:00.000Z',text:'y'.repeat(3000)}}));
+  const restored=createPostopReplay(storage);
+  assert.equal(restored.get('unknown'),null);assert.equal(restored.get('motor-cst'),null);assert.equal(restored.get('optic-radiation'),null);
+  assert.equal(restored.get('internal-capsule')?.text.length,POSTOP_REPLAY_MAX);
+  storage.setItem(POSTOP_REPLAY_KEY,'{broken');assert.equal(createPostopReplay(storage).get('motor-cst'),null);
+  const denied=createPostopReplay({getItem(){throw Error('denied');},setItem(){throw Error('quota');}});
+  denied.save('motor-cst','note');assert.equal(denied.persistent,false);
+  assert.equal(createPostopReplay(undefined).persistent,false);
 });

@@ -421,6 +421,15 @@ body[data-mode=lesson] .intro,body[data-mode=recap] .intro,body[data-mode=explor
 #lessonPanel .lesson-targets button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:white}
 #lessonPanel .lesson-anatomy li{font-size:16px;line-height:1.65;margin:12px 0}
 #lessonPanel .lesson-case,#lessonPanel .lesson-check{background:var(--subtle);padding:16px;border:0;margin:16px 0 24px}
+#lessonPanel .lesson-teachback{border-top:1px solid var(--line);margin:16px 0;padding:8px 0 0}
+#lessonPanel .teachback-panel{display:grid;gap:8px;margin:12px 0}
+#lessonPanel .teachback-panel[hidden]{display:none}
+#lessonPanel .lesson-teachback textarea,#lessonPanel .postop-replay textarea{width:100%;box-sizing:border-box;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:8px;border:1px solid var(--line);border-radius:var(--radius);background:var(--subtle);color:var(--ink);resize:vertical}
+#lessonPanel .teachback-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#lessonPanel .teachback-controls select,#lessonPanel .teachback-controls button,#lessonPanel .teachback-panel button[type=submit]{min-height:36px;font-size:13px}
+#lessonPanel .teachback-missing li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+#lessonPanel .postop-replay{border-top:1px solid var(--line);margin:16px 0 0;padding:8px 0 0}
+#lessonPanel .postop-replay label{display:block;font-size:14px;margin:8px 0}
 #lessonPanel .lesson-case h3,#lessonPanel .lesson-check h3{margin:0 0 8px}
 #lessonPanel .lesson-case p{font:400 21px/1.4 var(--reading);margin:8px 0}
 #lessonPanel .lesson-side-note,#lessonPanel .learning-save-note,#lessonPanel .lesson-version{font:12px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--muted);margin:16px 0}
