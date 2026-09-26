@@ -49,11 +49,17 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const asset of ['mips.js','mips_content.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
   const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
   const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
-  assert.equal(sitemapLocs.length,20);
+  assert.equal(sitemapLocs.length,21);
   assert(sitemapLocs.includes('https://hodosatlas.com/lessons'));
   assert.deepEqual(sitemapLocs.filter(url=>url.startsWith('https://hodosatlas.com/lessons/')),lessonIdsInCurriculum().map(id=>`https://hodosatlas.com/lessons/${id}`));
   assert(!sitemap.includes('/atlas?lesson='));
   assert.match(sitemap,/<loc>https:\/\/hodosatlas\.com\/mips<\/loc>/);
+  const connections=await readFile(path.join(out,'connections.html'),'utf8');
+  assert.match(home,/href="\.\/connections"/);
+  assert.match(connections,/rel="canonical" href="https:\/\/hodosatlas\.com\/connections"/);
+  assert.doesNotMatch(connections,/ style=/);
+  for(const asset of ['connections.js','connections_graph.js','connections_data.js','connections.css','vendor/vis-network.min.js','vendor/vis-data.min.js','vendor/vis-LICENSE.md'])assert(receipt.files.some(f=>f.path===asset));
+  assert.match(sitemap,/<loc>https:\/\/hodosatlas\.com\/connections<\/loc>/);
   for(const [tag] of atlas.matchAll(/<link\b[^>]*rel="modulepreload"[^>]*>/g)){
     assert.match(tag,/\bdata-document-preload\b/,'Cloudflare must not promote import-map-dependent modules into HTTP Link headers');
   }

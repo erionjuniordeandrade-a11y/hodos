@@ -80,6 +80,13 @@ and author notices are in `viewer/vendor/addons/libs/draco/LICENSE` and
 google/draco repository on 2026-09-11. Runtime files are served locally;
 no external CDN or telemetry is used.
 
+## vis-network and vis-data
+
+vis-network 9.1.9 and vis-data 7.1.9 (peer UMD builds, from the npm registry on 2026-09-26) are
+vendored in `viewer/vendor/` and draw the graph on the Connections page. They are dual licensed
+Apache-2.0 OR MIT and are used under MIT; the license text is in `viewer/vendor/vis-LICENSE.md`.
+Served locally; no external CDN.
+
 ## Playfair Display
 
 The bundled Playfair Display font retains its SIL Open Font License 1.1 in

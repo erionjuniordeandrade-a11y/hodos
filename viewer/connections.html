@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connections · Hodos</title>
+<meta name="author" content="Dr. Erion de Andrade">
+<meta name="description" content="A quoted map of the white matter teaching notes: which tracts link which cortical areas, networks, deficits and intraoperative tests. Every link opens the sentence it comes from.">
+<link rel="canonical" href="https://hodosatlas.com/connections">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Hodos"><meta property="og:title" content="Connections · Hodos"><meta property="og:description" content="Tracts, areas, networks, deficits and tests as one quoted graph."><meta property="og:url" content="https://hodosatlas.com/connections"><meta property="og:image" content="https://hodosatlas.com/brand/hodos-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Connections · Hodos">
+<meta name="twitter:description" content="Tracts, areas, networks, deficits and tests as one quoted graph.">
+<meta name="twitter:image" content="https://hodosatlas.com/brand/hodos-og.png">
+<meta name="theme-color" content="#0f1215"><link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/inter-latin-regular.woff2" crossorigin><link rel="preload" as="font" type="font/ttf" href="./vendor/fonts/playfair-display.ttf" crossorigin>
+<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./connections.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://hodosatlas.com/#erion","name":"Dr. Erion de Andrade","honorificPrefix":"Dr.","jobTitle":"Neurosurgeon","url":"https://www.dreriondeandrade.com.br/"},{"@type":"LearningResource","name":"Connections · Hodos","url":"https://hodosatlas.com/connections","description":"A quoted map of the white matter teaching notes: tracts, cortical areas, networks, deficits and intraoperative tests. Educational draft awaiting independent clinical review.","learningResourceType":"Interactive concept map","isAccessibleForFree":true,"author":{"@id":"https://hodosatlas.com/#erion"}}]}</script>
+</head><body class="connections-page">
+<a class="skip-link" href="#connectionsMain">Skip to the map</a>
+<header class="studio-header"><a class="brand" href="./index.html"><img src="./brand/hodos-mark.svg" width="28" height="28" alt=""><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a><nav aria-label="Site"><a href="./atlas.html">Atlas &amp; lessons</a><a href="./case-conference.html">Case Conference</a><a href="./mips.html" class="nav-long">MIPS</a><a href="./connections.html" aria-current="page" class="nav-long">Connections</a><a href="./atlas-sources.html" class="header-sources">Sources</a></nav></header>
+<main id="connectionsMain" class="connections-main" tabindex="-1">
+  <header class="connections-intro">
+    <h1>What connects to what, in the notes’ own words.</h1>
+    <p>A map of the white matter teaching notes: <span id="graphStats">the structures and links</span>. Choose a view, then select a structure or a link to read the sentences behind it.</p>
+  </header>
+  <div class="connections-workbench">
+    <nav class="connections-views" aria-label="Views">
+      <ul id="viewList"></ul>
+      <form id="findForm" class="connections-find" role="search"><label for="findInput">Find a structure</label><div><input id="findInput" list="nodeNames" autocomplete="off" placeholder="IFOF, area 44, neglect"><button type="submit">Open</button></div><datalist id="nodeNames"></datalist><p id="findStatus" role="status"></p></form>
+      <ul id="typeKey" class="connections-key" aria-label="Structure types"></ul>
+    </nav>
+    <figure class="connections-figure">
+      <div class="connections-stage"><div id="graphCanvas" role="img" aria-label="Graph of the teaching notes"></div><p class="stage-title"><span id="viewTitle"></span><span id="viewCount"></span></p><p id="graphStatus" class="connections-status" role="status">Loading the map…</p></div>
+      <figcaption>Drag to move, scroll or pinch to zoom. Positions are a force layout of the statements, not anatomy.</figcaption>
+    </figure>
+    <aside id="inspector" class="connections-inspector" aria-live="polite" aria-label="Selected structure or link"></aside>
+  </div>
+  <section class="connections-limits" aria-labelledby="limitsTitle">
+    <h2 id="limitsTitle">Reading the map</h2>
+    <p>Each link is a sentence from the author’s white matter teaching notes, extracted into subject, relation and object, and checked to be quoted verbatim. The map shows what the notes state. It is not a tractography result, a measured connectivity, or a list of every connection a structure has.</p>
+    <p>Teaching case vignettes from the same notes are not shown. Educational draft awaiting independent clinical review; not for patient-specific planning. For reference anatomy in three dimensions, open the <a href="./atlas.html">atlas</a>.</p>
+  </section>
+</main>
+<footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p></div><div class="foot-data"><p class="foot-label">Source</p><p>Author’s white matter teaching notes</p><p>Graph drawn with vis-network</p></div><div class="foot-terms"><p class="foot-label">Use</p><p>Educational draft, research only.</p><p>Not a surgical plan.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p><p><a href="./mips.html">MIPS</a></p><p><a href="./connections.html">Connections</a></p><p><a href="./lessons">Lessons</a></p><p><a href="https://github.com/erionjuniordeandrade-a11y/hodos/issues/new" target="_blank" rel="noopener">Report an error or suggest a correction</a></p></div></footer>
+<noscript><p class="connections-noscript">The map needs JavaScript.</p></noscript>
+<script src="./vendor/vis-data.min.js"></script><script src="./vendor/vis-network.min.js"></script>
+<script type="module" src="./connections.js"></script></body></html>
