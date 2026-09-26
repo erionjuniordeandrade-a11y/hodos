@@ -1,42 +1,50 @@
 # Design — Hodos
 
-A locked design system for the Hodos coursebook. Every page redesign reads this file before
-emitting code. Extend or amend this file when the system needs to grow; do not regenerate per
-page. Tokens live in `viewer/tokens.css`; the page layer that consumes them is `viewer/hodos.css`.
+The Hodos design system. Direction B2, "direction-encoded", approved by the owner on
+2026-09-26 (it replaces the 2026-09-10 Playfair/Inter lock). Every page redesign reads this
+file before emitting code. Extend or amend it when the system needs to grow; do not regenerate
+per page. Tokens live in `viewer/tokens.css`; the page layers that consume them are
+`viewer/hodos.css` and `viewer/landing.css`. The reasoning behind the direction is in
+`docs/design-directions-2026-09-26.md`.
 
 ## Genre
-Editorial, tone luxury. Dark paper locked page-wide. Owner palette of 2026-09-10 (graphite,
-bone, one ice accent, sand for context parcels) and the logo A. Preserve mode: routes, copy,
-brand, ids and analytics-free markup stay.
+A reading console for a neuroanatomy coursebook. Scanner graphite page, film white text, and
+the tractography direction code (DEC) as the only colour. Principle: colour is data, never
+decoration. Preserve: routes, copy, brand, ids, the draft wording, every credit and the
+analytics-free markup.
 
 ## Macrostructure family
-- Landing (/): Marquee Hero, anatomy-led. Full-bleed hero plate with a paper-to-transparent scrim (the only gradient on the site), four-family strip, lessons as a hairline gallery with frames, Case Conference band, creator and data, shared footer.
-- Home (library): Index-First. One stacked paragraph introduces the index; the live atlas is the
-  only enrichment, sticky beside a categorised list with hairline rows.
+- Landing (/): viewport-sized hero on the plate colour with the atlas loop to the right and a
+  plate-to-transparent scrim (the only gradient), a facts row, the four families as a bento with
+  a DEC key, featured lessons plus an index with real durations, a lesson walkthrough, a practice
+  grid, creator and data sections, an inverted closing band, the shared footer.
 - Lesson workspace (app page): Workbench. The atlas is the frame; the lesson panel is the caption
-  column. Small functional headings, one phase tab strip, no cards.
-- Sources and use terms (content page): Long Document. Single column, 62ch measure, inline
-  section heads, typographic links.
+  column. Small functional headings, one phase tab strip (Orient, Compare, Explain), no cards.
+- Library, connections, MIPS: Index-First or Workbench within the same tokens.
+- Sources and use terms (content page): Long Document. Single column, 62ch measure.
 
 ## Theme (tokens.css)
-- `--color-paper` oklch(18% 0.008 248) · `--color-paper-2` oklch(21.5% 0.010 248) ·
-  `--color-stage` oklch(16.2% 0.008 248)
-- `--color-ink` oklch(92.9% 0.012 85) · `--color-muted` oklch(74.2% 0.009 248) ·
-  `--color-faint` oklch(60.4% 0.012 248)
-- `--color-rule` oklch(34.9% 0.015 248) · `--color-rule-2` oklch(52.9% 0.021 246)
-- `--color-accent` oklch(86.8% 0.073 213) ice · `--color-accent-ink` oklch(18.8% 0.017 225) ·
-  `--color-focus` = accent
-- Scientific pigments are not design tokens: parcel focus (ice), context (sand), neutral cortex,
-  Yeo-7 palette and pathway tints stay as the data renderers define them.
+- Page `--color-paper` #1E2227 scanner graphite · raised `--color-paper-2` #262B31 ·
+  `--color-paper-3` #2E343B · `--color-stage` #131619 · `--color-plate` #0A0E11 (the
+  background of the captured atlas renders, so renders sit seamlessly on it).
+- Text `--color-ink` #E4E6E3 film white · `--color-muted` #B2B9C0 · `--color-faint` #949DA7.
+- Rules `--color-rule` #3A424B · `--color-rule-2` #5C6671.
+- DEC, meaning only: `--color-dec-commissural` #E0605A red (left-right),
+  `--color-dec-association` #62B97A green (front-back), `--color-dec-projection` #6A93E8 blue
+  (up-down). Families, lesson rows and legends carry their fibre direction; never a button fill.
+- No decorative accent: `--color-accent` and `--color-focus` are film white. Links are film white
+  with an underline.
+- Scientific pigments are not design tokens: parcel focus, context and hover, neutral cortex,
+  Yeo-7 and pathway tints stay as the data renderers define them. The atlas renders keep their
+  own pigments; DEC colours apply to interface chrome only.
 
 ## Typography
-- Display: Playfair Display 500, roman only, tracking -0.01em. Wordmark 600.
-- Body: Inter 400 and 500, vendored Latin woff2 (OFL, no reserved name). 16 px, line-height 1.6.
-- Outlier: system monospace, only for atlas codes, coordinates and hashes. Two slots per page.
-- Scale: major third from 16 px. Display `clamp(2.5rem, 3.2vw + 1rem, 4rem)`, lesson title
-  `clamp(1.75rem, 1.4vw + 1rem, 2.25rem)`. No page uses more than five sizes.
-- Zero eyebrows on home and sources. One small phase label may sit inside the lesson.
-- Middle dot at most once per line. No em or en dashes in interface text.
+- One family: Archivo, vendored variable woff2 (weight 100 to 900, width 62% to 125%).
+- Display: 700, expanded (`font-variation-settings:"wdth" 118 to 125`), tight tracking
+  (-0.025em to -0.035em). Body: normal width, 400 and 500, 16 px, line-height 1.6.
+- Outlier: system monospace, only for atlas codes, coordinates and hashes.
+- Scale: major third from 16 px (`--text-xs` … `--text-2xl`, `--text-display`, `--text-title`).
+- No em or en dashes in interface text. Middle dot at most once per line.
 
 ## Spacing
 4-point named scale (`--space-3xs` … `--space-3xl`). Pages use tokens, never raw values.
@@ -44,24 +52,27 @@ Page gutter `clamp(1rem, 3vw, 2.5rem)`. One radius, 2 px. Controls share a 44 px
 
 ## Motion
 - `--ease-out` cubic-bezier(0.16, 1, 0.3, 1) for entries, `--ease-in` for exits.
-- Durations 120 / 220 / 420 ms. Only `transform` and `opacity` animate.
-- No page reveal; the page is just there. Fibre animation is the only loop and is user-started.
-- Reduced motion: transitions collapse to 150 ms; the fibre animation is disabled.
+  Durations 120 / 220 / 420 ms. Only `transform` and `opacity` animate.
+- Landing motion is pre-rendered video of the real atlas, never live WebGL on the landing:
+  the hero loop, the four family loops and the lesson walkthrough (screens wider than 700 px).
+  Every clip is muted, `playsinline`, `preload="none"`, loaded when near the viewport, plays
+  only while on screen, sits over a still image and has a visible pause control.
+- No video under reduced motion or Save-Data; the stills stay. Reduced motion also collapses
+  transitions and disables the atlas fibre animation.
+- Recordings of the interface must say so in their caption and mark the pointer.
 
 ## Microinteractions
 - Silent success (a reviewed lesson changes its own label; no toast).
-- Focus rings appear instantly, 2 px accent, 2 px offset, on every control.
-- Buttons: hover lifts 1 px, active returns to 0; disabled uses opacity, cursor and the attribute.
-- Search closes on selection; the Layers panel docks in Explore and overlays elsewhere.
+- Focus rings appear instantly, 2 px film white, 2 px offset, on every control.
+- Buttons: active scales to 0.97; disabled uses opacity, cursor and the attribute.
 
 ## CTA voice
-- Primary: bone ink fill with paper text, 2 px radius, label ≤ 3 words, never wraps.
+- Primary: film white fill with graphite text, 2 px radius, label ≤ 3 words, never wraps.
 - Secondary: hairline outline in `--color-rule-2`, same height.
-- Accent is a highlighter: links, active tab underline, focus ring, focus parcel. Never a fill.
 
 ## What pages must share
-Wordmark and mark; the accent and its placement; Playfair + Inter; CTA voice; the hairline
-row rhythm; the footer colophon (Ft4); the header (N9: wordmark left, a quiet cluster right).
+Wordmark and mark; Archivo; film white links and focus; DEC colours with fixed meanings; CTA
+voice; hairline rows; the footer colophon; the header (wordmark left, a quiet cluster right).
 
 ## What pages may differ on
 Macrostructure within the family; the presence of the atlas (sources has none); measure.

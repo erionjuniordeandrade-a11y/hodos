@@ -1,7 +1,6 @@
-/* Hallmark · genre: editorial · macrostructure: Index-First (home) · Workbench (lesson) · Long Document (sources)
- * theme: custom (owner palette 2026-09-10 · paper oklch(18% 0.008 248) · accent oklch(87% 0.073 213) ice · Playfair Display + Inter)
- * nav: N9 · footer: Ft4 · enrichment: live atlas only · design-system: design.md · designed-as-app
- * pre-emit critique: P4 H4 E4 S5 R4 V4 · contrast: pass (40–41) · tokens: pass (48) */
+/* Hodos design system · direction B2, direction-encoded (owner approved 2026-09-26) · see design.md
+ * theme: scanner graphite #1E2227 · film white #E4E6E3 · DEC red/green/blue as meaning only · Archivo (width axis)
+ * macrostructure: landing bento + Workbench (lesson) + Long Document (sources) · motion: lazy pre-rendered atlas video */
 :root{
   color-scheme:dark;
   /* Direction B, direction-encoded (2026-09-26): a reading console in scanner graphite.
