@@ -90,7 +90,7 @@ try{
     await screenshot(`mobile-${width}`);
   }
   report.checks.push('320, 390 and 768 px layouts and corridor controls');
-  await page.goto(new URL('/',base).href);await page.getByRole('link',{name:'One target, two corridors',exact:true}).click();await page.waitForURL(/\/mips(?:\.html)?$/);
+  await page.goto(new URL('/',base).href);await page.getByRole('link',{name:'Try the MIPS exercise',exact:true}).click();await page.waitForURL(/\/mips(?:\.html)?$/);
   await page.goto(new URL('/case-conference',base).href);await page.getByRole('link',{name:'Open corridor exercise',exact:true}).click();await page.waitForURL(/\/mips(?:\.html)?$/);
   report.checks.push('Home and Case Conference links open the exercise');
   const fallback=await context.newPage();
