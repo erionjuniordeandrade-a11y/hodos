@@ -144,7 +144,7 @@ main{padding:22px 16px}
 #pathwayFilter{width:100%;background:#0e1923;color:var(--ink);border:1px solid #3b5369;border-radius:var(--radius);padding:7px 9px;font-size:12px;margin-bottom:8px}
 .picker-groups{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto;padding-right:4px}
 .picker-group{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
-.picker-group>span{font:11px var(--mono);letter-spacing:.14em;color:#8ea3b6;text-transform:uppercase;margin-right:4px;min-width:96px}
+.picker-group>span{font:var(--text-xs)/1.4 var(--font-body);color:var(--color-muted);margin-right:4px;min-width:96px}
 .picker-group[hidden]{display:none}
 .bundle-chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:4px 9px;border-radius:var(--radius);background:#0e1923;border:1px solid #2f4457;color:#c6d3de;line-height:1.2}
 .bundle-chip[aria-pressed=true]{border-color:var(--chip,#e3bf82);color:var(--ink);font-weight:600;background:#14202c}
@@ -966,3 +966,6 @@ body.sources main,.sources-page main{max-width:none}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:150ms!important;animation-duration:150ms!important;animation-iteration-count:1!important}button:hover{transform:none}}
 @media print{.studio-header{position:static}.studio-header nav,.stage-tools,.lesson-controls{display:none!important}:root{--color-paper:white;--color-paper-2:white;--color-ink:black;--color-muted:#333;--color-rule:#999;--color-accent:black}}
+
+/* Standalone pages place the colophon directly in body; give it the page gutter. */
+body>footer.source-footer{padding-inline:var(--page-gutter);box-sizing:border-box}

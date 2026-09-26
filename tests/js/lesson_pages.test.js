@@ -45,7 +45,7 @@ test('lesson page build emits 14 pages and an index with complete static teachin
     assert.equal(titleOf(html),`${escapeHTML(lesson.title)} · Hodos`);
     assert.equal(canonicalOf(html),`https://hodosatlas.com/lessons/${lesson.id}`);
     assert.match(html,new RegExp(`<h1>${escapeHTML(lesson.title)}<\\/h1>`));
-    assert.match(html,new RegExp(`${escapeHTML(lesson.category)} · ${lesson.steps.length} relationships · ${lesson.minutes} minutes`));
+    assert.match(html,new RegExp(`${escapeHTML(lesson.category)} · ${lesson.steps.length} relationships, about ${lesson.minutes} minutes`));
     assert.match(html,/<a class="lesson-primary-link" href="\/atlas\?lesson=[a-z0-9-]+">Start this lesson in the atlas<\/a>/);
     assert.match(html,/Lesson text is an educational draft awaiting anatomical review\./);
     for(const step of lesson.steps){

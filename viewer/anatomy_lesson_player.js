@@ -272,7 +272,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
       }
       else{
         const prev=button('Previous','lessonPrev',previous);prev.hidden=phase==='brief';
-        const nextLabel=phase==='brief'?'Begin lesson →':phase==='orient'?'Compare →':phase==='compare'?'Explain →':state.step===lesson.steps.length-1?'Lesson recap →':'Next relationship →';
+        const nextLabel=phase==='brief'?'Begin lesson':phase==='orient'?'Compare':phase==='compare'?'Explain':state.step===lesson.steps.length-1?'Lesson recap':'Next relationship';
         nav.append(prev,button(nextLabel,'lessonNext',next));
       }footer.append(nav);
       const tools=el('div',{class:'lesson-tools'});tools.append(button('Restore scene','lessonRestore',()=>{

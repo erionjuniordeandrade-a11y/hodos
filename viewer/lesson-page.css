@@ -39,3 +39,4 @@
 .lessons-index-list h2 a{text-decoration:none}
 .lessons-index-list p:last-child{margin-bottom:0}
 @media screen and (max-width:600px){.lesson-navigation{grid-template-columns:1fr}.lesson-navigation div:last-child{text-align:left}.lesson-navigation>a{order:-1}.lesson-summary{font-size:var(--text-base)!important}}
+.lesson-ordinal{font-variant-numeric:tabular-nums;color:var(--color-ink);margin-right:var(--space-sm)}
