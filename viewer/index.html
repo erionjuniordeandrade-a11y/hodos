@@ -68,13 +68,14 @@
         <p class="dec-row dec-a"><span class="dec-axis" aria-hidden="true"></span><span><strong>Green</strong> front to back</span></p>
         <p class="dec-row dec-p"><span class="dec-axis" aria-hidden="true"></span><span><strong>Blue</strong> up and down</span></p>
         <p class="dec-note">The tractography direction code. Here it marks a family&rsquo;s dominant direction; the atlas renders keep their own pigments.</p>
+        <button id="familiesToggle" class="motion-toggle" type="button" aria-pressed="false" hidden>Pause the loops</button>
       </div>
     </header>
     <div class="families" data-families>
-      <a class="family family-lead" data-dec="association" href="./atlas.html"><img src="./media/landing/family-association-20260914.jpg" alt="Association pathways shown together on the reference brain." width="1200" height="800" loading="lazy" decoding="async"><span class="family-copy"><span class="family-dir">Front to back</span><h3>Association</h3><span class="family-list">Arcuate, SLF, IFOF, ILF, uncinate, frontal aslant.</span></span></a>
-      <a class="family" data-dec="projection" href="./atlas.html"><img src="./media/landing/family-projection-limbic-20260914.jpg" alt="Projection and limbic pathways in the reference atlas." width="1200" height="800" loading="lazy" decoding="async"><span class="family-copy"><span class="family-dir">Mostly up and down</span><h3>Projection &amp; limbic</h3><span class="family-list">Corticospinal, thalamic radiations, cingulum, fornix.</span></span></a>
-      <a class="family" data-dec="association" href="./atlas.html?lesson=language-networks"><img src="./media/landing/family-language-20260914.jpg" alt="Left hemisphere reference view of dorsal and ventral language pathways." width="1200" height="800" loading="lazy" decoding="async"><span class="family-copy"><span class="family-dir">Front to back</span><h3>Language</h3><span class="family-list">Dorsal and ventral streams on the left hemisphere.</span></span></a>
-      <a class="family" href="./atlas.html?lesson=default-mode-network"><img src="./media/landing/family-networks-20260914.jpg" alt="Default mode network highlighted on the reference cortex." width="1200" height="800" loading="lazy" decoding="async"><span class="family-copy"><span class="family-dir">Cortex, no fibre direction</span><h3>Networks</h3><span class="family-list">Yeo-7 networks on the cortex, here the default mode network.</span></span></a>
+      <a class="family family-lead" data-dec="association" href="./atlas.html"><span class="family-media"><img src="./media/landing/family-association-loop-20260926.jpg" alt="Association pathways revealed as the cortex fades, left hemisphere of the reference brain." width="1200" height="800" loading="lazy" decoding="async"><video class="family-loop" muted loop playsinline preload="none" width="1200" height="800" aria-hidden="true" data-src="./media/landing/family-association-loop-20260926.mp4"></video></span><span class="family-copy"><span class="family-dir">Front to back</span><h3>Association</h3><span class="family-list">Arcuate, SLF, IFOF, ILF, uncinate, frontal aslant.</span></span></a>
+      <a class="family" data-dec="projection" href="./atlas.html"><span class="family-media"><img src="./media/landing/family-projection-loop-20260926.jpg" alt="Projection fibres fanning from the brainstem to the cortex in the reference atlas." width="900" height="600" loading="lazy" decoding="async"><video class="family-loop" muted loop playsinline preload="none" width="900" height="600" aria-hidden="true" data-src="./media/landing/family-projection-loop-20260926.mp4"></video></span><span class="family-copy"><span class="family-dir">Mostly up and down</span><h3>Projection &amp; limbic</h3><span class="family-list">Corticospinal, thalamic radiations, cingulum, fornix.</span></span></a>
+      <a class="family" data-dec="association" href="./atlas.html?lesson=language-networks"><span class="family-media"><img src="./media/landing/family-language-loop-20260926.jpg" alt="Left hemisphere reference view of dorsal and ventral language pathways." width="900" height="600" loading="lazy" decoding="async"><video class="family-loop" muted loop playsinline preload="none" width="900" height="600" aria-hidden="true" data-src="./media/landing/family-language-loop-20260926.mp4"></video></span><span class="family-copy"><span class="family-dir">Front to back</span><h3>Language</h3><span class="family-list">Dorsal and ventral streams on the left hemisphere.</span></span></a>
+      <a class="family" href="./atlas.html?lesson=default-mode-network"><span class="family-media"><img src="./media/landing/family-networks-loop-20260926.jpg" alt="Default mode network highlighted on the reference cortex." width="900" height="600" loading="lazy" decoding="async"><video class="family-loop" muted loop playsinline preload="none" width="900" height="600" aria-hidden="true" data-src="./media/landing/family-networks-loop-20260926.mp4"></video></span><span class="family-copy"><span class="family-dir">Cortex, no fibre direction</span><h3>Networks</h3><span class="family-list">Yeo-7 networks on the cortex, one at a time.</span></span></a>
     </div>
   </section>
 
@@ -85,11 +86,15 @@
       <p><a class="lessons-link" href="./lessons">All fourteen lessons, with their questions and sources</a></p>
     </header>
     <figure class="lesson-demo" data-demo>
+      <div class="demo-media">
       <picture>
         <source media="(max-width: 700px)" srcset="./media/landing/lesson-demo-phone-20260926.jpg" width="860" height="1560">
         <img src="./media/landing/lesson-demo-20260926.jpg" alt="The central region lesson in the atlas: areas 4, 3b and 6d lit on the left hemisphere, the Orient step with its three targets, and the lesson question beside the anatomy." width="1440" height="900" loading="lazy" decoding="async">
       </picture>
-      <figcaption>A lesson as it runs: the structures lit on the atlas, the Orient step with its targets, and the question you answer before the explanation opens.</figcaption>
+        <video id="demoLoop" class="demo-loop" muted loop playsinline preload="none" width="1440" height="900" aria-hidden="true" data-src="./media/landing/lesson-demo-loop-20260926.mp4"></video>
+      </div>
+      <figcaption>A lesson as it runs, recorded from the live atlas: select the structures, turn the brain, then move from Orient to Compare to Explain. The ring marks the pointer.</figcaption>
+      <button id="demoToggle" class="motion-toggle demo-toggle" type="button" aria-pressed="false" hidden>Pause the walkthrough</button>
     </figure>
     <div class="lessons" data-lessons>
       <ol class="lesson-featured" aria-label="Featured lessons">

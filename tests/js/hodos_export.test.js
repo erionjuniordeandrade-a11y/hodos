@@ -22,7 +22,10 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
   assert.equal(new Set(lessonIds).size,14);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
-  assert.equal(landingAssets.length,21);
+  assert.equal(landingAssets.length,26);
+  assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
+  assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
+  assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1200-20260919.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1920-20260919.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
