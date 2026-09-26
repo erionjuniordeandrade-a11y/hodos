@@ -87,10 +87,9 @@ vendored in `viewer/vendor/` and draw the graph on the Connections page. They ar
 Apache-2.0 OR MIT and are used under MIT; the license text is in `viewer/vendor/vis-LICENSE.md`.
 Served locally; no external CDN.
 
-## Playfair Display
+## Archivo
 
-The bundled Playfair Display font retains its SIL Open Font License 1.1 in
-`viewer/vendor/fonts/Playfair-Display-OFL.txt`.
+Archivo, Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo). SIL Open Font License 1.1. Shipped as a Latin variable subset (`viewer/vendor/fonts/archivo-latin.woff2`); licence text in `viewer/vendor/fonts/Archivo-OFL.txt`.
 
 ## Hodos dissection references
 
@@ -105,6 +104,3 @@ for source locators, hashes, limitations and other-use conditions. The terms for
 these photographs are separate from the atlas data and software licences above.
 
 
-## Inter (body typeface)
-
-Inter 4.1, Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter). SIL Open Font License 1.1, no Reserved Font Name. Shipped as Latin subsets (`viewer/vendor/fonts/inter-latin-*.woff2`); licence text in `viewer/vendor/fonts/Inter-OFL.txt`.

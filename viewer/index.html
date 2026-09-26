@@ -17,12 +17,12 @@
 <meta name="twitter:title" content="Hodos · Neuroanatomy coursebook for residents">
 <meta name="twitter:description" content="An interactive anatomy coursebook for neurosurgical residents. Orient, compare, explain.">
 <meta name="twitter:image" content="https://hodosatlas.com/brand/hodos-og.png">
-<meta name="theme-color" content="#0f1215">
+<meta name="theme-color" content="#1E2227">
 <link rel="icon" href="./favicon.ico" sizes="32x32">
 <link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="manifest" href="./site.webmanifest">
-<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/inter-latin-regular.woff2" crossorigin><link rel="preload" as="font" type="font/ttf" href="./vendor/fonts/playfair-display.ttf" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/archivo-latin.woff2" crossorigin>
 <link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./landing.css">
 <link rel="preload" as="image" href="./media/landing/hero-atlas-poster-1920-20260919.jpg" media="(min-width: 701px)">
 <link rel="preload" as="image" href="./media/landing/hero-atlas-poster-1200-20260919.jpg" media="(max-width: 700px)">
@@ -32,7 +32,7 @@
 <main class="landing">
   <section class="hero" data-hero aria-labelledby="heroTitle">
     <div class="hero-plate">
-      <div class="hero-media">
+      <div class="hero-media" data-surface="dark">
         <picture>
           <source media="(max-width: 700px)" srcset="./media/landing/hero-atlas-poster-1200-20260919.jpg" width="880" height="1001">
           <img src="./media/landing/hero-atlas-poster-1920-20260919.jpg" alt="Commissural bundles on the reference brain, viewed from above." width="1400" height="1592" fetchpriority="high" decoding="async">
@@ -55,11 +55,12 @@
   </section>
 
   <section class="families" data-families aria-label="Anatomical families">
-    <a class="family" href="./atlas.html"><img src="./media/landing/family-association-20260914.jpg" alt="Association pathways shown together on the reference brain." width="1200" height="800" loading="lazy" decoding="async"><h2>Association</h2><p>Arcuate, SLF, IFOF, ILF, uncinate, frontal aslant.</p></a>
-    <a class="family" href="./atlas.html"><img src="./media/landing/family-projection-limbic-20260914.jpg" alt="Projection and limbic pathways in the reference atlas." width="1200" height="800" loading="lazy" decoding="async"><h2>Projection &amp; limbic</h2><p>Corticospinal, thalamic radiations, cingulum, fornix.</p></a>
-    <a class="family" href="./atlas.html?lesson=language-networks"><img src="./media/landing/family-language-20260914.jpg" alt="Left hemisphere reference view of dorsal and ventral language pathways." width="1200" height="800" loading="lazy" decoding="async"><h2>Language</h2><p>Dorsal and ventral streams on the left hemisphere.</p></a>
+    <a class="family" data-dec="association" href="./atlas.html"><img src="./media/landing/family-association-20260914.jpg" alt="Association pathways shown together on the reference brain." width="1200" height="800" loading="lazy" decoding="async"><h2>Association</h2><p>Arcuate, SLF, IFOF, ILF, uncinate, frontal aslant.</p></a>
+    <a class="family" data-dec="projection" href="./atlas.html"><img src="./media/landing/family-projection-limbic-20260914.jpg" alt="Projection and limbic pathways in the reference atlas." width="1200" height="800" loading="lazy" decoding="async"><h2>Projection &amp; limbic</h2><p>Corticospinal, thalamic radiations, cingulum, fornix.</p></a>
+    <a class="family" data-dec="association" href="./atlas.html?lesson=language-networks"><img src="./media/landing/family-language-20260914.jpg" alt="Left hemisphere reference view of dorsal and ventral language pathways." width="1200" height="800" loading="lazy" decoding="async"><h2>Language</h2><p>Dorsal and ventral streams on the left hemisphere.</p></a>
     <a class="family" href="./atlas.html?lesson=default-mode-network"><img src="./media/landing/family-networks-20260914.jpg" alt="Default mode network highlighted on the reference cortex." width="1200" height="800" loading="lazy" decoding="async"><h2>Networks</h2><p>Yeo-7 networks painted on the cortex, here the default mode network.</p></a>
   </section>
+  <p class="dec-key"><span class="dec-a">Green</span> runs front to back, <span class="dec-p">blue</span> up and down, <span class="dec-c">red</span> left to right: the tractography direction code, used here only for fibre direction.</p>
 
   <section class="curriculum" aria-labelledby="curriculumTitle">
     <div class="curriculum-intro">

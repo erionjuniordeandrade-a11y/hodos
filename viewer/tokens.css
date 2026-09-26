@@ -4,32 +4,37 @@
  * pre-emit critique: P4 H4 E4 S5 R4 V4 · contrast: pass (40–41) · tokens: pass (48) */
 :root{
   color-scheme:dark;
-  /* Paper and ink. Every neutral carries the anchor hue (248) at low chroma. */
-  --color-paper:oklch(18% 0.008 248);
-  --color-paper-2:oklch(21.5% 0.010 248);
-  --color-paper-3:oklch(24.5% 0.012 248);
-  --color-stage:oklch(16.2% 0.008 248);
-  --color-control:oklch(24.9% 0.012 248);
-  --color-control-hover:oklch(29% 0.014 248);
-  --color-rule:oklch(34.9% 0.015 248);
-  --color-rule-2:oklch(52.9% 0.021 246);
-  --color-faint:oklch(66% 0.012 248);
-  --color-muted:oklch(74.2% 0.009 248);
-  --color-ink:oklch(92.9% 0.012 85);
+  /* Direction B, direction-encoded (2026-09-26): a reading console in scanner graphite.
+   * The only colours are the tractography direction code, and only as meaning:
+   * red commissural (left-right), green association (front-back), blue projection (up-down).
+   * Links and focus are film white; there is no decorative accent. */
+  --color-paper:#1E2227;          /* scanner graphite */
+  --color-paper-2:#262B31;        /* console, raised */
+  --color-paper-3:#2E343B;
+  --color-stage:#131619;
+  --color-control:#2A3037;
+  --color-control-hover:#353C45;
+  --color-rule:#3A424B;
+  --color-rule-2:#5C6671;
+  --color-faint:#949DA7;
+  --color-muted:#B2B9C0;
+  --color-ink:#E4E6E3;            /* film white */
   --color-ink-on-ink:var(--color-paper);
-  /* One accent, ice. Used for links, the active tab, focus rings and the focus parcel. */
-  --color-accent:oklch(86.8% 0.073 213);
-  --color-accent-strong:oklch(92.2% 0.045 212);
-  --color-accent-ink:oklch(18.8% 0.017 225);
-  --color-accent-soft:oklch(25.7% 0.022 221);
-  --color-focus:oklch(86.8% 0.073 213);
+  --color-accent:#E4E6E3;
+  --color-accent-strong:#FFFFFF;
+  --color-accent-ink:#1E2227;
+  --color-accent-soft:#353C45;
+  --color-focus:#E4E6E3;
+  --color-dec-commissural:#E0605A;  /* DEC red, left-right */
+  --color-dec-association:#62B97A;  /* DEC green, front-back */
+  --color-dec-projection:#6A93E8;   /* DEC blue, up-down */
   /* Scientific display pigments stay as authored: context parcels, hover, neutral cortex. */
   --color-parcel-focus:oklch(86.8% 0.073 213);
   --color-parcel-context:oklch(82.8% 0.061 80);
   --color-parcel-hover:oklch(95.1% 0.014 61);
 
-  --font-display:"Playfair Display","Playfair Display Fallback",Georgia,"Times New Roman",serif;
-  --font-body:"Inter","Inter Fallback",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-display:"Archivo","Archivo Fallback",Arial,sans-serif;
+  --font-body:"Archivo","Archivo Fallback",Arial,sans-serif;
   --font-outlier:ui-monospace,SFMono-Regular,Menlo,monospace; /* atlas codes and coordinates only */
 
   /* Major third from 16 px. Five sizes per page. */

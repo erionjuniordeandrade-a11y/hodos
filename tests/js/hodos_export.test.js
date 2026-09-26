@@ -87,7 +87,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(headers,/https:\/\/:version\.hodos-atlas\.pages\.dev\/\*\n  X-Robots-Tag: noindex/);
   assert.match(headers,/https:\/\/www\.hodosatlas\.com\/\*\n  X-Robots-Tag: noindex/);
   assert.match(home,/href="\.\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}"/);
-  assert.match(await readFile(path.join(out,'hodos.css'),'utf8'),/inter-latin-regular\.woff2\?v=[a-f0-9]{12}/);
+  assert.match(await readFile(path.join(out,'hodos.css'),'utf8'),/archivo-latin\.woff2\?v=[a-f0-9]{12}/);
   assert.match(await readFile(path.join(out,'404.html'),'utf8'),/\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}/);
   assert(receipt.files.some(f=>f.path==='brand/hodos-og.png'));
   assert(receipt.files.some(f=>f.path==='vendor/addons/libs/draco/gltf/draco_decoder.wasm'));

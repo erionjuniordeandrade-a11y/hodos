@@ -46,8 +46,8 @@ const supportingFiles=[
   'media/lesson-previews/plate-default-mode-network-20260919.jpg',
   'media/lesson-previews/README.md',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
-  'vendor/LICENSE.md','vendor/fonts/playfair-display.ttf','vendor/fonts/Playfair-Display-OFL.txt',
-  'vendor/fonts/inter-latin-regular.woff2','vendor/fonts/inter-latin-medium.woff2','vendor/fonts/inter-latin-semibold.woff2','vendor/fonts/Inter-OFL.txt',
+  'vendor/LICENSE.md','vendor/fonts/archivo-latin.woff2','vendor/fonts/Archivo-OFL.txt',
+  
   'vendor/addons/libs/draco/gltf/draco_decoder.js',
   'vendor/addons/libs/draco/gltf/draco_wasm_wrapper.js',
   'vendor/addons/libs/draco/gltf/draco_decoder.wasm',

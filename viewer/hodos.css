@@ -4,14 +4,8 @@
  * the only two stylesheets they load. The mechanics that used to live in lesson_player.css,
  * atlas.css, anatomy_workbench.css and atlas-design.css are ported below (2026-09-14 consolidation),
  * pointed at the token block through the legacy aliases further down. */
-@font-face{font-family:"Inter";font-style:normal;font-weight:400;font-display:swap;src:url('./vendor/fonts/inter-latin-regular.woff2') format('woff2')}
-@font-face{font-family:"Inter";font-style:normal;font-weight:500;font-display:swap;src:url('./vendor/fonts/inter-latin-medium.woff2') format('woff2')}
-@font-face{font-family:"Inter";font-style:normal;font-weight:600;font-display:swap;src:url('./vendor/fonts/inter-latin-semibold.woff2') format('woff2')}
-@font-face{font-family:"Playfair Display";font-style:normal;font-weight:400 900;font-display:swap;src:url('./vendor/fonts/playfair-display.ttf') format('truetype')}
-/* Metric-matched fallbacks: the local face is drawn at the web font's advance width and vertical
- * metrics while the web font loads, so the swap does not shift the layout (computed from the font files). */
-@font-face{font-family:"Playfair Display Fallback";src:local("Georgia");size-adjust:102.36%;ascent-override:105.71%;descent-override:24.52%;line-gap-override:0%}
-@font-face{font-family:"Inter Fallback";src:local("Arial");size-adjust:107.48%;ascent-override:90.14%;descent-override:22.44%;line-gap-override:0%}
+@font-face{font-family:"Archivo";font-style:normal;font-weight:100 900;font-stretch:62% 125%;font-display:swap;src:url('./vendor/fonts/archivo-latin.woff2') format('woff2')}
+@font-face{font-family:"Archivo Fallback";src:local("Arial")}
 /* ---- Ported atlas mechanics: base reset, workspace grid, canvas, callouts, dialogs, controls.
    Kept in their original relative cascade order (lesson_player -> atlas -> anatomy_workbench ->
    atlas-design) so specificity ties resolve exactly as before the four sheets were retired.
@@ -618,6 +612,18 @@ body[data-profile=presenter]{--muted:#b9bec3;--faint:#969ea5}
   --stage-sticky:max(300px,36dvh); /* re-stated here: the older sheet declares a plain 36dvh */
   font-family:var(--font-body);font-size:16px;line-height:var(--lh-body);background:var(--color-paper);color:var(--color-ink);
 }
+[data-surface=dark]{
+  --bg:var(--color-paper);--panel:var(--color-paper-2);--panel-2:var(--color-paper-3);
+  --ink:var(--color-ink);--muted:var(--color-muted);--faint:var(--color-faint);
+  --line:var(--color-rule);--line-strong:var(--color-rule-2);
+  --accent:var(--color-accent);--accent-strong:var(--color-accent-strong);--accent-ink:var(--color-accent-ink);--accent-soft:var(--color-accent-soft);
+  --control:var(--color-control);--control-hover:var(--color-control-hover);--subtle:var(--color-paper-2);
+  --gold:var(--color-accent);--blue:var(--color-accent);
+  --stage:var(--color-stage);--stage-ink:var(--color-ink);--stage-muted:var(--color-muted);
+  --stage-line:var(--color-rule-2);--stage-control:var(--color-control);
+  --parcel-focus:var(--color-parcel-focus);--parcel-context:var(--color-parcel-context);
+  --display:var(--font-display);--reading:var(--font-display);--mono:var(--font-outlier);
+}
 html,body{overflow-x:clip}
 body{background:var(--color-paper);color:var(--color-ink);font-family:var(--font-body)}
 ::selection{background:var(--color-accent-soft);color:var(--color-ink)}
@@ -969,3 +975,7 @@ body.sources main,.sources-page main{max-width:none}
 
 /* Standalone pages place the colophon directly in body; give it the page gutter. */
 body>footer.source-footer{padding-inline:var(--page-gutter);box-sizing:border-box}
+/* Direction B: display headings use Archivo's expanded widths. Set through variation settings
+ * because the font shorthand used across the sheets resets font-stretch. */
+h1{font-variation-settings:"wdth" 125}
+h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}

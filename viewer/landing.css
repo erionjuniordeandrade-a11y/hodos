@@ -168,3 +168,19 @@ html.has-lesson-preview{overflow:hidden;scrollbar-gutter:stable}
   .preview-actions{gap:var(--space-xs)}
 }
 @media (prefers-reduced-motion:reduce){.lesson-preview-cue span,.lesson-preview .cta{transition:none}}
+
+/* Direction B, direction-encoded: colour is data. A family carries its fibre direction as a
+ * rule along its top edge; the display face opens to its widest cut, the one bold move. */
+@media (min-width:701px){.hero{grid-template-columns:minmax(0,6fr) minmax(0,6fr)}.hero-copy{max-width:calc(var(--space-3xl) * 8)}}
+.landing h1{font-size:clamp(2.5rem,3.2vw + 1rem,4.5rem);font-weight:650;letter-spacing:-0.025em;line-height:1}
+.landing h2,.hero-copy .tagline{font-weight:600;letter-spacing:-0.015em}
+.landing h3{font-weight:600}
+.family[data-dec]{box-shadow:inset 0 3px var(--dec)}
+.family[data-dec=association]{--dec:var(--color-dec-association)}
+.family[data-dec=projection]{--dec:var(--color-dec-projection)}
+.family[data-dec]:hover h2{color:var(--dec)}
+.dec-key{width:100%;max-width:calc(var(--space-3xl) * 18.5);margin:0 auto;box-sizing:border-box;padding:var(--space-sm) var(--page-gutter);font-size:var(--text-sm);color:var(--color-faint)}
+.dec-key span{color:var(--color-ink);font-weight:500}
+.dec-key span::before{content:'';display:inline-block;width:.6em;height:.6em;margin-right:.35em;border-radius:50%;vertical-align:.05em}
+.dec-a::before{background:var(--color-dec-association)}.dec-p::before{background:var(--color-dec-projection)}.dec-c::before{background:var(--color-dec-commissural)}
+@media (max-width:700px){.landing h1{font-size:var(--text-2xl)}}

@@ -43,7 +43,7 @@ try{
   await visit('');assert.equal((await state()).lesson.status,'inactive');
   assert.equal(await page.title(),'Hodos · Brain networks & white matter tracts');
   assert.match(await page.locator('.brand-name').innerText(),/^Hodos/);
-  await page.evaluate(()=>document.fonts.ready);assert(await page.evaluate(()=>document.fonts.check('600 26px "Playfair Display"')));
+  await page.evaluate(()=>document.fonts.ready);assert(await page.evaluate(()=>document.fonts.check('600 26px "Archivo"')));
   assert.match(await page.locator('link[rel=icon]').getAttribute('href'),/hodos-favicon/);
   assert.equal(await page.locator('.curriculum-row').count(),10);assert.equal(new URL(page.url()).searchParams.has('lesson'),false);
   assert.equal(await page.locator('#anatomyDrawer').getAttribute('open'),null);
@@ -210,14 +210,14 @@ try{
   assert.equal((await state()).frames,idle.frames);assert.equal((await state()).time,idle.time);
   report.checks.push('12-pathway capacity, keyboard rotation/fit and reduced-motion idle rendering');
   await page.goto(new URL('atlas-sources.html',base).href);await page.evaluate(()=>document.fonts.ready);
-  assert.equal(await page.title(),'Hodos · Atlas sources');assert(await page.evaluate(()=>document.fonts.check('600 26px "Playfair Display"')));
+  assert.equal(await page.title(),'Hodos · Atlas sources');assert(await page.evaluate(()=>document.fonts.check('600 26px "Archivo"')));
   assert.match(await page.locator('.brand-name').innerText(),/^Hodos/);
   assert.match(await page.locator('main').innerText(),/Amy Sterling/);
   await page.emulateMedia({forcedColors:'active'});
   assert.notEqual(await page.locator('.brand-mark').evaluate(e=>getComputedStyle(e).stroke),'none');
   await page.emulateMedia({forcedColors:'none',media:'print'});assert(await page.locator('.brand').isVisible());
   await page.emulateMedia({media:'screen'});
-  report.checks.push('Both atlas pages use Hodos and locally served Playfair; original atlas attribution remains');
+  report.checks.push('Both atlas pages use Hodos and locally served Archivo; original atlas attribution remains');
   await visit('lesson=motor-cst&lessonVersion=old&step=5&phase=compare');assert.equal((await state()).lesson.status,'paused');assert.equal((await state()).lesson.step,5);assert.match(await page.locator('.lesson-notice').innerText(),/updated after this link/);
   await page.locator('#lessonNext').click();assert.equal(await page.locator('.lesson-notice').count(),0,'notice clears on navigation');
 

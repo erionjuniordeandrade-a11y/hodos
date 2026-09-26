@@ -17,12 +17,12 @@
 <meta name="twitter:title" content="Hodos · The atlas and lessons">
 <meta name="twitter:description" content="Brain networks and white matter tracts for intra-axial surgery. An interactive anatomy coursebook for neurosurgical residents.">
 <meta name="twitter:image" content="https://hodosatlas.com/brand/hodos-og.png">
-<meta name="theme-color" content="#0f1215">
+<meta name="theme-color" content="#1E2227">
 <link rel="icon" href="./favicon.ico" sizes="32x32">
 <link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="manifest" href="./site.webmanifest">
-<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/inter-latin-regular.woff2" crossorigin><link rel="preload" as="font" type="font/ttf" href="./vendor/fonts/playfair-display.ttf" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/archivo-latin.woff2" crossorigin>
 <link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js","three/addons/":"./vendor/addons/"}}</script>
 <!-- The extra attribute keeps Cloudflare Pages from moving these into HTTP Link
@@ -71,7 +71,7 @@
     <div id="anatomyResults" hidden></div>
   </section>
   <div id="atlasWorkspace">
-    <section class="atlas-stage" aria-label="Reference anatomy">
+    <section class="atlas-stage" data-surface="dark" aria-label="Reference anatomy">
       <div class="stage-head"><div><p id="sceneOrientation">Both hemispheres</p><p id="sceneNetwork" class="scene-network" hidden><i aria-hidden="true"></i><span></span></p></div>
         <div class="stage-tools"><button id="openAnatomySearch" type="button" aria-controls="anatomySearch" aria-expanded="false">Find</button><button id="openAtlasTools" type="button" aria-controls="anatomyDrawer" aria-expanded="false">Layers</button><button type="button" id="atlasFit">Fit</button><details class="atlas-view-menu"><summary>Views</summary><div class="views" role="group" aria-label="Anatomical views"><button type="button" data-view="left">Left</button><button type="button" data-view="right">Right</button><button type="button" data-view="superior">Superior</button><button type="button" data-view="anterior">Anterior</button><button type="button" data-view="posterior">Posterior</button><button type="button" data-view="inferior">Inferior</button><button type="button" data-view="medial">Left medial</button></div></details><button id="expandAnatomy" type="button" aria-pressed="false">Expand</button></div></div>
       <div id="atlasCanvas"><p id="atlasLoading" role="status"><span class="loading-bar" aria-hidden="true"></span>Loading the reference atlas…</p><div id="atlasHover" role="tooltip" hidden></div></div>
