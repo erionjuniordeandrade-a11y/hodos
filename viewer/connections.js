@@ -3,7 +3,6 @@ import {CONNECTION_ROWS} from './connections_data.js';
 import {NODE_TYPES,VERBS,VIEWS,buildGraph,around,findNode} from './connections_graph.js';
 
 const graph=buildGraph(CONNECTION_ROWS);
-const INK='#ece7dc',MUTED='#aab1ba',EDGE='#5d6874',ACCENT='#9ad8ea',STAGE='#0e1114';
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -11,6 +10,9 @@ const typeKey=n=>graph.nodeType.get(n)||'Model';
 
 let network=null,current=null,currentLinks=[];
 const stage=$('graphCanvas'),inspector=$('inspector'),status=$('graphStatus');
+// The canvas cannot read CSS variables, so the stage's own tokens are resolved once here.
+const tok=getComputedStyle(stage),T=n=>tok.getPropertyValue(n).trim();
+const INK=T('--color-ink'),MUTED=T('--color-muted'),EDGE=T('--color-rule-2'),ACCENT=T('--color-accent'),STAGE=T('--color-stage'),FACE=T('--font-body');
 
 function draw(links,focus){
   currentLinks=links;
@@ -18,11 +20,11 @@ function draw(links,focus){
   const big=names.size>60;
   const nodes=[...names].map(n=>{const c=NODE_TYPES[typeKey(n)].color;return {id:n,label:n.length>34?n.slice(0,32)+'…':n,title:n,shape:'dot',size:n===focus?16:(big?7:10),
     color:{background:c,border:c,highlight:{background:c,border:INK},hover:{background:c,border:INK}},
-    font:{color:INK,size:big?11:13,face:'Inter, system-ui, sans-serif',strokeWidth:4,strokeColor:STAGE}};});
+    font:{color:INK,size:big?11:13,face:FACE,strokeWidth:4,strokeColor:STAGE}};});
   const edges=links.map(l=>({id:l.id,from:l.subj,to:l.obj,arrows:{to:{enabled:true,scaleFactor:.45}},label:big?undefined:VERBS[l.rel],
     width:Math.min(1+(l.evidence.length-1)*1.2,4),dashes:l.contested,
     color:{color:EDGE,highlight:ACCENT,hover:ACCENT,opacity:.9},
-    font:{color:MUTED,size:10,face:'Inter, system-ui, sans-serif',strokeWidth:4,strokeColor:STAGE,align:'middle'}}));
+    font:{color:MUTED,size:10,face:FACE,strokeWidth:4,strokeColor:STAGE,align:'middle'}}));
   const options={physics:{solver:'forceAtlas2Based',forceAtlas2Based:{gravitationalConstant:big?-45:-80,springLength:big?70:130,avoidOverlap:.6},stabilization:{iterations:big?400:250}},
     interaction:{hover:true,tooltipDelay:150,keyboard:false},edges:{smooth:{type:'continuous'}}};
   if(network)network.destroy();

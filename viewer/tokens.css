@@ -76,3 +76,13 @@
   --z-sticky-nav:300;
   --z-modal:400;
 }
+/* Dark surfaces inside any theme: the atlas stage, graph stage and render plates. Text set on
+ * them uses these values; the page theme above never reaches into a specimen window. */
+[data-surface=dark]{
+  color-scheme:dark;
+  --color-paper:oklch(18% 0.008 248);--color-paper-2:oklch(21.5% 0.010 248);--color-paper-3:oklch(24.5% 0.012 248);
+  --color-stage:oklch(16.2% 0.008 248);--color-control:oklch(24.9% 0.012 248);--color-control-hover:oklch(29% 0.014 248);
+  --color-rule:oklch(34.9% 0.015 248);--color-rule-2:oklch(52.9% 0.021 246);--color-faint:oklch(66% 0.012 248);
+  --color-muted:oklch(74.2% 0.009 248);--color-ink:oklch(92.9% 0.012 85);--color-ink-on-ink:var(--color-paper);
+  color:var(--color-ink);
+}
