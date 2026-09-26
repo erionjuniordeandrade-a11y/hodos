@@ -85,9 +85,9 @@
  * them uses these values; the page theme above never reaches into a specimen window. */
 [data-surface=dark]{
   color-scheme:dark;
-  --color-paper:oklch(18% 0.008 248);--color-paper-2:oklch(21.5% 0.010 248);--color-paper-3:oklch(24.5% 0.012 248);
-  --color-stage:oklch(16.2% 0.008 248);--color-control:oklch(24.9% 0.012 248);--color-control-hover:oklch(29% 0.014 248);
-  --color-rule:oklch(34.9% 0.015 248);--color-rule-2:oklch(52.9% 0.021 246);--color-faint:oklch(66% 0.012 248);
-  --color-muted:oklch(74.2% 0.009 248);--color-ink:oklch(92.9% 0.012 85);--color-ink-on-ink:var(--color-paper);
+  --color-paper:#1E2227;--color-paper-2:#262B31;--color-paper-3:#2E343B;
+  --color-stage:#131619;--color-control:#2A3037;--color-control-hover:#353C45;
+  --color-rule:#3A424B;--color-rule-2:#5C6671;--color-faint:#949DA7;
+  --color-muted:#B2B9C0;--color-ink:#E4E6E3;--color-ink-on-ink:var(--color-paper);
   color:var(--color-ink);
 }

@@ -31,7 +31,7 @@ small,.muted{color:var(--color-muted)}
 ul{padding-left:1.1em}
 li{margin-bottom:var(--space-sm)}
 
-main{max-width:1500px;margin:auto;padding:var(--space-xl) var(--page-gutter) var(--space-2xl);min-height:75vh}
+main{max-width:1500px;margin:auto;padding:var(--space-xl) var(--page-gutter) var(--space-2xl);min-height:100vh;min-height:100dvh}
 .catalog-intro{max-width:850px;margin:var(--space-xl) 0}
 .catalog-intro>p{font-size:var(--text-md);max-width:65ch}
 .catalog-intro>h1:focus{outline:none}

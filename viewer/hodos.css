@@ -979,3 +979,15 @@ body>footer.source-footer{padding-inline:var(--page-gutter);box-sizing:border-bo
  * because the font shorthand used across the sheets resets font-stretch. */
 h1{font-variation-settings:"wdth" 125}
 h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
+/* Touch: every control reaches 44 px. Placed last because the token-era rules above set
+ * 2.5rem for pointer devices and would otherwise win on phones and tablets. */
+@media(pointer:coarse){
+.brand,.studio-header nav a,.studio-header nav button,.studio-header #lessonProfile,.skip-link,
+#lessonPanel #lessonLibrary,#lessonPanel #lessonSelect,#lessonPanel .lesson-outline>summary,#lessonPanel .lesson-targets button,#lessonPanel summary,
+#lessonPanel select,#lessonPanel .lesson-nav button,.atlas-controls select,
+.lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,
+.node-list .node-link,.case-row>a,.lesson-navigation a,
+.stage-tools>button,.atlas-view-menu>summary,.scene-details>summary,.scene-footer button{min-height:var(--control-height)}
+.brand,.skip-link,.case-row>a,.node-list .node-link,.lesson-navigation a{display:inline-flex;align-items:center}
+.lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary{display:flex;align-items:center}
+}
