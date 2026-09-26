@@ -39,7 +39,7 @@ const supportingFiles=[
   'media/landing/lesson-language-networks-20260914.jpg',
   'media/landing/lesson-default-mode-network-20260914.jpg',
   'media/landing/lesson-salience-network-20260914.jpg',
-  'media/landing/lesson-demo-20260914.jpg','media/landing/lesson-demo-phone-20260915.jpg','media/landing/hero-atlas-loop-1400-20260919.mp4','media/landing/hero-atlas-loop-880-20260919.mp4',
+  'media/landing/lesson-demo-20260926.jpg','media/landing/lesson-demo-phone-20260926.jpg','media/landing/hero-atlas-loop-1400-20260919.mp4','media/landing/hero-atlas-loop-880-20260919.mp4',
   'media/landing/case-right-medial-frontal-20260914.jpg',
   'media/lesson-previews/plate-motor-cst-20260919.jpg',
   'media/lesson-previews/plate-fat-language-20260919.jpg',

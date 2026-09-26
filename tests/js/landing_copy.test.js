@@ -22,3 +22,15 @@ test('landing duration copy matches lesson metadata and never says "ten minutes"
     `landing must print the CTA lesson's real duration "${cta.minutes} minutes"`);
   assert.doesNotMatch(html,/ten minutes/i);
 });
+
+test('every landing lesson link prints that lesson\'s real duration',()=>{
+  const lessons=html.slice(html.indexOf('data-lessons'),html.indexOf('</section>',html.indexOf('data-lessons')));
+  const items=[...lessons.matchAll(/<li[^>]*>(.*?)<\/li>/gs)].map(m=>m[1]);
+  assert.equal(items.length,14);
+  for(const li of items){
+    const id=li.match(/lesson=([a-z-]+)/)[1];
+    const lesson=LESSONS.find(l=>l.id===id);
+    assert.ok(lesson,`unknown lesson ${id}`);
+    assert.match(li,new RegExp(`class="lesson-min">${lesson.minutes} min<`),`${id} must print ${lesson.minutes} min`);
+  }
+});
