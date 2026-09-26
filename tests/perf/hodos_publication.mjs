@@ -21,7 +21,8 @@ try{
   const sitemap=await http.get('/sitemap.xml');
   assert.equal(sitemap.status(),200);
   const sitemapLocs=[...await sitemap.text().then(text=>text.matchAll(/<loc>([^<]+)<\/loc>/g))].map(match=>{const url=new URL(match[1]);return url.pathname+url.search;});
-  assert.equal(sitemapLocs.length,20);
+  assert.equal(sitemapLocs.length,21);
+  assert(sitemapLocs.includes('/connections'));
   assert(sitemapLocs.includes('/lessons'));
   assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));
   assert(!sitemapLocs.some(pathname=>pathname.startsWith('/atlas?lesson=')));
