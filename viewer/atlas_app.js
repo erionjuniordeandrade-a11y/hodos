@@ -384,9 +384,14 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 
 try{
   scene=await createAtlasScene($('atlasCanvas'),{onStatus:(text,{ready=false}={})=>{const status=$('atlasLoading');status.textContent=text;status.hidden=ready;},
-    onHover:pick=>{const tip=$('atlasHover');tip.hidden=!pick;if(!pick)return;
-      tip.textContent=pick.deep?`${pick.deep.name} · ${pick.deep.hemisphere==='L'?'left':'right'}`
-        :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code}, ${pick.hemi==='L'?'left':'right'} · click to select`;},
+    onHover:(pick,pointer)=>{const tip=$('atlasHover');tip.hidden=!pick;if(!pick)return;
+      tip.textContent=pick.bundle?`${bundleLabel(pick.bundle)} · streamline ${pick.streamline+1} of ${pick.total}`
+        :pick.deep?`${pick.deep.name} · ${pick.deep.hemisphere==='L'?'left':'right'}`
+        :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code}, ${pick.hemi==='L'?'left':'right'} · click to select`;
+      if(pointer){const rect=$('atlasCanvas').getBoundingClientRect();
+        tip.style.left=`${Math.max(8,Math.min(pointer.x-rect.left+14,rect.width-tip.offsetWidth-8))}px`;
+        tip.style.top=`${Math.max(8,Math.min(pointer.y-rect.top+14,rect.height-tip.offsetHeight-8))}px`;}
+    },
     onPick:pick=>{
       if(currentLesson){inspectLessonTarget(pick.deep?{kind:'deep',id:pick.deep.id.replace(/-(lh|rh)$/,''),label:pick.deep.name}:{kind:'parcel',id:pick.id,label:regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code});}
       else{pick.deep?showDeep(pick.deep):readRegion(pick.hemi,pick.id,pick.vertex);}
@@ -505,7 +510,7 @@ try{
     // Test-only: inject a v2 declarative scene directly, bypassing lesson content, so Playwright
     // can exercise SCENE GRAMMAR v2 (bundles/ghost/regions/camera/deepRegions) in isolation.
     applyScene:sceneInput=>applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...sceneInput}},currentHemisphere()),{authored:true}),
-    togglePathway,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
+    togglePathway,projectBundleVertex:scene.projectBundleVertex,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
   window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
 }catch(error){
   $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${error.message}. Reload to retry.`;

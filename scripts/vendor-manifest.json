@@ -93,6 +93,16 @@
   ],
   [
    "three",
+   "examples/jsm/shaders/GTAOShader.js",
+   "addons/shaders/GTAOShader.js"
+  ],
+  [
+   "three",
+   "examples/jsm/shaders/PoissonDenoiseShader.js",
+   "addons/shaders/PoissonDenoiseShader.js"
+  ],
+  [
+   "three",
    "examples/jsm/libs/draco/gltf/draco_decoder.js",
    "addons/libs/draco/gltf/draco_decoder.js"
   ],

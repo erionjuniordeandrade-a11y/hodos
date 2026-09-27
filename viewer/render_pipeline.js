@@ -2,10 +2,10 @@
  * Small, dependency-free Three.js render pipeline for the workstation view.
  *
  * It preserves the scene's stock PBR materials, renders them into an MSAA
- * target, derives a restrained screen-space AO term from that target's depth,
- * and composites the result once.  The AO target is deliberately half-scale:
- * it is a depth cue, never an analytic overlay.
+ * target, derives a half-scale ambient-occlusion term, and composites once.
  */
+import {GTAOShader,generateMagicSquareNoise} from './vendor/addons/shaders/GTAOShader.js';
+import {PoissonDenoiseShader,generatePdSamplePointInitializer} from './vendor/addons/shaders/PoissonDenoiseShader.js';
 
 const DEFAULT_QUALITY = Object.freeze({
   maxPixelRatio: 2,
@@ -86,11 +86,12 @@ void main() {
 const COMPOSITE_FRAGMENT_SHADER = /* glsl */ `
 uniform sampler2D tTractlabColour;
 uniform sampler2D tTractlabAo;
+uniform float uTractlabAoMix;
 varying vec2 vTractlabUv;
 
 void main() {
   vec4 colour = texture2D(tTractlabColour, vTractlabUv);
-  float ao = texture2D(tTractlabAo, vTractlabUv).r;
+  float ao = mix(1.0, texture2D(tTractlabAo, vTractlabUv).r, uTractlabAoMix);
   gl_FragColor = vec4(colour.rgb * ao, colour.a);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -212,12 +213,16 @@ function createTarget(THREE, width, height, {
   samples = 0,
   type = THREE.UnsignedByteType,
   colorSpace = THREE.LinearSRGBColorSpace,
+  depthType = null,
 } = {}) {
+  // Callers that sample depth for AO pass depthType explicitly: with the atlas
+  // camera (near 0.1 mm, far 2000 mm) a 16-bit depth texture flattens the whole
+  // brain into a few steps and horizon-based AO returns no occlusion.
   const depthTexture = depth
     ? new THREE.DepthTexture(
       width,
       height,
-      samples > 0 ? THREE.UnsignedIntType : (THREE.UnsignedShortType ?? THREE.UnsignedIntType)
+      depthType ?? (samples > 0 ? THREE.UnsignedIntType : (THREE.UnsignedShortType ?? THREE.UnsignedIntType))
     )
     : null;
   if (depthTexture) depthTexture.format = THREE.DepthFormat;
@@ -249,6 +254,7 @@ export function createRenderPipeline(renderer, {
   scene,
   camera,
   ao = true,
+  aoMode = 'gtao',
   aoScale = 0.5,
   aoRadiusMm = 12,
   aoBiasMm = 0.8,
@@ -282,6 +288,12 @@ export function createRenderPipeline(renderer, {
   const colourTarget = canUseAo
     ? resolveColourTarget(renderer, THREE)
     : { type: null, hdr: false, name: "direct-render", extension: null };
+  const requestedAoMode = ao === false || aoMode === 'off' ? 'off' : aoMode === 'simple' ? 'simple' : 'gtao';
+  // GTAO needs renderable float colour and the WebGL2 depth/normal shader path.
+  const gtaoSupported = canUseAo && renderer.capabilities?.isWebGL2 &&
+    renderer.extensions?.has?.('EXT_color_buffer_float') && colourTarget.hdr &&
+    typeof THREE.MeshNormalMaterial === 'function';
+  const activeAoMode = requestedAoMode === 'gtao' && !gtaoSupported ? 'simple' : requestedAoMode;
   let disposed = false;
   let interacting = false;
   let width = 1;
@@ -297,6 +309,14 @@ export function createRenderPipeline(renderer, {
   let compositeScene = null;
   let aoMaterial = null;
   let compositeMaterial = null;
+  let normalTarget = null;
+  let denoiseTarget = null;
+  let normalMaterial = null;
+  let gtaoMaterial = null;
+  let denoiseMaterial = null;
+  let gtaoScene = null;
+  let denoiseScene = null;
+  let noiseTexture = null;
 
   if (canUseAo) {
     sceneTarget = createTarget(THREE, 1, 1, {
@@ -326,10 +346,47 @@ export function createRenderPipeline(renderer, {
       depthWrite: false,
       toneMapped: false,
     });
+    if (activeAoMode === 'gtao') {
+      normalTarget = createTarget(THREE, 1, 1, {depth:true, type:THREE.HalfFloatType, depthType:THREE.FloatType});
+      denoiseTarget = createTarget(THREE, 1, 1, {type:THREE.UnsignedByteType});
+      normalMaterial = new THREE.MeshNormalMaterial();
+      normalMaterial.blending = THREE.NoBlending;
+      noiseTexture = generateMagicSquareNoise();
+      gtaoMaterial = new THREE.ShaderMaterial({
+        defines:{...GTAOShader.defines,SAMPLES:12},
+        uniforms:THREE.UniformsUtils.clone(GTAOShader.uniforms),
+        vertexShader:GTAOShader.vertexShader,
+        fragmentShader:GTAOShader.fragmentShader,
+        depthTest:false,depthWrite:false,toneMapped:false,
+      });
+      Object.assign(gtaoMaterial.uniforms,{
+        tNormal:{value:normalTarget.texture},tDepth:{value:normalTarget.depthTexture},
+        tNoise:{value:noiseTexture},radius:{value:8},thickness:{value:10},
+        distanceExponent:{value:1},distanceFallOff:{value:1},scale:{value:1},
+      });
+      denoiseMaterial = new THREE.ShaderMaterial({
+        defines:{...PoissonDenoiseShader.defines,SAMPLES:8,
+          SAMPLE_VECTORS:generatePdSamplePointInitializer(8,2,1)},
+        uniforms:THREE.UniformsUtils.clone(PoissonDenoiseShader.uniforms),
+        vertexShader:PoissonDenoiseShader.vertexShader,
+        fragmentShader:PoissonDenoiseShader.fragmentShader,
+        depthTest:false,depthWrite:false,toneMapped:false,
+      });
+      Object.assign(denoiseMaterial.uniforms,{
+        tDiffuse:{value:aoTarget.texture},tNormal:{value:normalTarget.texture},
+        tDepth:{value:normalTarget.depthTexture},tNoise:{value:noiseTexture},
+        lumaPhi:{value:10},depthPhi:{value:3},normalPhi:{value:3},radius:{value:3},
+      });
+      gtaoScene = new THREE.Scene();
+      denoiseScene = new THREE.Scene();
+      gtaoScene.add(new THREE.Mesh(fullscreenGeometry,gtaoMaterial));
+      denoiseScene.add(new THREE.Mesh(fullscreenGeometry,denoiseMaterial));
+    }
     compositeMaterial = new THREE.ShaderMaterial({
       uniforms: {
         tTractlabColour: { value: sceneTarget.texture },
-        tTractlabAo: { value: aoTarget.texture },
+        tTractlabAo: { value: denoiseTarget?.texture ?? aoTarget.texture },
+        uTractlabAoMix: { value: activeAoMode === 'off' ? 0 : activeAoMode === 'gtao' ? 0.7 : 1 },
       },
       vertexShader: AO_VERTEX_SHADER,
       fragmentShader: COMPOSITE_FRAGMENT_SHADER,
@@ -349,6 +406,15 @@ export function createRenderPipeline(renderer, {
     aoMaterial.uniforms.uTractlabFar.value = finitePositive(camera.far, 4000);
     aoMaterial.uniforms.uTractlabTanHalfFov.value = perspectiveTanHalfFov(camera);
     aoMaterial.uniforms.uTractlabAspect.value = finitePositive(camera.aspect, width / height);
+    if (gtaoMaterial) {
+      for (const material of [gtaoMaterial,denoiseMaterial]) {
+        material.uniforms.cameraProjectionMatrixInverse.value.copy(camera.projectionMatrixInverse);
+      }
+      gtaoMaterial.uniforms.cameraProjectionMatrix.value.copy(camera.projectionMatrix);
+      gtaoMaterial.uniforms.cameraWorldMatrix.value.copy(camera.matrixWorld);
+      gtaoMaterial.uniforms.cameraNear.value = camera.near;
+      gtaoMaterial.uniforms.cameraFar.value = camera.far;
+    }
   }
 
   function applySize() {
@@ -367,6 +433,11 @@ export function createRenderPipeline(renderer, {
     const aoWidth = Math.max(1, Math.ceil(quality.drawWidth * resolvedAoScale));
     const aoHeight = Math.max(1, Math.ceil(quality.drawHeight * resolvedAoScale));
     aoTarget.setSize(aoWidth, aoHeight);
+    normalTarget?.setSize(aoWidth,aoHeight);
+    denoiseTarget?.setSize(aoWidth,aoHeight);
+    for (const material of [gtaoMaterial,denoiseMaterial]) {
+      material?.uniforms.resolution.value.set(aoWidth,aoHeight);
+    }
     setVector2(aoMaterial.uniforms.uTractlabDepthResolution.value, quality.drawWidth, quality.drawHeight);
     updateCameraUniforms();
   }
@@ -377,11 +448,13 @@ export function createRenderPipeline(renderer, {
     return {
       ...quality,
       aoEnabled: aoLive,
+      aoMode: aoLive ? activeAoMode : 'off',
+      requestedAoMode,
       aoScale: aoLive ? resolvedAoScale : 0,
       aoWidth: aoLive ? aoTarget.width : 0,
       aoHeight: aoLive ? aoTarget.height : 0,
       samples: aoLive ? samples : 0,
-      passes: aoLive ? 3 : 1,
+      passes: aoLive ? activeAoMode === 'gtao' ? 5 : activeAoMode === 'off' ? 2 : 3 : 1,
       hdrColorTarget: aoLive && colourTarget.hdr,
       colorTargetType: aoLive ? colourTarget.name : "direct-render",
       colorTargetExtension: aoLive ? colourTarget.extension : null,
@@ -425,6 +498,10 @@ export function createRenderPipeline(renderer, {
     const previousAutoClear = renderer.autoClear;
     const renderInfo = renderer.info;
     const previousInfoAutoReset = renderInfo?.autoReset;
+    const previousOverride = scene.overrideMaterial;
+    const previousClearColor = gtaoMaterial ? renderer.getClearColor?.(new THREE.Color()) : null;
+    const previousClearAlpha = gtaoMaterial ? renderer.getClearAlpha?.() : null;
+    const hiddenFromNormals = [];
     try {
       renderer.autoClear = false;
       // Three resets renderer.info before every render by default. Keep that
@@ -439,11 +516,41 @@ export function createRenderPipeline(renderer, {
       renderer.clear(true, true, true);
       renderer.render(scene, camera);
 
-      renderer.setRenderTarget(aoTarget);
-      renderer.clear(true, true, true);
-      renderer.render(aoScene, fullscreenCamera);
+      if (activeAoMode === 'gtao') {
+        renderer.setRenderTarget(normalTarget);
+        renderer.setClearColor(0x7777ff,1);
+        renderer.clear(true,true,true);
+        // Match GTAOPass's G-buffer policy: line and point overlays cannot
+        // contribute meaningful surface normals or cast atlas AO.
+        scene.traverse(object=>{
+          if ((object.isPoints || object.isLine || object.isLine2) && object.visible) {
+            object.visible=false;
+            hiddenFromNormals.push(object);
+          }
+        });
+        scene.overrideMaterial = normalMaterial;
+        renderer.render(scene,camera);
+        scene.overrideMaterial = previousOverride;
+        for (const object of hiddenFromNormals) object.visible=true;
+        hiddenFromNormals.length=0;
+        renderer.setClearColor(0xffffff,1);
+        renderer.setRenderTarget(aoTarget);
+        renderer.clear(true,true,true);
+        renderer.render(gtaoScene,fullscreenCamera);
+        renderer.setRenderTarget(denoiseTarget);
+        renderer.clear(true,true,true);
+        renderer.render(denoiseScene,fullscreenCamera);
+        renderer.setClearColor(previousClearColor,previousClearAlpha);
+      } else if (activeAoMode === 'simple') {
+        renderer.setRenderTarget(aoTarget);
+        renderer.clear(true, true, true);
+        renderer.render(aoScene, fullscreenCamera);
+      }
 
       renderer.setRenderTarget(previousTarget);
+      scene.overrideMaterial = previousOverride;
+      for (const object of hiddenFromNormals) object.visible=true;
+      if (previousClearColor) renderer.setClearColor(previousClearColor,previousClearAlpha);
       renderer.clear(true, true, true);
       renderer.render(compositeScene, fullscreenCamera);
       return true;
@@ -459,6 +566,12 @@ export function createRenderPipeline(renderer, {
     disposed = true;
     sceneTarget?.dispose();
     aoTarget?.dispose();
+    normalTarget?.dispose();
+    denoiseTarget?.dispose();
+    normalMaterial?.dispose();
+    gtaoMaterial?.dispose();
+    denoiseMaterial?.dispose();
+    noiseTexture?.dispose();
     aoMaterial?.dispose();
     compositeMaterial?.dispose();
     fullscreenGeometry?.dispose();
