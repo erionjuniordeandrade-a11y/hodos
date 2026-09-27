@@ -19,6 +19,8 @@ const modules=[
   'vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js',
   'vendor/addons/loaders/GLTFLoader.js','vendor/addons/loaders/DRACOLoader.js',
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
+  'vendor/addons/lines/Line2.js','vendor/addons/lines/LineGeometry.js','vendor/addons/lines/LineMaterial.js','vendor/addons/lines/LineSegments2.js','vendor/addons/lines/LineSegmentsGeometry.js',
+  'vendor/addons/libs/meshopt_decoder.module.js','vendor/three-mesh-bvh.js','vendor/camera-controls.js',
 ];
 const supportingFiles=[
   'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
@@ -204,6 +206,8 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     for(const match of text.matchAll(/^\s*(?:import|export)\s+(?:[\w*$,{}\s]+?\s+from\s*)?['"]([^'"]+)['"]/gm)){
       const spec=match[1];
       const dependency=spec==='three'?'vendor/three.module.js':
+        spec==='three-mesh-bvh'?'vendor/three-mesh-bvh.js':
+        spec==='camera-controls'?'vendor/camera-controls.js':
         spec==='three/addons/controls/OrbitControls.js'?'vendor/OrbitControls.js':
         spec.startsWith('three/addons/')?spec.replace('three/addons/','vendor/addons/'):
         spec.startsWith('.')?path.posix.normalize(path.posix.join(path.posix.dirname(name),spec)):null;

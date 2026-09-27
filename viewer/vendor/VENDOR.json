@@ -1,0 +1,157 @@
+{
+ "generated": "2026-09-27",
+ "packages": {
+  "three": "0.186.1",
+  "three-mesh-bvh": "0.9.15",
+  "camera-controls": "3.1.2"
+ },
+ "files": [
+  {
+   "path": "addons/libs/draco/gltf/draco_decoder.js",
+   "package": "three",
+   "from": "examples/jsm/libs/draco/gltf/draco_decoder.js",
+   "bytes": 512465,
+   "sha256": "8625489da79a805f4f2a7d511c3e52d8b4085608a9d2a4d5f4f9de5db0aea04f"
+  },
+  {
+   "path": "addons/libs/draco/gltf/draco_decoder.wasm",
+   "package": "three",
+   "from": "examples/jsm/libs/draco/gltf/draco_decoder.wasm",
+   "bytes": 192420,
+   "sha256": "a680d927bed9cb864ddbd63521868891af2bfbe755092761b4837487618df8ac"
+  },
+  {
+   "path": "addons/libs/draco/gltf/draco_wasm_wrapper.js",
+   "package": "three",
+   "from": "examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js",
+   "bytes": 58456,
+   "sha256": "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6"
+  },
+  {
+   "path": "addons/libs/meshopt_decoder.module.js",
+   "package": "three",
+   "from": "examples/jsm/libs/meshopt_decoder.module.js",
+   "bytes": 29256,
+   "sha256": "d428e73a000057c6c94bfcedc3412d0c2dc14ca8800e88553aab05113ad2bf19"
+  },
+  {
+   "path": "addons/lines/Line2.js",
+   "package": "three",
+   "from": "examples/jsm/lines/Line2.js",
+   "bytes": 1486,
+   "sha256": "69dd2120d4df14208796acf199f80a64d37e042cfa65dc2b98286694b2954194"
+  },
+  {
+   "path": "addons/lines/LineGeometry.js",
+   "package": "three",
+   "from": "examples/jsm/lines/LineGeometry.js",
+   "bytes": 3479,
+   "sha256": "b7ec6b0011e3b09dc72e17cfd8e8945295cb2bc8c8aa9aa19e47119680bdad7e"
+  },
+  {
+   "path": "addons/lines/LineMaterial.js",
+   "package": "three",
+   "from": "examples/jsm/lines/LineMaterial.js",
+   "bytes": 14020,
+   "sha256": "d4517001f9d7b3e885ea5baa930de0077351e885db52ef4565cde4c7dd17eb23"
+  },
+  {
+   "path": "addons/lines/LineSegments2.js",
+   "package": "three",
+   "from": "examples/jsm/lines/LineSegments2.js",
+   "bytes": 11477,
+   "sha256": "fcbc20f576e88343cea12131f49b7003d7ab44ede422fcb694e567456022f7a0"
+  },
+  {
+   "path": "addons/lines/LineSegmentsGeometry.js",
+   "package": "three",
+   "from": "examples/jsm/lines/LineSegmentsGeometry.js",
+   "bytes": 6893,
+   "sha256": "471f0a954a0c9c59d3d151392f424142a9164a722802f63b371971378a84a1b1"
+  },
+  {
+   "path": "addons/loaders/DRACOLoader.js",
+   "package": "three",
+   "from": "examples/jsm/loaders/DRACOLoader.js",
+   "bytes": 19030,
+   "sha256": "fdafdf4aa11bbc65d89adb338efd844bedf94073702f9049240ff1f1ea48ad5f"
+  },
+  {
+   "path": "addons/loaders/GLTFLoader.js",
+   "package": "three",
+   "from": "examples/jsm/loaders/GLTFLoader.js",
+   "bytes": 117570,
+   "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16"
+  },
+  {
+   "path": "addons/utils/BufferGeometryUtils.js",
+   "package": "three",
+   "from": "examples/jsm/utils/BufferGeometryUtils.js",
+   "bytes": 37712,
+   "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797"
+  },
+  {
+   "path": "addons/utils/SkeletonUtils.js",
+   "package": "three",
+   "from": "examples/jsm/utils/SkeletonUtils.js",
+   "bytes": 11535,
+   "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f"
+  },
+  {
+   "path": "camera-controls-LICENSE.md",
+   "package": "camera-controls",
+   "from": "LICENSE",
+   "bytes": 1065,
+   "sha256": "d175c34ca3b4fb17d0568627ef8fd9363ae6f63f9ffdc97d4da71f0d7f3473ee"
+  },
+  {
+   "path": "camera-controls.js",
+   "package": "camera-controls",
+   "from": "dist/camera-controls.module.js",
+   "bytes": 117547,
+   "sha256": "763d48168876ebd5b4ca75f10e9b25c6a4187d8dcf4a1c002fa44029e8169f89"
+  },
+  {
+   "path": "LICENSE.md",
+   "package": "three",
+   "from": "LICENSE",
+   "bytes": 1081,
+   "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+  },
+  {
+   "path": "OrbitControls.js",
+   "package": "three",
+   "from": "examples/jsm/controls/OrbitControls.js",
+   "bytes": 40755,
+   "sha256": "3d79d07ecb686b4e5d93232eedab255331c1beef711e13164eaa1f68655a5f2b"
+  },
+  {
+   "path": "three-mesh-bvh-LICENSE.md",
+   "package": "three-mesh-bvh",
+   "from": "LICENSE",
+   "bytes": 1072,
+   "sha256": "b106ef6198a9862ed2b5b873e944ecf3583c631a84a7462d400ecc1910ce7fee"
+  },
+  {
+   "path": "three-mesh-bvh.js",
+   "package": "three-mesh-bvh",
+   "from": "build/index.module.js",
+   "bytes": 290630,
+   "sha256": "4a1f29ae93208d5f97a1652182c2d3133ce9cf51a6ffffc04f4d20255bf21afe"
+  },
+  {
+   "path": "three.core.js",
+   "package": "three",
+   "from": "build/three.core.js",
+   "bytes": 1458113,
+   "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+  },
+  {
+   "path": "three.module.js",
+   "package": "three",
+   "from": "build/three.module.js",
+   "bytes": 662772,
+   "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+  }
+ ]
+}
