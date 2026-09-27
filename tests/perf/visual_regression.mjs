@@ -10,7 +10,9 @@ const base=process.argv.find(arg=>arg.startsWith('--url='))?.slice(6);
 if(!base)throw Error('Pass --url=http://127.0.0.1:PORT');
 const out=process.argv.find(arg=>arg.startsWith('--out='))?.slice(6)||'output/visual';
 const update=process.argv.includes('--update');
-const baselineDir=fileURLToPath(new URL('../fixtures/visual/',import.meta.url));
+// Chromium rasterises text and WebGL differently per OS, so baselines are kept per platform:
+// linux/ is what GitHub Actions renders, darwin/ what a Mac renders. Refresh with --update on that OS.
+const baselineDir=fileURLToPath(new URL(`../fixtures/visual/${process.platform}/`,import.meta.url));
 const scenes=['atlas-default','atlas-parcel','atlas-bundle','mips-default'];
 const report={url:base,update,viewport:{width:1280,height:800},threshold:.1,maxChangedPercent:.5,scenes:[],errors:[]};
 await mkdir(out,{recursive:true});
