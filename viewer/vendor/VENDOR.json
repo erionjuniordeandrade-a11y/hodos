@@ -84,6 +84,20 @@
    "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16"
   },
   {
+   "path": "addons/shaders/GTAOShader.js",
+   "package": "three",
+   "from": "examples/jsm/shaders/GTAOShader.js",
+   "bytes": 12166,
+   "sha256": "cdea7be60452f61105375d2c18e4da2e8ce7b39a89246b1bb8fbf79319d58cfd"
+  },
+  {
+   "path": "addons/shaders/PoissonDenoiseShader.js",
+   "package": "three",
+   "from": "examples/jsm/shaders/PoissonDenoiseShader.js",
+   "bytes": 7080,
+   "sha256": "61da074a9ad8b2139dd164c96b8b62c299f056ce06c216e1f707c5151d997602"
+  },
+  {
    "path": "addons/utils/BufferGeometryUtils.js",
    "package": "three",
    "from": "examples/jsm/utils/BufferGeometryUtils.js",

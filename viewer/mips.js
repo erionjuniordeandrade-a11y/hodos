@@ -22,7 +22,8 @@ function render(){
 function change(patch,{focus=false}={}){
   const oldPhase=state.phase;
   state={...state,...patch};
-  const query=mipsQuery(state)+(testMode?'&test=1':'');
+  const aoMode=new URLSearchParams(location.search).get('ao');
+  const query=mipsQuery(state)+(testMode?'&test=1':'')+(aoMode==='simple'||aoMode==='off'?`&ao=${aoMode}`:'');
   history[oldPhase!==state.phase?'pushState':'replaceState'](null,'',query);
   render();
   if(patch.view&&scene)scene.flyTo({view:state.view,tweenMs:350});

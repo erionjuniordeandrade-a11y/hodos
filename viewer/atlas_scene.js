@@ -73,7 +73,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   renderer.domElement.setAttribute('aria-describedby','canvasHelp');renderer.domElement.tabIndex=0;
   mount.append(renderer.domElement);
   const camera=new THREE.PerspectiveCamera(35,1,.1,2000);camera.up.set(0,0,1);
-  const pipeline=createRenderPipeline(renderer,{THREE,scene,camera,aoRadiusMm:7,aoStrength:.7,
+  const urlAoMode=new URLSearchParams(location.search).get('ao');
+  const pipeline=createRenderPipeline(renderer,{THREE,scene,camera,
+    aoMode:urlAoMode==='simple'||urlAoMode==='off'?urlAoMode:'gtao',aoRadiusMm:7,aoStrength:.7,
     maxPixelRatio:3,maxPixels:8000000,interactiveMaxPixelRatio:1.5,interactiveMaxPixels:2400000});
   const controls=new CameraControls(camera,renderer.domElement);controls.updateCameraUp();
   controls.smoothTime=reduced.matches?0:.22;controls.draggingSmoothTime=reduced.matches?0:.12;

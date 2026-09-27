@@ -19,6 +19,7 @@ const modules=[
   'vendor/three.module.js','vendor/three.core.js',
   'vendor/addons/loaders/GLTFLoader.js','vendor/addons/loaders/DRACOLoader.js',
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
+  'vendor/addons/shaders/GTAOShader.js','vendor/addons/shaders/PoissonDenoiseShader.js',
   'vendor/addons/lines/Line2.js','vendor/addons/lines/LineGeometry.js','vendor/addons/lines/LineMaterial.js','vendor/addons/lines/LineSegments2.js','vendor/addons/lines/LineSegmentsGeometry.js',
   'vendor/addons/libs/meshopt_decoder.module.js','vendor/three-mesh-bvh.js','vendor/camera-controls.js',
 ];

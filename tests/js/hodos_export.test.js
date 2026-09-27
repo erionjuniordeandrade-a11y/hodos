@@ -97,6 +97,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const asset of [
     'vendor/three-mesh-bvh.js','vendor/camera-controls.js','vendor/addons/libs/meshopt_decoder.module.js',
     'vendor/addons/lines/Line2.js','vendor/addons/lines/LineGeometry.js','vendor/addons/lines/LineMaterial.js',
+    'vendor/addons/shaders/GTAOShader.js','vendor/addons/shaders/PoissonDenoiseShader.js',
     'vendor/addons/lines/LineSegments2.js','vendor/addons/lines/LineSegmentsGeometry.js',
     'vendor/VENDOR.json','vendor/LICENSE.md','vendor/three-mesh-bvh-LICENSE.md','vendor/camera-controls-LICENSE.md',
   ])assert(receipt.files.some(f=>f.path===asset),`Vendored asset is exported: ${asset}`);
