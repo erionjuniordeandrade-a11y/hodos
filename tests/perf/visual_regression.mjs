@@ -71,9 +71,44 @@ try{
       report.scenes.push({name,verdict:changedPercent<=.5?'PASS':'FAIL',changedPixels:changed,totalPixels:expected.width*expected.height,changedPercent,diff:diffPath});
     }finally{await context.close();}
   }
+  const hoverContext=await browser.newContext({viewport:report.viewport,deviceScaleFactor:1,reducedMotion:'reduce'});
+  try{
+    const page=await hoverContext.newPage();page.setDefaultTimeout(45000);
+    page.on('pageerror',error=>report.errors.push(`hover: ${error.message}`));
+    page.on('console',message=>{if(message.type()==='error')report.errors.push(`hover: ${message.text()}`);});
+    await page.goto(new URL('/atlas.html?test=1',base).href,{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>window.__atlasTest?.ready);
+    const frames=await page.evaluate(()=>window.__atlasTest.frames);
+    await page.evaluate(()=>window.__atlasTest.togglePathway('AF_L'));
+    await page.waitForFunction(previous=>window.__atlasTest?.bundles?.includes('AF_L')&&window.__atlasTest.frames>previous,frames);
+    const projected=await page.evaluate(()=>{
+      const atlas=window.__atlasTest,rect=document.querySelector('#atlasCanvas canvas').getBoundingClientRect(),points=[];
+      for(let line=0;line<20;line++)for(const vertex of [4,8,12,16,20,24]){
+        const point=atlas.projectBundleVertex('AF_L',line,vertex);
+        if(point&&point.z>-1&&point.z<1&&point.x>Math.max(rect.left,0)+8&&point.x<Math.min(rect.right,innerWidth)-8&&
+          point.y>Math.max(rect.top,0)+8&&point.y<Math.min(rect.bottom,innerHeight)-8)points.push(point);
+      }
+      return points;
+    });
+    assert(projected.length>0,'visible AF_L vertices project into the canvas');
+    let hover=null;
+    for(const point of projected){
+      await page.mouse.move(point.x,point.y);
+      hover=await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>resolve(window.__atlasTest.hover))));
+      if(hover?.bundle==='AF_L')break;
+    }
+    assert.equal(hover?.bundle,'AF_L','a projected AF_L vertex hovers its bundle');
+    assert.match(await page.locator('#atlasHover').innerText(),/streamline \d+ of \d+/);
+    assert.equal(await page.locator('#atlasHover').getAttribute('aria-live'),'polite');
+    await page.mouse.move(0,0);
+    await page.waitForFunction(()=>window.__atlasTest?.hover===null);
+    assert(await page.locator('#atlasHover').isHidden());
+    report.hover={verdict:'PASS',bundle:'AF_L',projectedCandidates:projected.length};
+  }finally{await hoverContext.close();}
   assert.deepEqual(report.errors,[],'no console or page errors');
+  if(!update)assert(report.scenes.every(scene=>scene.changedPixels===0),'all existing scenes remain pixel identical');
   assert(report.scenes.every(scene=>scene.verdict==='PASS'||scene.verdict==='UPDATED'),'visual differences exceed 0.5%');
-  console.log(JSON.stringify({verdict:update?'UPDATED':'PASS',scenes:report.scenes.map(({name,verdict,changedPercent})=>({name,verdict,changedPercent}))},null,2));
+  console.log(JSON.stringify({verdict:update?'UPDATED':'PASS',scenes:report.scenes.map(({name,verdict,changedPercent})=>({name,verdict,changedPercent})),hover:report.hover},null,2));
 }catch(error){report.failure=error.stack||String(error);throw error;
 }finally{
   await writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2)+'\n');

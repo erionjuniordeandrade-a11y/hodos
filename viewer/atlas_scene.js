@@ -85,6 +85,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const centre=new THREE.Vector3(0,-18,8),hemis={},deep=[],bundles=new Map(),frameGeometry=[];
   let playing=false,profile='teaching',frame=0,last=0,time=0,disposed=false,view='left';
   let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
+  let hoveredLine=null,controlsActive=false;
   let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false;
   let corridorOverlay=null;
   let annotations=[],annotationStamp='',annotationTime=-Infinity;
@@ -132,9 +133,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(moving||changed)requestDraw();
   }
   function requestDraw(){if(!frame&&!disposed&&!contextLost)frame=requestAnimationFrame(draw);}
-  controls.addEventListener('controlstart',()=>{cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
+  controls.addEventListener('controlstart',()=>{controlsActive=true;clearHover();cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
   controls.addEventListener('control',()=>{autoFrame=false;requestDraw();});
-  controls.addEventListener('controlend',()=>{pipeline.setInteracting(false);updateLineResolutions();annotationStamp='';requestDraw();});
+  controls.addEventListener('controlend',()=>{controlsActive=false;pipeline.setInteracting(false);updateLineResolutions();annotationStamp='';requestDraw();});
   reduced.addEventListener('change',requestDraw);
   document.addEventListener('visibilitychange',requestDraw);
   // A lost WebGL context (GPU switch, backgrounded mobile tab) pauses the loop and says so;
@@ -527,6 +528,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     rebuildAnnotations();requestDraw();
   }
   function clearBundles(){
+    clearHover();
     for(const {group} of bundles.values()){scene.remove(group);group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}
     bundles.clear();traces.length=0;
   }
@@ -548,14 +550,16 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       bundleError='';onStatus('Atlas ready',{ready:true});
       let colourIndex=0;
       for(const {id,isGhost,meta} of entries) {
-        const lines=decodeAtlasBundle({...meta,offset:0},loaded.get(id)),positions=[],arc=[],tracePositions=[],traceArc=[];
+        const lines=decodeAtlasBundle({...meta,offset:0},loaded.get(id)),positions=[],arc=[],segmentOwners=[],ranges=[],tracePositions=[],traceArc=[];
         for(const [li,line] of lines.entries()) {
+          const first=segmentOwners.length;
           let length=0;const lengths=[0];
           for(let i=1;i<line.length;i++){length+=Math.hypot(...line[i].map((x,j)=>x-line[i-1][j]));lengths.push(length);}
           for(let i=1;i<line.length;i++) {
-            positions.push(...line[i-1],...line[i]);arc.push(lengths[i-1]/length,lengths[i]/length);
+            positions.push(...line[i-1],...line[i]);arc.push(lengths[i-1]/length,lengths[i]/length);segmentOwners.push(li);
             if(li%Math.ceil(lines.length/18)===0){tracePositions.push(...line[i-1],...line[i]);traceArc.push(lengths[i-1]/length,lengths[i]/length);}
           }
+          ranges.push({first,count:segmentOwners.length-first});
         }
         const tint=isGhost?GHOST_TINT:BUNDLE_TINTS[colourIndex%BUNDLE_TINTS.length];
         const alpha=isGhost?.12:.30;
@@ -568,19 +572,40 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
           group.add(trace);traces.push(trace);
         }
         for(const line of group.children)line.material.resolution.copy(drawSize);
-        bundles.set(id,{group,ghost:isGhost,alpha});scene.add(group);
+        bundles.set(id,{group,ghost:isGhost,alpha,positions,arc,segmentToStreamline:Int32Array.from(segmentOwners),ranges,lineCount:lines.length});scene.add(group);
       }
       requestDraw();
     }catch(error){
       if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${error.message}. Reload to retry.`);console.error(error);}
     }
   }
-  const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();ray.firstHitOnly=true;let down,hoverFrame=0;
-  function pickAt(e){
+  const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();ray.firstHitOnly=true;ray.params.Line2={threshold:2};let down,hoverFrame=0;
+  function clearBundleHover(){
+    if(!hoveredLine)return;
+    const {overlay,group}=hoveredLine;group.remove(overlay);overlay.geometry.dispose();overlay.material.dispose();hoveredLine=null;requestDraw();
+  }
+  function showBundleHover(id,streamline){
+    if(hoveredLine?.bundle===id&&hoveredLine.streamline===streamline)return;
+    clearBundleHover();
+    const bundle=bundles.get(id),{first,count}=bundle.ranges[streamline];
+    const overlay=fatLine(bundle.positions.slice(first*6,(first+count)*6),
+      {arc:bundle.arc.slice(first*2,(first+count)*2),color:0xffedaa,opacity:.95,linewidth:3.5,effect:'feather'});
+    overlay.material.resolution.copy(drawSize);overlay.renderOrder=6;bundle.group.add(overlay);
+    hoveredLine={bundle:id,streamline,overlay,group:bundle.group};requestDraw();
+  }
+  function pickAt(e,includeBundles=false){
     const rect=renderer.domElement.getBoundingClientRect();ndc.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);
     ray.setFromCamera(ndc,camera);
     const candidates=Object.values(hemis).filter(h=>h.group.visible).map(h=>h.shell);
     const deepHit=ray.intersectObjects(deep.filter(x=>x.visible),false)[0],cortexHit=ray.intersectObjects(candidates,false)[0];
+    if(includeBundles){
+      const lines=[...bundles.values()].map(bundle=>bundle.group.children[0]);
+      const lineHit=ray.intersectObjects(lines,false)[0];
+      if(lineHit&&(!cortexHit||surface<.6||lineHit.distance<=cortexHit.distance)){
+        const [id,bundle]=[...bundles].find(([,value])=>value.group.children[0]===lineHit.object);
+        return {bundle:id,streamline:bundle.segmentToStreamline[lineHit.faceIndex],total:bundle.lineCount};
+      }
+    }
     // An opaque surface occludes deep picking; a transparent reference shell does not.
     const hit=surface>=.6?(cortexHit&&(!deepHit||cortexHit.distance<deepHit.distance)?cortexHit:deepHit):(deepHit||cortexHit);
     if(!hit)return null;
@@ -590,15 +615,17 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     for(const i of [hit.face.a,hit.face.b,hit.face.c]){p.fromBufferAttribute(pos,i);const d=p.distanceToSquared(hit.point);if(d<distance){nearest=i;distance=d;}}
     return {hemi:h,id:labels[h][nearest],vertex:nearest};
   }
-  function clearHover(){cancelAnimationFrame(hoverFrame);hoverFrame=0;onHover(null);if(hoverPick){hoverPick=null;applySelection();}}
+  function clearHover(){cancelAnimationFrame(hoverFrame);hoverFrame=0;clearBundleHover();onHover(null);if(hoverPick){hoverPick=null;applySelection();}}
   renderer.domElement.addEventListener('pointerdown',e=>{cameraTransition=null;clearHover();down=[e.clientX,e.clientY];});
   renderer.domElement.addEventListener('pointerup',e=>{
     if(!down||e.button!==0||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5){down=null;return;}down=null;
     const pick=pickAt(e);if(pick)onPick(pick);
   });
-  renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')return;
-    cancelAnimationFrame(hoverFrame);hoverFrame=requestAnimationFrame(()=>{hoverFrame=0;if(disposed)return;const pick=pickAt(e);onHover(pick);
-      const next=pick&&!pick.deep?{hemi:pick.hemi,id:pick.id}:null;
+  renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch'||controlsActive)return;
+    cancelAnimationFrame(hoverFrame);hoverFrame=requestAnimationFrame(()=>{hoverFrame=0;if(disposed||controlsActive)return;const pick=pickAt(e,true);
+      if(pick?.bundle)showBundleHover(pick.bundle,pick.streamline);else clearBundleHover();
+      onHover(pick,{x:e.clientX,y:e.clientY});
+      const next=pick&&!pick.deep&&!pick.bundle?{hemi:pick.hemi,id:pick.id}:null;
       if(JSON.stringify(next)!==JSON.stringify(hoverPick)){hoverPick=next;applySelection();}});});
   renderer.domElement.addEventListener('pointerleave',clearHover);
   renderer.domElement.addEventListener('pointercancel',()=>{down=null;clearHover();});
@@ -634,15 +661,24 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     camera.up.fromArray(state.up);controls.updateCameraUp();view=state.view;
     autoFrame=false;frameFocus=false;lookAt(new THREE.Vector3().fromArray(state.camera),new THREE.Vector3().fromArray(state.target));controls.update(0);requestDraw();
   }
+  function projectBundleVertex(id,streamline,vertex){
+    const bundle=bundles.get(id),range=bundle?.ranges[streamline];
+    if(!range||vertex<0||vertex>range.count)return null;
+    const segment=range.first+Math.min(vertex,range.count-1),offset=segment*6+(vertex===range.count?3:0);
+    const point=new THREE.Vector3(...bundle.positions.slice(offset,offset+3)).project(camera);
+    const rect=renderer.domElement.getBoundingClientRect();
+    return {x:rect.left+(point.x+1)*rect.width/2,y:rect.top+(1-point.y)*rect.height/2,z:point.z};
+  }
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
-    setSurface,setLesion,setCorridors,
+    setSurface,setLesion,setCorridors,projectBundleVertex,
     setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,
       reducedMotion:reduced.matches,time,frames,selected,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,
       bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),tractError:bundleError,
+      hover:hoveredLine?{bundle:hoveredLine.bundle,streamline:hoveredLine.streamline}:null,
       bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
       vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,
