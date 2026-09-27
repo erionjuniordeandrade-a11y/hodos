@@ -6,7 +6,7 @@
   "source_commit": "e02876655d0216995340a9c153d37d49ff649078",
   "license_review_date": "2026-09-09",
   "coordinate_contract": "Group reference surfaces and pathways in MNI conventions. Different template constructions; illustrative juxtaposition only. No cross-atlas distance or endpoint connectivity inference, no case registration.",
-  "modifications": "GLB, tract binary and the per-vertex label binary copied unchanged (Yeo-7, Yeo-17 and HCP-MMP1 blocks with their paired hemisphere tables; vertex order unchanged). Paths shortened. No H01 assets included. 2026-09-14: a fourth per-vertex block (arterial2, Liu 2023 supply territories, four codes per hemisphere) appended after the original 389,904 bytes, which are unchanged; surface.json gained sets.arterial2 only.",
+  "modifications": "GLB, tract binary and the per-vertex label binary copied unchanged (Yeo-7, Yeo-17 and HCP-MMP1 blocks with their paired hemisphere tables; vertex order unchanged). Paths shortened. No H01 assets included. 2026-09-14: a fourth per-vertex block (arterial2, Liu 2023 supply territories, four codes per hemisphere) appended after the original 389,904 bytes, which are unchanged; surface.json gained sets.arterial2 only. 2026-09-27 meshopt re-encode via scripts/optimize-glb.mjs of inferior-context.glb and the 14 subcortex GLBs (cortex-L/R keep their Draco encoding), quantization 14 position bits; vertex order preserved.",
   "assets": [
     {
       "path": "surface-labels.bin",
@@ -76,8 +76,8 @@
     },
     {
       "path": "inferior-context.glb",
-      "sha256": "5ac4c54e89b62ecfa733a7a3022c67e495c61ab229ff316674d18a8e8ccaa56e",
-      "bytes": 1447108,
+      "sha256": "359a7ab9b169a93ed3457f2239f85b1008fa84430d1c6e0f514cbc4a5412da41",
+      "bytes": 400236,
       "source_path": "meshes/cerebellum/rest.glb",
       "source_sha256": "5ac4c54e89b62ecfa733a7a3022c67e495c61ab229ff316674d18a8e8ccaa56e",
       "terms": "MNI template permission notice"
@@ -92,112 +92,112 @@
     },
     {
       "path": "subcortex/HIP-lh.glb",
-      "sha256": "4453af698d1494a56081eec893fffcc53c92bee2f41465992d57bad5ddee3eb0",
-      "bytes": 29736,
+      "sha256": "b908414bd3145a88b47eae7ff2c907e3b9f1711524a17daf2a59cb3216cc00e5",
+      "bytes": 10212,
       "source_path": "meshes/subcortex/HIP-lh.glb",
       "source_sha256": "4453af698d1494a56081eec893fffcc53c92bee2f41465992d57bad5ddee3eb0",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/HIP-rh.glb",
-      "sha256": "140ede12489246032bce8b3d311cf172f404a1d34ef5a0bd00edfc47c378b103",
-      "bytes": 29736,
+      "sha256": "7eb110d3460186abc648beac37b788b39ce520197439364b80e2585865a9f614",
+      "bytes": 10336,
       "source_path": "meshes/subcortex/HIP-rh.glb",
       "source_sha256": "140ede12489246032bce8b3d311cf172f404a1d34ef5a0bd00edfc47c378b103",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/AMY-lh.glb",
-      "sha256": "4ae79dfa80a737955dcda89a687ad7f8b445568edadf1e649275932d62d484ef",
-      "bytes": 14904,
+      "sha256": "09e9a02ac3659321f858189113761e3a399bf3560c5cf3ac0cd94686b6f7030e",
+      "bytes": 5620,
       "source_path": "meshes/subcortex/AMY-lh.glb",
       "source_sha256": "4ae79dfa80a737955dcda89a687ad7f8b445568edadf1e649275932d62d484ef",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/AMY-rh.glb",
-      "sha256": "a001cf1354c23d0da3308a37003b4a32d65b563aba3d25ff7b3d2e2bb8a3cc8b",
-      "bytes": 14900,
+      "sha256": "b73a88427a4aebae1c6fd6a5b658d00a64f53ea8cb44a551165237b8069100cf",
+      "bytes": 5656,
       "source_path": "meshes/subcortex/AMY-rh.glb",
       "source_sha256": "a001cf1354c23d0da3308a37003b4a32d65b563aba3d25ff7b3d2e2bb8a3cc8b",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/THA-lh.glb",
-      "sha256": "3c0b21b81b5bedeb17622de1ecf7586d427aeb95f9aba9657a526d8ccc07cd14",
-      "bytes": 34200,
+      "sha256": "599f8fffbaea5f84886af7f405db243148d461b950e63213971cc5bce85fd24e",
+      "bytes": 11640,
       "source_path": "meshes/subcortex/THA-lh.glb",
       "source_sha256": "3c0b21b81b5bedeb17622de1ecf7586d427aeb95f9aba9657a526d8ccc07cd14",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/THA-rh.glb",
-      "sha256": "5e63e66e8d7ee1b60a6cf52b07c0d1aec1975bdf6a057e08b89bc94dc3d9ab48",
-      "bytes": 34200,
+      "sha256": "fea456330bad10eb9c61714b0b2d9af7a5788fd72b4177f57be5ac5892002112",
+      "bytes": 11524,
       "source_path": "meshes/subcortex/THA-rh.glb",
       "source_sha256": "5e63e66e8d7ee1b60a6cf52b07c0d1aec1975bdf6a057e08b89bc94dc3d9ab48",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/NAc-lh.glb",
-      "sha256": "acc275ad76da608bf99a49feb4e0d526f1a1be25e19e79ab8ac795013c46383a",
-      "bytes": 11748,
+      "sha256": "57fb31e00b748d8ead04e52674fbf9ce73f8cc27fa4aecf3d43fa7ad6a3f5faf",
+      "bytes": 4548,
       "source_path": "meshes/subcortex/NAc-lh.glb",
       "source_sha256": "acc275ad76da608bf99a49feb4e0d526f1a1be25e19e79ab8ac795013c46383a",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/NAc-rh.glb",
-      "sha256": "b4dc4a706144f0f20d619e273084333627ef769bd5be105f17a353d67e549b90",
-      "bytes": 11744,
+      "sha256": "4df03f24235f4cf3abf360ffe9e1173256d0b0c5921b1bd8bf14f052855b642d",
+      "bytes": 4608,
       "source_path": "meshes/subcortex/NAc-rh.glb",
       "source_sha256": "b4dc4a706144f0f20d619e273084333627ef769bd5be105f17a353d67e549b90",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/GP-lh.glb",
-      "sha256": "76ab20e2afb254fb60336d19dd9a0effdfd9e9cc964a7045991073259f29e2fa",
-      "bytes": 11300,
+      "sha256": "28619687a93e2e48854a560f6631d47d5f63d583825ed2f34d0bac6c65723176",
+      "bytes": 4456,
       "source_path": "meshes/subcortex/GP-lh.glb",
       "source_sha256": "76ab20e2afb254fb60336d19dd9a0effdfd9e9cc964a7045991073259f29e2fa",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/GP-rh.glb",
-      "sha256": "674dbf4f6eddfe3d010921efa6aa4299cf4f364c9a0e8bffcaf4b7543b9a6b4d",
-      "bytes": 11300,
+      "sha256": "65b6aa0303a23e706db783ced2dba2dd1e7c7ce310c1204de18b52da2e0d9272",
+      "bytes": 4408,
       "source_path": "meshes/subcortex/GP-rh.glb",
       "source_sha256": "674dbf4f6eddfe3d010921efa6aa4299cf4f364c9a0e8bffcaf4b7543b9a6b4d",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/PUT-lh.glb",
-      "sha256": "d938fdf590a5ba28696b825b53b1a1af676e0e38616f9c5fc897e868fd510c9f",
-      "bytes": 32760,
+      "sha256": "58cd7ed91fad338fd09bf9b10ddf6b6174cf94814c1992a081cef0a771020f08",
+      "bytes": 11316,
       "source_path": "meshes/subcortex/PUT-lh.glb",
       "source_sha256": "d938fdf590a5ba28696b825b53b1a1af676e0e38616f9c5fc897e868fd510c9f",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/PUT-rh.glb",
-      "sha256": "6b31ba419bb70ae89a6b4defba32ac27923b8f255e7ed0fc73a6eb18ffde8f7d",
-      "bytes": 32760,
+      "sha256": "0d238148cb513a6e9b709c2bbed66668f1cedf8720146d3196a45d1814d3b6c5",
+      "bytes": 11264,
       "source_path": "meshes/subcortex/PUT-rh.glb",
       "source_sha256": "6b31ba419bb70ae89a6b4defba32ac27923b8f255e7ed0fc73a6eb18ffde8f7d",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/CAU-lh.glb",
-      "sha256": "c07f63ab084944878b13f5f677900487403b83623db747b0d6f9c218299b8ac3",
-      "bytes": 20836,
+      "sha256": "91859e1802e93bdad5e1274f4e49576c31cf69aea017751198fa93880e0de9ec",
+      "bytes": 7596,
       "source_path": "meshes/subcortex/CAU-lh.glb",
       "source_sha256": "c07f63ab084944878b13f5f677900487403b83623db747b0d6f9c218299b8ac3",
       "terms": "Melbourne Subcortex Atlas License"
     },
     {
       "path": "subcortex/CAU-rh.glb",
-      "sha256": "bedde760aea8fc20ed05d363d591232e6364a845276e3459cd3afa1b05b95126",
-      "bytes": 20828,
+      "sha256": "56c6857d39c8bff485c2242d87c46b03c3b4d67a4e89259a29f72c3900f28aa7",
+      "bytes": 7440,
       "source_path": "meshes/subcortex/CAU-rh.glb",
       "source_sha256": "bedde760aea8fc20ed05d363d591232e6364a845276e3459cd3afa1b05b95126",
       "terms": "Melbourne Subcortex Atlas License"

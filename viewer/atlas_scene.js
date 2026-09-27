@@ -15,7 +15,7 @@ import {configContextMaterial} from './scene_materials.js';
 import {createRenderPipeline} from './render_pipeline.js';
 import {createCorridorOverlay} from './corridor_overlay.js';
 import {createTractRangeLoader} from './tract_ranges.js';
-const MANIFEST_SHA256='4d03204569136df62809aef15fa3778e5d631270005d6f2739afd3c475f2494d';
+const MANIFEST_SHA256='637ab561b28e13447d9e7e020f4e324122052d5dd43fa2734310d053d1e4600e';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 THREE.BufferGeometry.prototype.computeBoundsTree=computeBoundsTree;
 THREE.BufferGeometry.prototype.disposeBoundsTree=disposeBoundsTree;
@@ -262,7 +262,16 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const gltf=await loader.parseAsync(await checked(path),'');
     const mesh=gltf.scene.getObjectByProperty('isMesh',true);if(!mesh)throw new Error('Empty atlas mesh');
     gltf.scene.updateMatrixWorld(true);
-    const geo=mesh.geometry;geo.applyMatrix4(mesh.matrixWorld);geo.computeVertexNormals();
+    const geo=mesh.geometry;
+    // applyMatrix4 writes back through the attribute; normalized integers would clamp
+    // transformed millimetre coordinates to [-1, 1]. Expand them before applying it.
+    const positions=geo.getAttribute('position');
+    if(positions.normalized){
+      const values=new Float32Array(positions.count*3);
+      for(let i=0;i<positions.count;i++)values.set([positions.getX(i),positions.getY(i),positions.getZ(i)],i*3);
+      geo.setAttribute('position',new THREE.BufferAttribute(values,3));
+    }
+    geo.applyMatrix4(mesh.matrixWorld);geo.computeVertexNormals();
     mesh.material?.dispose();return geo;
   }
   let surfaceMeta,tractMeta,tractRangeLoader,labels,networks=null,sub,bundleError='';
