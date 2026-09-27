@@ -35,6 +35,11 @@ try{
       if(name==='mips-default'){
         await page.waitForFunction(()=>window.__mipsTest?.ready||window.__mipsTest?.error);
         assert.equal((await page.evaluate(()=>window.__mipsTest)).error,null,'MIPS scene loads');
+        // `ready` fires when the surface is up; the three tract bundles arrive later over a real
+        // network, and the scene only redraws once they are in. Wait for that frame or the gate flakes.
+        const before=await page.evaluate(()=>({frames:window.__mipsTest.scene.frames,bundles:window.__mipsTest.scene.bundles.length}));
+        await page.waitForFunction(()=>window.__mipsTest.scene.bundles.length>0&&!window.__mipsTest.scene.tractError);
+        if(!before.bundles)await page.waitForFunction(previous=>window.__mipsTest.scene.frames>previous,before.frames);
       }else{
         await page.waitForFunction(()=>window.__atlasTest?.ready);
         const frames=await page.evaluate(()=>window.__atlasTest.frames);
