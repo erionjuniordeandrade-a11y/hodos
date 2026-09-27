@@ -16,7 +16,7 @@ const modules=[
   'dissection_references.js','landing.js','lesson_previews.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
   'lessons/resident-anatomy.js','lessons/network-lectures.js','lessons/corpus-callosum.js','lessons/internal-capsule.js','lessons/ventral-stream.js','lessons/brainstem-corridors.js','render_pipeline.js','scene_materials.js',
-  'vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js',
+  'vendor/three.module.js','vendor/three.core.js',
   'vendor/addons/loaders/GLTFLoader.js','vendor/addons/loaders/DRACOLoader.js',
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
   'vendor/addons/lines/Line2.js','vendor/addons/lines/LineGeometry.js','vendor/addons/lines/LineMaterial.js','vendor/addons/lines/LineSegments2.js','vendor/addons/lines/LineSegmentsGeometry.js',
@@ -50,7 +50,8 @@ const supportingFiles=[
   'media/lesson-previews/plate-default-mode-network-20260919.jpg',
   'media/lesson-previews/README.md',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
-  'vendor/LICENSE.md','vendor/fonts/archivo-latin.woff2','vendor/fonts/Archivo-OFL.txt',
+  'vendor/LICENSE.md','vendor/three-mesh-bvh-LICENSE.md','vendor/camera-controls-LICENSE.md','vendor/VENDOR.json',
+  'vendor/fonts/archivo-latin.woff2','vendor/fonts/Archivo-OFL.txt',
   
   'vendor/addons/libs/draco/gltf/draco_decoder.js',
   'vendor/addons/libs/draco/gltf/draco_wasm_wrapper.js',
@@ -208,7 +209,6 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
       const dependency=spec==='three'?'vendor/three.module.js':
         spec==='three-mesh-bvh'?'vendor/three-mesh-bvh.js':
         spec==='camera-controls'?'vendor/camera-controls.js':
-        spec==='three/addons/controls/OrbitControls.js'?'vendor/OrbitControls.js':
         spec.startsWith('three/addons/')?spec.replace('three/addons/','vendor/addons/'):
         spec.startsWith('.')?path.posix.normalize(path.posix.join(path.posix.dirname(name),spec)):null;
       if(!dependency||!files.has(dependency))throw Error(`Unexported dependency in ${name}: ${spec}`);

@@ -23,11 +23,6 @@
   ],
   [
    "three",
-   "examples/jsm/controls/OrbitControls.js",
-   "OrbitControls.js"
-  ],
-  [
-   "three",
    "examples/jsm/lines/Line2.js",
    "addons/lines/Line2.js"
   ],

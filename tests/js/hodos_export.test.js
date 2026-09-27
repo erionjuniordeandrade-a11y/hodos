@@ -94,6 +94,15 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(await readFile(path.join(out,'404.html'),'utf8'),/\/brand\/hodos-favicon\.svg\?v=[a-f0-9]{12}/);
   assert(receipt.files.some(f=>f.path==='brand/hodos-og.png'));
   assert(receipt.files.some(f=>f.path==='vendor/addons/libs/draco/gltf/draco_decoder.wasm'));
+  for(const asset of [
+    'vendor/three-mesh-bvh.js','vendor/camera-controls.js','vendor/addons/libs/meshopt_decoder.module.js',
+    'vendor/addons/lines/Line2.js','vendor/addons/lines/LineGeometry.js','vendor/addons/lines/LineMaterial.js',
+    'vendor/addons/lines/LineSegments2.js','vendor/addons/lines/LineSegmentsGeometry.js',
+    'vendor/VENDOR.json','vendor/LICENSE.md','vendor/three-mesh-bvh-LICENSE.md','vendor/camera-controls-LICENSE.md',
+  ])assert(receipt.files.some(f=>f.path===asset),`Vendored asset is exported: ${asset}`);
+  assert.deepEqual(JSON.parse(await readFile(path.join(out,'vendor/VENDOR.json'),'utf8')).packages,{
+    three:'0.186.1','three-mesh-bvh':'0.9.15','camera-controls':'3.1.2',
+  });
   assert(receipt.files.some(f=>f.path==='404.html'));
   assert(receipt.files.some(f=>f.path==='LICENSE'));
   assert(receipt.files.some(f=>f.path==='dissection_references.js'));

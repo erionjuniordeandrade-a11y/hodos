@@ -21,6 +21,7 @@ const target=path.join(root,manifest.target);
 const receiptPath=path.join(target,'VENDOR.json');
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const check=process.argv.includes('--check');
+const reuseVerified=process.argv.includes('--reuse-verified');
 
 if(check){
   if(!fs.existsSync(receiptPath)){console.error(`vendor: no receipt at ${path.relative(root,receiptPath)}; run without --check first`);process.exit(2);}
@@ -42,6 +43,11 @@ if(check){
 
 const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'vendor-three-'));
 const extracted=new Map();
+const previous=fs.existsSync(receiptPath)?JSON.parse(fs.readFileSync(receiptPath,'utf8')):null;
+if(reuseVerified){
+  if(!previous)throw Error('--reuse-verified needs an existing VENDOR.json receipt');
+  for(const [name,version] of Object.entries(manifest.packages))if(previous.packages[name]!==version)throw Error(`Cannot reuse ${name}: package version changed`);
+}
 function packageDir(name){
   if(extracted.has(name))return extracted.get(name);
   const version=manifest.packages[name];
@@ -59,9 +65,17 @@ function packageDir(name){
 
 const files=[];
 for(const [pkg,from,to] of manifest.files){
-  const src=path.join(packageDir(pkg),from);
-  if(!fs.existsSync(src))throw Error(`${pkg}@${manifest.packages[pkg]} has no ${from}`);
-  const bytes=fs.readFileSync(src);
+  let bytes;
+  if(reuseVerified){
+    const prior=previous.files.find(file=>file.path===to&&file.package===pkg&&file.from===from);
+    if(!prior)throw Error(`Cannot reuse unverified vendor file: ${to}`);
+    bytes=fs.readFileSync(path.join(target,to));
+    if(sha256(bytes)!==prior.sha256)throw Error(`Cannot reuse modified vendor file: ${to}`);
+  }else{
+    const src=path.join(packageDir(pkg),from);
+    if(!fs.existsSync(src))throw Error(`${pkg}@${manifest.packages[pkg]} has no ${from}`);
+    bytes=fs.readFileSync(src);
+  }
   const dest=path.join(target,to);
   fs.mkdirSync(path.dirname(dest),{recursive:true});
   fs.writeFileSync(dest,bytes);
@@ -69,8 +83,7 @@ for(const [pkg,from,to] of manifest.files){
 }
 // Vendored files that the manifest no longer lists are stale copies; remove them so the
 // import map cannot silently resolve to an old build.
-if(fs.existsSync(receiptPath)){
-  const previous=JSON.parse(fs.readFileSync(receiptPath,'utf8'));
+if(previous){
   const keep=new Set(files.map(f=>f.path));
   for(const file of previous.files)if(!keep.has(file.path)&&fs.existsSync(path.join(target,file.path))){fs.rmSync(path.join(target,file.path));console.log(`removed stale ${file.path}`);}
 }

@@ -1,8 +1,13 @@
 import {BUNDLE_TINTS,MAX_BUNDLES} from './bundle_picker.js';
 import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {MeshBVH,acceleratedRaycast,computeBoundsTree,disposeBoundsTree} from 'three-mesh-bvh';
+import CameraControls from 'camera-controls';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+import {LineSegments2} from 'three/addons/lines/LineSegments2.js';
+import {LineSegmentsGeometry} from 'three/addons/lines/LineSegmentsGeometry.js';
+import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
 import {ATLAS_VIEWS,decodeAtlasLabels,decodeAtlasBundle} from './atlas_data.js';
 import {paletteUnit,YEO7_SET,networkSelection} from './atlas_networks.js';
 import {ARTERIAL_SET,arterialTable,arterialPaletteUnit,arterialSelection} from './atlas_arterial.js';
@@ -12,6 +17,43 @@ import {createCorridorOverlay} from './corridor_overlay.js';
 import {createTractRangeLoader} from './tract_ranges.js';
 const MANIFEST_SHA256='4d03204569136df62809aef15fa3778e5d631270005d6f2739afd3c475f2494d';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+THREE.BufferGeometry.prototype.computeBoundsTree=computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree=disposeBoundsTree;
+THREE.Mesh.prototype.raycast=acceleratedRaycast;
+CameraControls.install({THREE});
+const disposeGeometry=geo=>{geo?.disposeBoundsTree?.();geo?.dispose();};
+function fatLine(positions,{arc=[],normals=[],color,opacity=1,linewidth,depthTest=true,effect=''}={}){
+  const geo=new LineSegmentsGeometry();geo.setPositions(positions);
+  if(arc.length)geo.setAttribute('instanceArc',new THREE.InstancedBufferAttribute(new Float32Array(arc),2));
+  if(normals.length){const data=new THREE.InstancedInterleavedBuffer(new Float32Array(normals),6,1);
+    geo.setAttribute('instanceNormalStart',new THREE.InterleavedBufferAttribute(data,3,0));
+    geo.setAttribute('instanceNormalEnd',new THREE.InterleavedBufferAttribute(data,3,3));}
+  const mat=new LineMaterial({color,opacity,linewidth,worldUnits:false,transparent:true,depthWrite:false,depthTest,
+    blending:THREE.NormalBlending,toneMapped:false});
+  mat.userData.time={value:0};mat.userData.phase={value:0};
+  // three keys compiled programs by onBeforeCompile's source text, which is identical for every
+  // variant here; the key must carry what actually changes the generated shader.
+  mat.customProgramCacheKey=()=>`hodos-fatline:${effect}:${arc.length?1:0}:${normals.length?1:0}`;
+  mat.onBeforeCompile=shader=>{
+    shader.uniforms.time=mat.userData.time;shader.uniforms.phase=mat.userData.phase;
+    shader.vertexShader=shader.vertexShader.replace('void main() {',
+      `${arc.length?'attribute vec2 instanceArc; varying float vArc;':''}
+       ${normals.length?'attribute vec3 instanceNormalStart; attribute vec3 instanceNormalEnd; varying float vFront;':''}
+       void main() {`);
+    shader.vertexShader=shader.vertexShader.replace('vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );',
+      `vec4 end = modelViewMatrix * vec4( instanceEnd, 1.0 );
+       ${arc.length?'vArc = mix(instanceArc.x,instanceArc.y,clamp(position.y,0.0,1.0));':''}
+       ${normals.length?'vec3 lineNormal=mix(instanceNormalStart,instanceNormalEnd,clamp(position.y,0.0,1.0)); vFront=dot(normalize(normalMatrix*lineNormal),normalize(-mix(start.xyz,end.xyz,clamp(position.y,0.0,1.0))));':''}`);
+    shader.fragmentShader=shader.fragmentShader.replace('void main() {',
+      `${arc.length?'varying float vArc;':''}${normals.length?'varying float vFront;':''}
+       uniform float time; uniform float phase; void main() {`);
+    const effectAlpha=effect==='feather'?'alpha *= smoothstep(0.0,0.06,min(vArc,1.0-vArc));'
+      :effect==='pulse'?'float p=0.18+0.27*(1.0-cos(time*0.7+phase)); alpha *= max(exp(-pow((vArc-p)/0.025,2.0)),exp(-pow((vArc-(1.0-p))/0.025,2.0)))*0.85; if(alpha<0.02)discard;':'';
+    shader.fragmentShader=shader.fragmentShader.replace('gl_FragColor = vec4( diffuseColor.rgb, alpha );',
+      `${normals.length?'if(vFront<0.05)discard;':''}${effectAlpha} gl_FragColor = vec4( diffuseColor.rgb, alpha );`);
+  };
+  return new LineSegments2(geo,mat);
+}
 
 // Discrete parcel identity, separate from the published network palette.
 // All fills use the installed triangle/label correspondence; no generated surface.
@@ -33,8 +75,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const camera=new THREE.PerspectiveCamera(35,1,.1,2000);camera.up.set(0,0,1);
   const pipeline=createRenderPipeline(renderer,{THREE,scene,camera,aoRadiusMm:7,aoStrength:.7,
     maxPixelRatio:3,maxPixels:8000000,interactiveMaxPixelRatio:1.5,interactiveMaxPixels:2400000});
-  const controls=new OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=!reduced.matches;controls.dampingFactor=.12;controls.enablePan=true;
+  const controls=new CameraControls(camera,renderer.domElement);controls.updateCameraUp();
+  controls.smoothTime=reduced.matches?0:.22;controls.draggingSmoothTime=reduced.matches?0:.12;
+  controls.mouseButtons.right=CameraControls.ACTION.TRUCK;controls.touches.two=CameraControls.ACTION.TOUCH_DOLLY_TRUCK;
   controls.minDistance=150;controls.maxDistance=900;
   scene.add(new THREE.AmbientLight(0xf8eff5,.55));
   const light=new THREE.DirectionalLight(0xfff4e7,2.7);light.position.set(-200,120,260);scene.add(light);
@@ -42,7 +85,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const centre=new THREE.Vector3(0,-18,8),hemis={},deep=[],bundles=new Map(),frameGeometry=[];
   let playing=false,profile='teaching',frame=0,last=0,time=0,disposed=false,view='left';
   let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
-  let deepHighlightIds=[],deepFocusIds=[],cameraTween=null,frameFocus=false;
+  let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false;
   let corridorOverlay=null;
   let annotations=[],annotationStamp='',annotationTime=-Infinity;
   const annotationLayer=document.createElement('div');annotationLayer.className='atlas-annotations';
@@ -69,21 +112,29 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const next=`${visibleHemi}:${autoFrame?view:'free'}`;
     if(next!==viewStamp){viewStamp=next;onView({hemisphere:visibleHemi,view:autoFrame?view:'free'});}
   }
-  const traces=[];let frames=0,contextLost=false;
+  const traces=[];let frames=0,contextLost=false,controlLast=0;
+  const currentTarget=()=>controls.getTarget(new THREE.Vector3(),false);
+  const lookAt=(position,target,transition=false)=>controls.setLookAt(...position.toArray(),...target.toArray(),transition);
+  const drawSize=new THREE.Vector2();
+  function updateLineResolutions(){renderer.getDrawingBufferSize(drawSize);
+    for(const host of Object.values(hemis))if(host.boundary)host.boundary.material.resolution.copy(drawSize);
+    for(const {group} of bundles.values())for(const line of group.children)line.material.resolution.copy(drawSize);
+  }
   const bundleIdsBy=ghost=>[...bundles].filter(([,v])=>v.ghost===ghost).map(([id])=>id);
   function draw(now=0){
     frame=0;if(disposed||contextLost)return;
     const moving=playing&&profile==='teaching'&&!reduced.matches&&!document.hidden;
     if(moving&&last)time+=Math.min((now-last)/1000,.05);
     last=moving?now:0;
-    for(const trace of traces)trace.material.uniforms.time.value=time;
-    const changed=controls.update();pipeline.render();updateAnnotations(now);updateOrientation();corridorOverlay?.update(camera);frames++;
+    for(const trace of traces)trace.material.userData.time.value=time;
+    const delta=controlLast?Math.min((now-controlLast)/1000,.05):0;controlLast=now;
+    const changed=controls.update(delta);pipeline.render();updateAnnotations(now);updateOrientation();corridorOverlay?.update(camera);frames++;
     if(moving||changed)requestDraw();
   }
   function requestDraw(){if(!frame&&!disposed&&!contextLost)frame=requestAnimationFrame(draw);}
-  controls.addEventListener('change',requestDraw);
-  controls.addEventListener('start',()=>{cameraTween=null;autoFrame=false;pipeline.setInteracting(true);onInteraction();});
-  controls.addEventListener('end',()=>{pipeline.setInteracting(false);annotationStamp='';requestDraw();});
+  controls.addEventListener('controlstart',()=>{cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
+  controls.addEventListener('control',()=>{autoFrame=false;requestDraw();});
+  controls.addEventListener('controlend',()=>{pipeline.setInteracting(false);updateLineResolutions();annotationStamp='';requestDraw();});
   reduced.addEventListener('change',requestDraw);
   document.addEventListener('visibilitychange',requestDraw);
   // A lost WebGL context (GPU switch, backgrounded mobile tab) pauses the loop and says so;
@@ -94,14 +145,14 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const resize=()=>{const w=mount.clientWidth,h=mount.clientHeight;
     if(w<=0||h<=0)return;camera.aspect=w/h;camera.updateProjectionMatrix();
     pipeline.resize(w,h,Math.min(devicePixelRatio,innerWidth<700?2:3));
+    updateLineResolutions();
     annotationStamp='';
     if(framed&&autoFrame){
-      if(cameraTween){const target=computeViewTarget(view,cameraTween.zoom,frameFocus);
-        cameraTween.target.position.copy(target.position);cameraTween.target.centre.copy(target.centre);
-      }else{const target=computeViewTarget(view,1,frameFocus);camera.position.copy(target.position);controls.target.copy(target.centre);controls.update();}
+      const target=computeViewTarget(view,cameraTransition?.zoom??1,frameFocus);
+      lookAt(target.position,target.centre,!!cameraTransition&&!reduced.matches);controls.update(0);
     }requestDraw();};
   const observer=new ResizeObserver(resize);observer.observe(mount);
-  function disposeBase(){disposed=true;cameraTween=null;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
+  function disposeBase(){disposed=true;cameraTransition=null;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
     reduced.removeEventListener('change',requestDraw);reduced.removeEventListener('change',motionChanged);document.removeEventListener('visibilitychange',requestDraw);
     pipeline.dispose();renderer.dispose();renderer.domElement.remove();annotationLayer.remove();leaders.remove();orientation.remove();}
   resize();
@@ -112,8 +163,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       const ids=new Set(named.filter(r=>r.hemi===h||r.hemi==='both').map(r=>r.id)),pos=host.geo.attributes.position;
       for(let i=0;i<pos.count;i++)if(ids.has(labels[h][i]))result.push(p.fromBufferAttribute(pos,i).clone());
     }
-    for(const {group,ghost} of bundles.values())if(!ghost){const pos=group.children[0].geometry.attributes.position;
-      for(let i=0;i<pos.count;i++)result.push(p.fromBufferAttribute(pos,i).clone());}
+    for(const {group,ghost} of bundles.values())if(!ghost){const geo=group.children[0].geometry;
+      for(const attr of [geo.attributes.instanceStart,geo.attributes.instanceEnd])for(let i=0;i<attr.count;i++)result.push(p.fromBufferAttribute(attr,i).clone());}
     for(const mesh of deep)if(mesh.visible&&deepHighlightIds.includes(mesh.userData.id)){
       const pos=mesh.geometry.attributes.position;for(let i=0;i<pos.count;i++)result.push(p.fromBufferAttribute(pos,i).clone());}
     return result;
@@ -143,59 +194,49 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     return {view:resolved,centre:targetCentre,position:targetCentre.clone().addScaledVector(direction,distance)};
   }
   function setView(key='left') {
-    cameraTween=null;frameFocus=false;
+    cameraTransition=null;frameFocus=false;
     const target=computeViewTarget(key,1);
-    view=target.view;camera.position.copy(target.position);autoFrame=true;
-    controls.target.copy(target.centre);controls.update();requestDraw();
+    view=target.view;autoFrame=true;lookAt(target.position,target.centre);controls.update(0);requestDraw();
   }
-  const easeInOutQuad=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
   /** Animate the camera to a named view; prefers-reduced-motion jumps instantly. */
   function flyTo({view:key='left',zoom=1,tweenMs=900,focus=false}={}) {
     frameFocus=focus;
     const target=computeViewTarget(key,zoom,focus);
     view=target.view;autoFrame=zoom<=1;
-    if(reduced.matches||tweenMs<=0){
-      cameraTween=null;camera.position.copy(target.position);controls.target.copy(target.centre);
-      controls.update();requestDraw();return;
-    }
-    const fromPosition=camera.position.clone(),fromTarget=controls.target.clone(),start=performance.now();
-    const token=cameraTween={target,zoom,start,duration:tweenMs};
-    function step(now){
-      if(cameraTween!==token||disposed)return;
-      if(reduced.matches){motionChanged();return;}
-      const t=Math.min(1,(now-start)/tweenMs),eased=easeInOutQuad(t);
-      camera.position.lerpVectors(fromPosition,target.position,eased);
-      controls.target.lerpVectors(fromTarget,target.centre,eased);
-      controls.update();requestDraw();
-      if(t<1)requestAnimationFrame(step);else cameraTween=null;
-    }
-    requestAnimationFrame(step);
+    const transition=!reduced.matches&&tweenMs>0;
+    controls.smoothTime=transition?Math.max(.08,tweenMs/3000):0;
+    const token=cameraTransition=transition?{target,zoom,start:performance.now(),duration:tweenMs}:null;
+    let pending=lookAt(target.position,target.centre,transition);
+    if(focus){const points=focusPoints();if(points.length){const box=new THREE.Box3().setFromPoints(points),sphere=box.getBoundingSphere(new THREE.Sphere());
+      sphere.radius*=1.28;pending=Promise.all([pending,controls.fitToSphere(sphere,transition)]);}}
+    if(token)pending.then(()=>{if(cameraTransition===token){cameraTransition=null;controls.smoothTime=reduced.matches?0:.22;annotationStamp='';requestDraw();}});
+    controls.update(0);requestDraw();
   }
   function motionChanged(){
-    controls.enableDamping=!reduced.matches;
-    if(reduced.matches&&cameraTween){const target=cameraTween.target;cameraTween=null;
-      camera.position.copy(target.position);controls.target.copy(target.centre);controls.update();}
+    controls.smoothTime=reduced.matches?0:.22;controls.draggingSmoothTime=reduced.matches?0:.12;
+    if(reduced.matches&&cameraTransition){const target=cameraTransition.target;cameraTransition=null;
+      lookAt(target.position,target.centre);controls.update(0);}
     requestDraw();
   }
   reduced.addEventListener('change',motionChanged);
   renderer.domElement.addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-','_','Home'].includes(event.key))return;
-    event.preventDefault();cameraTween=null;onInteraction();
+    event.preventDefault();cameraTransition=null;onInteraction();
     if(event.key==='Home'){setView(view);return;}
     autoFrame=false;
-    const offset=camera.position.clone().sub(controls.target),right=new THREE.Vector3().crossVectors(camera.up,offset).normalize();
+    const target=currentTarget(),offset=camera.position.clone().sub(target),right=new THREE.Vector3().crossVectors(camera.up,offset).normalize();
     if(event.shiftKey&&event.key.startsWith('Arrow')){
       const up=new THREE.Vector3().crossVectors(offset,right).normalize(),shift=new THREE.Vector3();
       shift.addScaledVector(event.key==='ArrowLeft'||event.key==='ArrowRight'?right:up,
         (event.key==='ArrowRight'||event.key==='ArrowUp'?1:-1)*offset.length()*.025);
-      controls.target.add(shift);camera.position.add(shift);
+      target.add(shift);camera.position.add(shift);
     }else{
       if(event.key==='ArrowLeft'||event.key==='ArrowRight')offset.applyAxisAngle(camera.up,(event.key==='ArrowRight'?1:-1)*Math.PI/18);
       else if(event.key==='ArrowUp'||event.key==='ArrowDown')offset.applyAxisAngle(right,(event.key==='ArrowUp'?1:-1)*Math.PI/18);
       else offset.setLength(Math.max(controls.minDistance,Math.min(controls.maxDistance,offset.length()*(['+','='].includes(event.key)?.9:1.1))));
-      camera.position.copy(controls.target).add(offset);
+      camera.position.copy(target).add(offset);
     }
-    controls.update();requestDraw();
+    lookAt(camera.position,target);controls.update(0);requestDraw();
   });
   setView();onStatus('Loading the reference atlas…');
   let manifest;
@@ -216,7 +257,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   }
   const json=async path=>JSON.parse(new TextDecoder().decode(await checked(path)));
   const draco=new DRACOLoader();draco.setDecoderPath('./vendor/addons/libs/draco/gltf/');draco.setWorkerLimit(2);
-  const loader=new GLTFLoader();loader.setDRACOLoader(draco);
+  const loader=new GLTFLoader();loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
   async function geometry(path){
     const gltf=await loader.parseAsync(await checked(path),'');
     const mesh=gltf.scene.getObjectByProperty('isMesh',true);if(!mesh)throw new Error('Empty atlas mesh');
@@ -248,6 +289,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       geo.setAttribute('network',new THREE.BufferAttribute(netIds,1));
       geo.setAttribute('netColor',new THREE.BufferAttribute(netRgb,3));
       geo.setAttribute('color',new THREE.BufferAttribute(new Float32Array(count*3),3));
+      geo.boundsTree=new MeshBVH(geo);
       const shell=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,
         roughness:.86,metalness:0,side:THREE.DoubleSide}));
       shell.material.userData.renderRole='atlas-cortex';
@@ -267,6 +309,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       color:0x8e8794,roughness:.8,side:THREE.DoubleSide,
       clippingPlanes:[new THREE.Plane(new THREE.Vector3(0,0,-1),0)]}));
     configContextMaterial(context.material,{THREE,opacity:.12});
+    contextGeometry.boundsTree=new MeshBVH(contextGeometry);
     scene.add(context);
     frameGeometry.push(context.geometry);
     const bounds=new THREE.Box3();for(const geo of frameGeometry){geo.computeBoundingBox();bounds.union(geo.boundingBox);}bounds.getCenter(centre);
@@ -275,10 +318,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     await Promise.all(sub.structures.map(async entry=>{
       const mesh=new THREE.Mesh(await geometry(entry.mesh),new THREE.MeshStandardMaterial({
         color:deepColours[entry.id.split('-')[0]],roughness:.5,transparent:true,opacity:.7,depthWrite:false}));
+      mesh.geometry.boundsTree=new MeshBVH(mesh.geometry);
       mesh.visible=false;mesh.userData={...entry,kind:'deep'};scene.add(mesh);deep.push(mesh);
     }));
   } catch(error){
-    scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});draco.dispose();disposeBase();throw error;
+    scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});draco.dispose();disposeBase();throw error;
   }
   let hoverPick=null,boundaryIdentity='';
   const parcelNetworkCache=new Map();
@@ -305,11 +349,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
           crossings.push({p,n});}
         if(crossings.length===2)for(const {p,n} of crossings){points.push(...p.toArray());normals.push(...n.toArray());}
       }
-      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
-      const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,toneMapped:false,
-        vertexShader:'varying float front; void main(){vec4 p=modelViewMatrix*vec4(position,1.0);front=dot(normalize(normalMatrix*normal),normalize(-p.xyz));gl_Position=projectionMatrix*p;}',
-        fragmentShader:'varying float front; void main(){if(front<0.05)discard;gl_FragColor=vec4(0.88,0.69,0.97,1.0);}'});
-      host.boundary=new THREE.LineSegments(geo,mat);host.boundary.renderOrder=3;host.group.add(host.boundary);
+      host.boundary=fatLine(points,{normals,color:0xe1b0f7,linewidth:1.5});
+      host.boundary.material.resolution.copy(drawSize);host.boundary.renderOrder=3;host.group.add(host.boundary);
     }
   }
   function applySelection(){
@@ -366,13 +407,13 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   // Leaders are attached to real labelled vertices. Occluded anchors are explicitly
   // marked, not drawn as if their surface were exposed. Recompute only on camera/size
   // changes, with a bounded update cadence while dragging (and a final settled update).
-  const labelRay=new THREE.Raycaster();
+  const labelRay=new THREE.Raycaster();labelRay.firstHitOnly=true;
   function updateAnnotations(now){
     if(!annotations.length)return;
     const w=mount.clientWidth,h=mount.clientHeight;
-    const stamp=[...camera.position.toArray(),...controls.target.toArray(),w,h].join(',');
+    const stamp=[...camera.position.toArray(),...currentTarget().toArray(),w,h].join(',');
     if(annotationStamp===stamp)return;
-    if(now-annotationTime<100&&(cameraTween||pipeline.diagnostics.interacting))return;
+    if(now-annotationTime<100&&(cameraTransition||pipeline.diagnostics.interacting))return;
     annotationTime=now;annotationStamp=stamp;
     scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
     leaders.setAttribute('viewBox',`0 0 ${w} ${h}`);
@@ -516,29 +557,17 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
             if(li%Math.ceil(lines.length/18)===0){tracePositions.push(...line[i-1],...line[i]);traceArc.push(lengths[i-1]/length,lengths[i]/length);}
           }
         }
-        const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-        geo.setAttribute('arc',new THREE.Float32BufferAttribute(arc,1));
         const tint=isGhost?GHOST_TINT:BUNDLE_TINTS[colourIndex%BUNDLE_TINTS.length];
         const alpha=isGhost?.12:.30;
         if(!isGhost)colourIndex++;
-        const group=new THREE.Group();group.add(new THREE.LineSegments(geo,new THREE.ShaderMaterial({
-          uniforms:{tint:{value:new THREE.Color(tint)},alpha:{value:alpha}},
-          vertexShader:'attribute float arc; varying float t; void main(){t=arc;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-          fragmentShader:'uniform vec3 tint; uniform float alpha; varying float t; void main(){float feather=smoothstep(0.0,0.06,min(t,1.0-t));gl_FragColor=vec4(tint,alpha*feather);}',
-          transparent:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false})));
+        const group=new THREE.Group();group.add(fatLine(positions,{arc,color:tint,opacity:alpha,linewidth:1.75,effect:'feather'}));
         if(!isGhost){
-          const traceGeo=new THREE.BufferGeometry();traceGeo.setAttribute('position',new THREE.Float32BufferAttribute(tracePositions,3));
-          traceGeo.setAttribute('arc',new THREE.Float32BufferAttribute(traceArc,1));
-          const material=new THREE.ShaderMaterial({uniforms:{time:{value:time},phase:{value:colourIndex*.7}},
-            vertexShader:'attribute float arc; varying float t; void main(){t=arc;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-            fragmentShader:`uniform float time; uniform float phase; varying float t;
-              void main(){float p=0.18+0.27*(1.0-cos(time*0.7+phase));
-                float a=max(exp(-pow((t-p)/0.025,2.0)),exp(-pow((t-(1.0-p))/0.025,2.0)));
-                if(a<0.02)discard; gl_FragColor=vec4(1.0,0.78,0.36,a*0.85);}`,
-            transparent:true,depthWrite:false,depthTest:false,blending:THREE.NormalBlending,toneMapped:false});
-          const trace=new THREE.LineSegments(traceGeo,material);trace.visible=profile==='teaching';trace.renderOrder=5;
+          const trace=fatLine(tracePositions,{arc:traceArc,color:0xffc75c,linewidth:2.5,depthTest:false,effect:'pulse'});
+          trace.material.userData.time.value=time;trace.material.userData.phase.value=colourIndex*.7;
+          trace.visible=profile==='teaching';trace.renderOrder=5;
           group.add(trace);traces.push(trace);
         }
+        for(const line of group.children)line.material.resolution.copy(drawSize);
         bundles.set(id,{group,ghost:isGhost,alpha});scene.add(group);
       }
       requestDraw();
@@ -546,7 +575,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${error.message}. Reload to retry.`);console.error(error);}
     }
   }
-  const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let down,hoverFrame=0;
+  const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();ray.firstHitOnly=true;let down,hoverFrame=0;
   function pickAt(e){
     const rect=renderer.domElement.getBoundingClientRect();ndc.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);
     ray.setFromCamera(ndc,camera);
@@ -562,7 +591,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     return {hemi:h,id:labels[h][nearest],vertex:nearest};
   }
   function clearHover(){cancelAnimationFrame(hoverFrame);hoverFrame=0;onHover(null);if(hoverPick){hoverPick=null;applySelection();}}
-  renderer.domElement.addEventListener('pointerdown',e=>{cameraTween=null;clearHover();down=[e.clientX,e.clientY];});
+  renderer.domElement.addEventListener('pointerdown',e=>{cameraTransition=null;clearHover();down=[e.clientX,e.clientY];});
   renderer.domElement.addEventListener('pointerup',e=>{
     if(!down||e.button!==0||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5){down=null;return;}down=null;
     const pick=pickAt(e);if(pick)onPick(pick);
@@ -591,19 +620,19 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   }
   function snapshot(){return {selected:selected?{...selected}:null,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,network:{...networkSel},
     bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),deepHighlight:[...deepHighlightIds],
-    surface,deepVisible,view,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()};}
+    surface,deepVisible,view,camera:camera.position.toArray(),target:currentTarget().toArray(),up:camera.up.toArray()};}
   function setCorridors(specs){
     if(!corridorOverlay&&specs.length) corridorOverlay=createCorridorOverlay({THREE,scene,mount,requestDraw});
     corridorOverlay?.set(specs);
   }
   function restore(state){
-    cameraTween=null;
+    cameraTransition=null;
     select(state.selected?.hemi??null,state.selected?.id);highlight(state.highlighted||[]);
     setHemisphere(state.hemisphere);setBundles(state.bundles,{ghost:state.ghostBundles||[]});
     setDeep(state.deepVisible);setDeepHighlight(state.deepHighlight||[]);setNetworks(state.network||networkSelection('off'));
     setSurface(state.surface);
-    camera.position.fromArray(state.camera);controls.target.fromArray(state.target);camera.up.fromArray(state.up);view=state.view;
-    autoFrame=false;frameFocus=false;controls.update();requestDraw();
+    camera.up.fromArray(state.up);controls.updateCameraUp();view=state.view;
+    autoFrame=false;frameFocus=false;lookAt(new THREE.Vector3().fromArray(state.camera),new THREE.Vector3().fromArray(state.target));controls.update(0);requestDraw();
   }
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
@@ -617,9 +646,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
       vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,
-        cameraFrame:frameFocus?'lesson':'whole',target:controls.target.toArray(),
+        cameraFrame:frameFocus?'lesson':'whole',target:currentTarget().toArray(),
         labels:annotations.map(a=>({key:a.key,kind:a.kind,x:a.x,y:a.y,visibility:a.visibility,primary:a.primary}))},
-      camera:camera.position.toArray(),cameraTransition:cameraTween?{elapsed:performance.now()-cameraTween.start,duration:cameraTween.duration}:null};},
-    dispose(){clearHover();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});disposeBase();},
+      camera:camera.position.toArray(),cameraTransition:cameraTransition?{elapsed:performance.now()-cameraTransition.start,duration:cameraTransition.duration}:null};},
+    dispose(){clearHover();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});disposeBase();},
   };
 }

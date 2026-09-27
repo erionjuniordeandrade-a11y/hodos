@@ -8,10 +8,21 @@
   "repository": "github:erionjuniordeandrade-a11y/hodos",
   "scripts": {
     "test": "node --test 'tests/js/*.test.js'",
+    "test:visual": "node tests/perf/visual_regression.mjs",
     "build": "node scripts/build-hodos.mjs",
     "build:hodos": "node scripts/build-hodos.mjs",
     "review-sheets": "node scripts/review-sheets.mjs"
   },
-  "devDependencies": {"playwright": "1.62.1"},
-  "engines": {"node": ">=22"}
+  "devDependencies": {
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/extensions": "^4.5.0",
+    "@gltf-transform/functions": "^4.5.0",
+    "meshoptimizer": "^1.3.0",
+    "pixelmatch": "^7.2.0",
+    "playwright": "1.62.1",
+    "pngjs": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }
