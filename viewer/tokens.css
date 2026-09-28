@@ -81,6 +81,101 @@
   --z-sticky-nav:300;
   --z-modal:400;
 }
+/* Legacy pigments (2026-09-28): literal one-off colours carried over from the pre-B2 "ported
+ * atlas mechanics" layer in hodos.css (lesson_player/atlas/anatomy_workbench/atlas-design,
+ * consolidated 2026-09-14) and a few print/forced-colors overrides. None of these values match
+ * the B2 graphite/DEC palette above, so they are kept as their own tokens rather than remapped
+ * onto it — remapping would shift computed colour. Named by role so hodos.css never carries a
+ * raw hex literal; retire a name only when its selector is deleted or repainted onto --color-*. */
+:root{
+  --legacy-accent-gold:#d6ba83;
+  --legacy-accent-gold-step:#d6bd7c;
+  --legacy-accent-ink:#101821;
+  --legacy-backdrop:#080c12d9;
+  --legacy-border-button:#3d4a5a;
+  --legacy-border-contrast:#b8ccdd;
+  --legacy-border-control:#3b5369;
+  --legacy-border-controls:#23313f;
+  --legacy-border-divider:#303946;
+  --legacy-border-filter:#2f4457;
+  --legacy-border-header:#22313f;
+  --legacy-border-hover-panel:#9caebf;
+  --legacy-border-network-dot:#fff7;
+  --legacy-border-panel:#2a3b4b;
+  --legacy-border-results:#536b80;
+  --legacy-border-row:#26394a;
+  --legacy-border-scene:#47404d;
+  --legacy-border-select:#42516a;
+  --legacy-border-slate:#344758;
+  --legacy-border-target:#637888;
+  --legacy-chip-gold:#e3bf82;
+  --legacy-heading-gold:#e2c487;
+  --legacy-heading-warm:#f1eee5;
+  --legacy-key-context:#d9e3ed;
+  --legacy-key-focus:#fbd390;
+  --legacy-link-source:#a8c8e5;
+  --legacy-media-black:#000;
+  --legacy-orientation-line:#b5a5bb;
+  --legacy-orientation-text:#efe3f2;
+  --legacy-parcel-context-fc:#dcc39a;
+  --legacy-parcel-focus-fc:#9be1f0;
+  --legacy-parcel-label-purple:#ecc8f8;
+  --legacy-parcel-label-small:#dfd5e4;
+  --legacy-parcel-label-teal:#a6e4d7;
+  --legacy-parcel-purple:#d4a2e5;
+  --legacy-parcel-teal:#84cec0;
+  --legacy-print-brand-fill:#b58a3c;
+  --legacy-print-brand-stroke:#1f7f96;
+  --legacy-print-muted:#333;
+  --legacy-print-rule:#999;
+  --legacy-selection-bg:#2b4a53;
+  --legacy-shadow-soft:#29252d22;
+  --legacy-shadow-strong:#29252d33;
+  --legacy-stage-gradient-end:#080f17;
+  --legacy-stage-gradient-mid:#0a131e;
+  --legacy-stage-gradient-start:#122436;
+  --legacy-stage-ink-fc:#ebe7df;
+  --legacy-surface-button:#202936;
+  --legacy-surface-button-hover:#21364a;
+  --legacy-surface-chip-pressed:#14202c;
+  --legacy-surface-control-input:#152331;
+  --legacy-surface-drawer:#0c151e;
+  --legacy-surface-hover-panel:#101821f5;
+  --legacy-surface-input-dark:#0e1923;
+  --legacy-surface-lesson-panel:#12171e;
+  --legacy-surface-parcel-label:#161a1ef5;
+  --legacy-surface-parcel-label-legacy:#25242bf2;
+  --legacy-surface-select:#1b232e;
+  --legacy-surface-skip-link:#22364a;
+  --legacy-surface-target:#203242;
+  --legacy-surface-view-button:#101d2a;
+  --legacy-surface-visited:#263a49;
+  --legacy-surface-void:#070c12;
+  --legacy-text-bright:#e4eaf0;
+  --legacy-text-catalog:#aab9cb;
+  --legacy-text-chip:#c6d3de;
+  --legacy-text-contrast:#d6e2ee;
+  --legacy-text-control:#e8edf4;
+  --legacy-text-detail:#8fb9c3;
+  --legacy-text-disabled:#8d959d;
+  --legacy-text-drawer:#a8bacb;
+  --legacy-text-exploration:#e4cc9d;
+  --legacy-text-faint-cool:#b9bec3;
+  --legacy-text-faint-presenter:#969ea5;
+  --legacy-text-footer:#8197aa;
+  --legacy-text-help:#adc0d0;
+  --legacy-text-hover-panel:#f4f6f8;
+  --legacy-text-label:#b1c1cf;
+  --legacy-text-muted-blue:#bacbdf;
+  --legacy-text-network:#b8a97f;
+  --legacy-text-panel:#d5dbe3;
+  --legacy-text-picker-help:#b8c9d8;
+  --legacy-text-scene:#9fb3c5;
+  --legacy-text-subtle:#c6d3df;
+  --legacy-text-tan:#c6b484;
+  --legacy-text-trace:#91a8bb;
+  --legacy-text-version:#94a0af;
+}
 /* Dark surfaces inside any theme: the atlas stage, graph stage and render plates. Text set on
  * them uses these values; the page theme above never reaches into a specimen window. */
 [data-surface=dark]{
