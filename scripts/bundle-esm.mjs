@@ -34,7 +34,7 @@ const IMPORT_DEFAULT = () => /^[ \t]*import\s+([\w$]+)\s+from\s*(['"])([^'"]+)\2
 const IMPORT_NAMED = () => /^[ \t]*import\s*\{([\s\S]*?)\}\s*from\s*(['"])([^'"]+)\2\s*;?/gm;
 const EXPORT_FROM = () => /^[ \t]*export\s*\{([\s\S]*?)\}\s*from\s*(['"])([^'"]+)\2\s*;?/gm;
 const EXPORT_LIST = () => /^[ \t]*export\s*\{([\s\S]*?)\}\s*;?[ \t]*$/gm;
-const EXPORT_CONST = () => /^([ \t]*)export\s+const\s+([\w$]+)(\s*=)/gm;
+const EXPORT_CONST = () => /^([ \t]*)export\s+const\s+(?=[\w$])/gm;
 const EXPORT_FUNCTION = () => /^([ \t]*)export\s+(async\s+function\*?|function\*?)\s+([\w$]+)(\s*\()/gm;
 const LEFTOVER = /^[ \t]*(import\s|export\s)/m;
 
@@ -54,6 +54,43 @@ function staticSpecifiers(source) {
   return specs;
 }
 
+// Names declared by one `const` declaration starting at `start` (just after the `const` keyword).
+// Walks the source tracking bracket depth and skipping string, template and comment bodies;
+// stops at the first `;` at depth 0. Throws when no terminator is found.
+function constDeclarators(id, source, start) {
+  const names = [];
+  let i = start, depth = 0, expectName = true;
+  const identifier = /[\w$]+/y;
+  while (i < source.length) {
+    const ch = source[i], next = source[i + 1];
+    if (expectName) {
+      identifier.lastIndex = i;
+      const m = identifier.exec(source);
+      if (!m) throw new Error(`Bundler: cannot read the declarator name in a const export of ${id}`);
+      names.push(m[0]);
+      i += m[0].length;
+      expectName = false;
+      continue;
+    }
+    if (ch === '/' && next === '/') { const end = source.indexOf('\n', i); i = end < 0 ? source.length : end + 1; continue; }
+    if (ch === '/' && next === '*') { const end = source.indexOf('*/', i + 2); if (end < 0) throw new Error(`Bundler: unterminated comment in ${id}`); i = end + 2; continue; }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      const quote = ch;
+      i++;
+      while (i < source.length && source[i] !== quote) { if (source[i] === '\\') i++; i++; }
+      if (i >= source.length) throw new Error(`Bundler: unterminated string in a const export of ${id}`);
+      i++;
+      continue;
+    }
+    if (ch === '(' || ch === '[' || ch === '{') depth++;
+    else if (ch === ')' || ch === ']' || ch === '}') depth--;
+    else if (depth === 0 && ch === ';') return names;
+    else if (depth === 0 && ch === ',') { i++; while (/\s/.test(source[i])) i++; expectName = true; continue; }
+    i++;
+  }
+  throw new Error(`Bundler: const export in ${id} has no terminating ';' at depth 0 (declarators so far: ${names.join(', ')})`);
+}
+
 // Transforms one module's ESM syntax into the body of a CommonJS-style async factory:
 // `async function(module, exports, __require) { ...body... }`. The factory is async
 // (rather than trying to prove no top-level `await` exists) so any await that was
@@ -61,6 +98,8 @@ function staticSpecifiers(source) {
 function transformModule(id, source) {
   const requireLines = [];
   const exportEntries = [];
+  const exportNames = [];
+  const namedImports = [];
   const requireExpr = spec => {
     const target = resolveDependency(id, spec);
     if (!target) throw new Error(`Bundler: unresolved import specifier "${spec}" in ${id}`);
@@ -80,7 +119,9 @@ function transformModule(id, source) {
   });
 
   body = body.replace(IMPORT_NAMED(), (m, names, q, spec) => {
-    const bindings = splitNames(names).map(({ orig, alias }) => orig === alias ? orig : `${orig}: ${alias}`).join(', ');
+    const parsed = splitNames(names);
+    namedImports.push({ target: resolveDependency(id, spec), names: parsed.map(({ orig }) => orig) });
+    const bindings = parsed.map(({ orig, alias }) => orig === alias ? orig : `${orig}: ${alias}`).join(', ');
     if (!bindings) return '';
     requireLines.push(`const {${bindings}} = ${requireExpr(spec)};`);
     return '';
@@ -91,6 +132,7 @@ function transformModule(id, source) {
     requireLines.push(`const ${dep} = ${requireExpr(spec)};`);
     for (const { orig, alias } of splitNames(names)) {
       exportEntries.push(`${JSON.stringify(alias)}: ${dep}[${JSON.stringify(orig)}]`);
+      exportNames.push(alias);
     }
     return '';
   });
@@ -98,17 +140,26 @@ function transformModule(id, source) {
   body = body.replace(EXPORT_LIST(), (m, names) => {
     for (const { orig, alias } of splitNames(names)) {
       exportEntries.push(`${JSON.stringify(alias)}: ${orig}`);
+      exportNames.push(alias);
     }
     return '';
   });
 
-  body = body.replace(EXPORT_CONST(), (m, indent, name, eq) => {
-    exportEntries.push(`${JSON.stringify(name)}: ${name}`);
-    return `${indent}const ${name}${eq}`;
+  // `export const a=..., b=..., c=...;` exports EVERY declarator, not just the first. The
+  // declaration is scanned from the keyword to its terminating `;` at bracket depth 0 (skipping
+  // strings, template literals and comments), and each depth-0 `, name =` starts a new declarator.
+  // A declaration without a `;` at depth 0 is refused loudly: it cannot be scoped safely.
+  body = body.replace(EXPORT_CONST(), (m, indent, offset) => {
+    for (const name of constDeclarators(id, body, offset + m.length)) {
+      exportEntries.push(`${JSON.stringify(name)}: ${name}`);
+      exportNames.push(name);
+    }
+    return `${indent}const `;
   });
 
   body = body.replace(EXPORT_FUNCTION(), (m, indent, kw, name, paren) => {
     exportEntries.push(`${JSON.stringify(name)}: ${name}`);
+    exportNames.push(name);
     return `${indent}${kw} ${name}${paren}`;
   });
 
@@ -119,7 +170,7 @@ function transformModule(id, source) {
   const exportStatement = exportEntries.length
     ? `\nObject.assign(exports, {${exportEntries.join(', ')}});\n`
     : '';
-  return `${requireLines.join('\n')}\n${body}${exportStatement}`;
+  return { code: `${requireLines.join('\n')}\n${body}${exportStatement}`, exportNames, namedImports };
 }
 
 // Walks the STATIC import graph from `entry`, in post-order (dependencies before
@@ -157,12 +208,24 @@ export function bundleModules(entry, files, header = '') {
   readSource.has = id => files.has(id);
   const moduleEntries = collectGraph(entry, readSource);
 
+  const transformed = moduleEntries.map(([id, source]) => [id, transformModule(id, source)]);
+  // Every named import of a bundled module must name something that module exports. Silently
+  // binding `undefined` is exactly how a partially handled export reaches production unnoticed
+  // (a NaN shader uniform lit every streamline in the lesion lab); refuse the bundle instead.
+  const exportsOf = new Map(transformed.map(([id, t]) => [id, new Set(t.exportNames)]));
+  for (const [id, t] of transformed) {
+    for (const { target, names } of t.namedImports) {
+      if (!exportsOf.has(target)) continue;
+      const missing = names.filter(name => !exportsOf.get(target).has(name));
+      if (missing.length) throw new Error(`Bundler: ${id} imports {${missing.join(', ')}} from ${target}, which does not export ${missing.length === 1 ? 'it' : 'them'}`);
+    }
+  }
+
   const parts = [];
   if (header) parts.push(header);
   parts.push('const __modules = {');
-  for (const [id, source] of moduleEntries) {
-    const transformed = transformModule(id, source);
-    parts.push(`${JSON.stringify(id)}: async function (module, exports, __require) {\n${transformed}\n},`);
+  for (const [id, t] of transformed) {
+    parts.push(`${JSON.stringify(id)}: async function (module, exports, __require) {\n${t.code}\n},`);
   }
   parts.push('};');
   parts.push('const __cache = Object.create(null);');

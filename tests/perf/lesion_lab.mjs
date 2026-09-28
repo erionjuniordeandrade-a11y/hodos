@@ -13,6 +13,7 @@ import {execFileSync} from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import {chromium} from 'playwright';
+import {PNG} from 'pngjs';
 import {buildHodos} from '../../scripts/build-hodos.mjs';
 import {CONNECTION_ROWS} from '../../viewer/connections_data.js';
 import {PMID_RECORDS} from '../../viewer/lesion_evidence.js';
@@ -113,6 +114,17 @@ const setRange=(page,id,value)=>page.evaluate(([id,value])=>{
   input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
 },[id,value]);
 const cutIds=state=>state.rows.filter(r=>r.cut>0).map(r=>r.id).sort();
+// Streamlines the sphere cuts are drawn in their saturated DEC tint; spared ones are a desaturated
+// ghost grey. Counting chromatic pixels on the stage therefore measures how many streamlines are
+// lit, independent of the cut COUNTS (which come from the model, not the shader). A build whose
+// bundle lost the MARGIN/CUT exports lit every streamline while the counts stayed right.
+async function litPixels(page){
+  await frame(page);
+  const png=PNG.sync.read(await page.locator('.lab-stage').screenshot());
+  let lit=0;
+  for(let i=0;i<png.data.length;i+=4){const r=png.data[i],g=png.data[i+1],b=png.data[i+2];if(Math.max(r,g,b)-Math.min(r,g,b)>70)lit++;}
+  return lit;
+}
 // The orbit controls re-derive the camera from spherical coordinates every frame, so an untouched camera drifts by ~1e-14 mm.
 const sameCamera=(a,b)=>a.every((v,i)=>Math.abs(v-b[i])<1e-3);
 
@@ -267,7 +279,9 @@ try{
     assert((await page.locator('footer.source-footer').innerText()).includes('Group reference, not this patient.'));
     assert(await noOverflow(page),'no horizontal overflow at 1440');
     await page.screenshot({path:path.join(out,'desktop-ready.png'),fullPage:true});
-    report.checks.push('1440: loads, opens on the left arcuate fasciculus, footer scope line present, no overflow');
+    const litReady=await litPixels(page);
+    assert(litReady>5000,`the opening position lights streamlines on the stage (${litReady} chromatic px)`);
+    report.checks.push(`1440: loads, opens on the left arcuate fasciculus (${litReady} lit px), footer scope line present, no overflow`);
 
     report.fps.desktop=await measureDrag(page,'1440x900@2x');
     await page.waitForFunction(()=>{const [x,y,z]=window.__lesionLabTest.centre,q=new URLSearchParams(location.search);
@@ -320,7 +334,9 @@ try{
       input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}});
     await page.waitForFunction(()=>document.getElementById('labSummary').dataset.empty==='true');
     assert.equal(await page.locator('#bundleList li').count(),0);
-    report.checks.push('Empty state: a sphere outside the sampled white matter says so and lists no bundle');
+    const litEmpty=await litPixels(page);
+    assert(litEmpty<litReady*.25,`a sphere that cuts nothing lights no streamline: ${litEmpty} chromatic px vs ${litReady} at the opening position`);
+    report.checks.push(`Empty state: a sphere outside the sampled white matter says so, lists no bundle and lights no streamline (${litEmpty} vs ${litReady} px)`);
 
     await page.selectOption('#anchor','AF_L');await setRange(page,'radius',12);
     await page.waitForFunction(()=>/[?&]r=12/.test(location.search));
