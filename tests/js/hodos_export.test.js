@@ -22,7 +22,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
   assert.equal(new Set(lessonIds).size,14);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
-  assert.equal(landingAssets.length,26);
+  assert.equal(landingAssets.length,27);
   assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
   assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));
@@ -52,7 +52,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const asset of ['mips.js','mips_content.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
   const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
   const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
-  assert.equal(sitemapLocs.length,21);
+  assert.equal(sitemapLocs.length,22);
   assert(sitemapLocs.includes('https://hodosatlas.com/lessons'));
   assert.deepEqual(sitemapLocs.filter(url=>url.startsWith('https://hodosatlas.com/lessons/')),lessonIdsInCurriculum().map(id=>`https://hodosatlas.com/lessons/${id}`));
   assert(!sitemap.includes('/atlas?lesson='));

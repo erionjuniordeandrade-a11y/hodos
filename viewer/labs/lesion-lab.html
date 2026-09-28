@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><base href="/"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesion lab · Hodos</title>
+<meta name="author" content="Dr. Erion de Andrade">
+<meta name="description" content="Drag a lesion sphere through group-average white matter and see which sampled bundles it cuts, with what the author’s teaching notes say injury to each causes, quoted verbatim with their sources.">
+<link rel="canonical" href="https://hodosatlas.com/labs/lesion-lab">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Hodos"><meta property="og:title" content="Lesion lab · Hodos"><meta property="og:description" content="Where a lesion sits decides what it disconnects. A group-reference teaching lab."><meta property="og:url" content="https://hodosatlas.com/labs/lesion-lab"><meta property="og:image" content="https://hodosatlas.com/brand/hodos-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lesion lab · Hodos">
+<meta name="twitter:description" content="Where a lesion sits decides what it disconnects. A group-reference teaching lab.">
+<meta name="twitter:image" content="https://hodosatlas.com/brand/hodos-og.png">
+<meta name="theme-color" content="#1E2227"><link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/archivo-latin.woff2" crossorigin>
+<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./lesion-lab.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/","three-mesh-bvh":"./vendor/three-mesh-bvh.js","camera-controls":"./vendor/camera-controls.js"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://hodosatlas.com/#erion","name":"Dr. Erion de Andrade","honorificPrefix":"Dr.","jobTitle":"Neurosurgeon","url":"https://www.dreriondeandrade.com.br/"},{"@type":"LearningResource","name":"Lesion lab · Hodos","url":"https://hodosatlas.com/labs/lesion-lab","description":"Drag a lesion sphere through group-average white matter and see which sampled bundles it cuts, with what the author’s teaching notes say injury to each causes, quoted verbatim with their sources. Group reference, not a patient; educational draft awaiting independent clinical review.","learningResourceType":"Interactive teaching exercise","isAccessibleForFree":true,"author":{"@id":"https://hodosatlas.com/#erion"}}]}</script>
+</head><body class="lab-page">
+<a class="skip-link" id="skipLink" href="/labs/lesion-lab#labMain">Skip to the lab</a>
+<header class="studio-header"><a class="brand" href="./index.html"><img src="./brand/hodos-mark.svg" width="28" height="28" alt=""><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a><nav aria-label="Site"><a href="./atlas.html">Atlas &amp; lessons</a><a href="./case-conference.html">Case Conference</a><a href="./mips.html" class="nav-long">MIPS</a><a href="./labs/lesion-lab.html" aria-current="page" class="nav-long">Lesion lab</a><a href="./connections.html" class="nav-long">Connections</a><a href="./atlas-sources.html" class="header-sources">Sources</a></nav></header>
+<main id="labMain" class="lab-main" tabindex="-1">
+  <header class="lab-intro"><p class="lab-eyebrow">Lesion lab · Group reference</p><h1>Where a lesion sits decides what it disconnects.</h1><p>Drag the sphere through the white matter. Every sampled streamline that passes through it is drawn along its whole length, so you can see which regions it runs between. The panel lists the bundles it cuts and what the author’s teaching notes say injury to each causes, quoted verbatim.</p></header>
+  <div class="lab-workbench">
+    <figure class="lab-figure">
+      <div class="lab-stage" data-surface="dark"><div id="atlasCanvas"></div><p id="sceneStatus" class="lab-status" role="status">Loading reference anatomy…</p><button id="retryScene" type="button" hidden>Retry atlas</button><span id="stageLabel" class="lab-stage-label">Left hemisphere</span><p id="midlineNote" class="lab-stage-note" hidden>The sphere reaches the midline. Bundles of the other hemisphere are not drawn or tested.</p></div>
+      <div class="lab-views" role="group" aria-label="Named anatomical views"><button type="button" data-view="lateral" aria-pressed="true">Lateral</button><button type="button" data-view="medial" aria-pressed="false">Medial</button><button type="button" data-view="superior" aria-pressed="false">Superior</button><button type="button" data-view="anterior" aria-pressed="false">Anterior</button><span id="viewStatus">Lateral view</span></div>
+      <p id="canvasHelp" class="lab-help">Drag the sphere to move it across the screen; drag anywhere else to rotate, and pinch or scroll to zoom. Rotate the view, or use the position sliders, to move it along the third axis. With the canvas focused, arrow keys rotate, Shift + arrows pan, + / − zoom and Home resets the view.</p>
+      <fieldset id="lesionControls" class="lab-controls" disabled><legend>Lesion</legend>
+        <div class="lab-control"><span class="lab-control-label" id="hemiLabel">Hemisphere</span><div class="lab-options" role="group" aria-labelledby="hemiLabel"><button type="button" data-hemi="L" aria-pressed="true">Left</button><button type="button" data-hemi="R" aria-pressed="false">Right</button></div></div>
+        <div class="lab-control"><label for="radius">Radius <output id="radiusValue" for="radius">10 mm</output></label><input id="radius" type="range" min="3" max="30" step="1" value="10"></div>
+        <div class="lab-control"><div class="lab-check"><input id="marginOn" type="checkbox"><label for="marginOn">Resection margin ring</label><output id="marginValue" for="margin">5 mm</output></div><input id="margin" type="range" min="1" max="20" step="1" value="5" aria-label="Margin beyond the sphere, in millimetres" disabled></div>
+        <div class="lab-control"><label for="anchor">Centre the sphere on a bundle</label><select id="anchor"><option value="">Choose a bundle</option></select></div>
+        <div class="lab-control lab-position"><span class="lab-control-label">Position</span>
+          <label for="posX">Left to right (x)</label><input id="posX" type="range" min="-70" max="0" step="0.5" value="-38">
+          <label for="posY">Posterior to anterior (y)</label><input id="posY" type="range" min="-105" max="75" step="0.5" value="-32">
+          <label for="posZ">Inferior to superior (z)</label><input id="posZ" type="range" min="-54" max="82" step="0.5" value="29">
+        </div>
+        <p id="positionReadout" class="lab-coords">MNI x −38.0 · y −32.2 · z 29.1 mm</p>
+        <p class="lab-help">The ring marks a chosen distance beyond the sphere and counts the streamlines that run inside it. It is a geometric band for discussion, not a safe distance.</p>
+      </fieldset>
+    </figure>
+    <section class="lab-panel" aria-labelledby="panelTitle">
+      <p class="lab-eyebrow">Sampled streamlines the sphere cuts</p>
+      <h2 id="panelTitle">What this position disconnects</h2>
+      <p id="labSummary" class="lab-summary">The bundle list appears when the reference atlas has loaded.</p>
+      <div id="namedBlock" class="lab-named-block" hidden><h3>Named in the notes for these bundles</h3><ul id="namedList" class="lab-named"></ul><p class="lab-aside">Statements that need damage on both sides, or that place the injury at one site of a bundle, are listed under that bundle, not here. The share of sampled streamlines is a geometric count, not the probability of a deficit.</p></div>
+      <ol id="bundleList" class="lab-bundles" aria-label="Bundles the sphere reaches"></ol>
+      <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+  <section class="lab-limits" aria-labelledby="limitsTitle">
+    <div><p class="lab-eyebrow">How the lab decides</p><h2 id="limitsTitle">A geometric test on group anatomy.</h2>
+      <p>Each bundle is drawn from its HCP1065 sample: at most 220 streamlines of the thousands in the population atlas (34,156 in the left arcuate fasciculus). A streamline counts as cut when any of its segments passes within the sphere's radius of the centre, and as inside the margin when it passes within the radius plus the margin.</p>
+      <p>The test does not model oedema, infiltration, cortical injury, plasticity or where one person's tracts run. Only the chosen hemisphere's association and projection bundles and the commissures are tested; cerebellar pathways and cranial nerves are not.</p>
+      <p><a href="./atlas-sources.html">Atlas provenance and sampling limits</a></p>
+    </div>
+    <div><p class="lab-eyebrow">Where the statements come from</p><h2>Quoted, never written here.</h2>
+      <p>Every statement is a verbatim sentence from the author’s white matter teaching notes, as recorded in the Hodos connections graph. The lab writes no deficit of its own: a bundle without a quoted statement says No quoted evidence.</p>
+      <p id="pmidNote">PMIDs are the ones listed on the slide a statement cites. Each was checked to exist at NCBI; the papers were not re-read against each sentence.</p>
+      <p>The lab tests whole bundles. Statements that need damage on both sides, or that place the injury at one site of a bundle, stay under their bundle with that condition shown. Statements that name a visual field or a side of space are placed with the opposite hemisphere.</p>
+      <p id="unplacedNote">Statements about the sagittal stratum and the temporal stem are not placed, because the atlas has no single bundle for either.</p>
+      <p class="lab-aside">Educational draft awaiting independent clinical review. Not for patient-specific planning.</p>
+      <p><a href="./connections.html">Browse the full connections graph</a></p>
+      <p id="provenance" class="lab-provenance"></p>
+    </div>
+  </section>
+</main>
+<footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p></div><div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP1065 sampled tractography</p><p>Author's white matter teaching notes</p></div><div class="foot-terms"><p class="foot-label">Use</p><p class="lab-foot-scope">Group reference, not this patient.</p><p>Reference anatomy only.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p><p><a href="./mips.html">MIPS</a></p><p><a href="./labs/lesion-lab.html">Lesion lab</a></p><p><a href="./connections.html">Connections</a></p><p><a href="./lessons">Lessons</a></p><p><a href="https://github.com/erionjuniordeandrade-a11y/hodos/issues/new" target="_blank" rel="noopener">Report an error or suggest a correction</a></p></div></footer>
+<noscript><p class="lab-noscript">The interactive lab needs JavaScript. The method, sources and limits on this page remain available to read.</p></noscript>
+<script type="module" src="./lesion_lab.js"></script></body></html>
