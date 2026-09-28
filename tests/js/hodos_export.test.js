@@ -57,8 +57,11 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const mips=await readFile(path.join(out,'mips.html'),'utf8');
   assert.match(home,/href="\.\/mips"/);
   assert.match(mips,/rel="canonical" href="https:\/\/hodosatlas\.com\/mips"/);
-  assert.match(mips,/src="\.\/mips\.js"/);
-  for(const asset of ['mips.js','mips_content.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
+  // /mips loads the bundled entry (mips.js + its static closure in one request, content-hash
+  // versioned like the other keyed assets); the unbundled mips.js still ships for the dynamic
+  // import()s that lazy-load atlas_scene.js, which the loop below still asserts exist.
+  assert.match(mips,/src="\.\/mips\.bundle\.js\?v=[a-f0-9]{12}"/);
+  for(const asset of ['mips.js','mips_content.js','mips.bundle.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
   const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
   const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
   assert.equal(sitemapLocs.length,22);
