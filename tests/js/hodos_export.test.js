@@ -22,10 +22,14 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
   assert.equal(new Set(lessonIds).size,14);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
-  assert.equal(landingAssets.length,27);
+  // 2026-09-28: recaptured lesson-demo stills from the current (post-CSS-token) build were added
+  // alongside the 2026-09-26 originals (add-only), so the landing asset count grew by 2.
+  assert.equal(landingAssets.length,29);
   assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
   assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));
+  assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-20260928.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-phone-20260928.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1200-20260919.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1920-20260919.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
@@ -35,10 +39,14 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const id of ['motor-cst','fat-language','default-mode-network']){
     assert(home.includes(`data-preview-target="preview-${id}"`));
     assert(home.includes(`href="./atlas?lesson=${id}&amp;step=0&amp;phase=orient&amp;hemi=L"`));
-    const plate=`media/lesson-previews/plate-${id}-20260919.jpg`;
+    // 2026-09-28: landing now points at the recaptured plate; the 2026-09-19 original stays
+    // exported too (add-only media policy), just no longer linked from the landing page.
+    const plate=`media/lesson-previews/plate-${id}-20260928.jpg`;
+    const priorPlate=`media/lesson-previews/plate-${id}-20260919.jpg`;
     assert(home.includes(`data-src="./${plate}"`));
     assert(!home.includes(` src="./${plate}"`),'Large plates load only after opening a preview');
     assert(receipt.files.some(f=>f.path===plate),`Preview plate is exported: ${plate}`);
+    assert(receipt.files.some(f=>f.path===priorPlate),`Prior preview plate stays exported (add-only): ${priorPlate}`);
   }
   assert(!receipt.files.some(f=>/^media\/hodos-hero-/.test(f.path)));
   assert.match(home,/href="\.\/atlas"/);
