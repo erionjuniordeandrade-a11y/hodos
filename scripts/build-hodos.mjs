@@ -1,6 +1,7 @@
 // Public reference-atlas export. Never copy the viewer or repository wholesale.
 import {readFile,writeFile,mkdir,lstat,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {generateLessonPages,lessonIdsFromLanding,lessonIdsInCurriculum} from './lesson-pages.mjs';
@@ -135,6 +136,8 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     if(asset.gzip){
       const gzBytes=await safeRead(viewer,`atlas/${asset.gzip.path}`);
       if(gzBytes.length!==asset.gzip.bytes||sha256(gzBytes)!==asset.gzip.sha256)throw Error(`Atlas gzip asset integrity failed: ${asset.gzip.path}`);
+      // The sibling is derived: it must decode to exactly the bytes the manifest lists for the asset.
+      if(sha256(gunzipSync(gzBytes))!==asset.sha256)throw Error(`Atlas gzip sibling is stale: ${asset.gzip.path} does not decode to ${asset.path}`);
       add(`atlas/${asset.gzip.path}`,gzBytes);
     }
   }

@@ -269,15 +269,22 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const record=manifest.assets.find(a=>a.path===path);if(!record)throw new Error('Unlisted atlas asset');
     if(!record.gzip||typeof DecompressionStream!=='function')return checked(path);
     const gz=record.gzip;
-    const response=await fetch(`./atlas/${gz.path}?v=${gz.sha256.slice(0,12)}`);
-    if(!response.ok)throw new Error(`Atlas asset unavailable: ${gz.path}`);
-    const compressed=await response.arrayBuffer();
-    if(compressed.byteLength!==gz.bytes||await sha256(compressed)!==gz.sha256)throw new Error(`Atlas asset integrity failed: ${gz.path}`);
-    const decompressedStream=new Response(compressed).body.pipeThrough(new DecompressionStream('gzip'));
-    const bytes=await new Response(decompressedStream).arrayBuffer();
-    const hash=await sha256(bytes);
-    if(hash!==record.sha256||bytes.byteLength!==record.bytes)throw new Error(`Atlas asset integrity failed: ${path}`);
-    return bytes;
+    try{
+      const response=await fetch(`./atlas/${gz.path}?v=${gz.sha256.slice(0,12)}`);
+      if(!response.ok)throw new Error(`Atlas asset unavailable: ${gz.path}`);
+      const compressed=await response.arrayBuffer();
+      if(compressed.byteLength!==gz.bytes||await sha256(compressed)!==gz.sha256)throw new Error(`Atlas asset integrity failed: ${gz.path}`);
+      const decompressedStream=new Response(compressed).body.pipeThrough(new DecompressionStream('gzip'));
+      const bytes=await new Response(decompressedStream).arrayBuffer();
+      if(await sha256(bytes)!==record.sha256||bytes.byteLength!==record.bytes)throw new Error(`Atlas asset integrity failed: ${path}`);
+      return bytes;
+    }catch(error){
+      // The compressed sibling is an optimisation only: a transport that re-encodes it, a blocked
+      // fetch or a failed decode must never cost the atlas its labels. The raw asset is still
+      // integrity-checked by checked().
+      console.warn(`Compressed atlas asset fell back to the raw file: ${gz.path}`,error);
+      return checked(path);
+    }
   }
   const draco=new DRACOLoader();draco.setDecoderPath('./vendor/addons/libs/draco/gltf/');draco.setWorkerLimit(2);
   const loader=new GLTFLoader();loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
