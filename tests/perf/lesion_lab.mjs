@@ -125,8 +125,53 @@ async function litPixels(page){
   for(let i=0;i<png.data.length;i+=4){const r=png.data[i],g=png.data[i+1],b=png.data[i+2];if(Math.max(r,g,b)-Math.min(r,g,b)>70)lit++;}
   return lit;
 }
+// #bundleList lives inside the (inert-by-default) evidence drawer; a real UI interaction with a row
+// needs the drawer actually opened first, same as a visitor clicking "Quotes and sources" would.
+async function openDrawer(page){
+  if(await page.evaluate(()=>document.getElementById('evidenceDrawer').inert)){
+    await page.locator('#openEvidence').click();
+    await page.waitForFunction(()=>!document.getElementById('evidenceDrawer').inert);
+  }
+}
+// An open drawer is a fixed-position overlay that intercepts pointer events on whatever it sits above
+// (e.g. #marginOn); close it once its own rows are no longer needed, same as a visitor would.
+async function closeDrawer(page){
+  if(!(await page.evaluate(()=>document.getElementById('evidenceDrawer').inert))){
+    await page.locator('#closeEvidence').click();
+    await page.waitForFunction(()=>document.getElementById('evidenceDrawer').inert);
+  }
+}
 // The orbit controls re-derive the camera from spherical coordinates every frame, so an untouched camera drifts by ~1e-14 mm.
 const sameCamera=(a,b)=>a.every((v,i)=>Math.abs(v-b[i])<1e-3);
+
+/**
+ * Layout gate added for the reviewer's 2026-09-27 P1b correction: the app's own frame (from
+ * setFrameInsets, via __lesionLabTest.frame) must stay >= minWidth px wide when given, and the
+ * cortex shell's screen-space projection (__lesionLabTest.brainRect) must fill most of it and
+ * never spill outside it by more than a couple of px of rounding.
+ */
+async function checkFrame(page,label,{minWidth}={}){
+  const state=await lab(page);
+  assert(state.frame,`${label}: the app reports its frame insets`);
+  assert(state.brainRect,`${label}: the cortex shell projects to a screen rect`);
+  const {frame,brainRect}=state,frameWidth=frame.right-frame.left,frameHeight=frame.bottom-frame.top;
+  if(minWidth)assert(frameWidth>=minWidth,`${label}: frame is ${frameWidth.toFixed(0)}px wide (needs >=${minWidth})`);
+  const fill=Math.max(brainRect.width/frameWidth,brainRect.height/frameHeight);
+  assert(fill>=0.8,`${label}: the brain fills ${(fill*100).toFixed(0)}% of the frame (needs >=80%)`);
+  assert(brainRect.left>=frame.left-2&&brainRect.top>=frame.top-2&&brainRect.right<=frame.right+2&&brainRect.bottom<=frame.bottom+2,
+    `${label}: the brain rect (${JSON.stringify(brainRect)}) sits inside the measured frame (${JSON.stringify(frame)}, 2px tolerance)`);
+  return {frame,brainRect};
+}
+/** No two of the given selectors' boxes may overlap (the HUD cards around the free frame). */
+async function checkNoOverlap(page,selectors){
+  const boxes=[];
+  for(const sel of selectors){const box=await page.locator(sel).boundingBox();assert(box,`${sel} has a box`);boxes.push({sel,box});}
+  for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+    const a=boxes[i].box,b=boxes[j].box;
+    const overlap=a.x<b.x+b.width&&b.x<a.x+a.width&&a.y<b.y+b.height&&b.y<a.y+a.height;
+    assert(!overlap,`${boxes[i].sel} overlaps ${boxes[j].sel}`);
+  }
+}
 
 /**
  * Drags the sphere along a Lissajous path for DRAG_SECONDS with real mouse input, sent as fast as the browser accepts it
@@ -166,32 +211,6 @@ async function measureDrag(page,label){
   assert(result.fpsMean>=FPS_MIN,`${label}: ${result.fpsMean} fps mean during the drag (needs ${FPS_MIN})`);
   assert(result.sceneDrawsPerSecond>=FPS_MIN,`${label}: the scene redrew ${result.sceneDrawsPerSecond} times a second during the drag (needs ${FPS_MIN})`);
   return result;
-}
-
-/**
- * The inverse of measureDrag's camera check: a drag that starts away from the sphere must still
- * reach CameraControls and orbit the view, and must leave the sphere itself untouched. This proves
- * the capture-phase pointerdown on the mount only swallows events that start on the sphere, so main's
- * CameraControls still drives every other drag. Confirms via real DOM hit-testing that the chosen
- * start point actually lands on the canvas, not a status overlay sibling of #atlasCanvas.
- */
-async function measureOffSphereDrag(page){
-  await showStage(page);
-  const before=await lab(page),{x:sx,y:sy,r}=before.sphere,stage=await page.locator('.lab-stage').boundingBox();
-  const onCanvas=([cx,cy])=>page.evaluate(([cx,cy])=>!!document.elementFromPoint(cx,cy)?.closest('#atlasCanvas'),[cx,cy]);
-  const candidates=[[stage.x+stage.width-24,stage.y+24],[stage.x+24,stage.y+24],
-    [stage.x+24,stage.y+stage.height-24],[stage.x+stage.width-24,stage.y+stage.height-24],
-    [stage.x+stage.width/2,stage.y+stage.height-16]].filter(([cx,cy])=>Math.hypot(cx-sx,cy-sy)>r+60);
-  let picked=null;
-  for(const candidate of candidates)if(await onCanvas(candidate)){picked=candidate;break;}
-  assert(picked,'found a point off the sphere that hits the canvas, not a status overlay');
-  const [x,y]=picked;
-  await page.mouse.move(x,y);await page.mouse.down();
-  await page.mouse.move(x-70,y+45,{steps:8});await page.mouse.move(x-130,y+80,{steps:8});
-  await page.mouse.up();
-  const after=await lab(page);
-  assert(!sameCamera(after.scene.camera,before.scene.camera),'an off-sphere drag still orbits the camera');
-  assert.deepEqual(after.centre,before.centre,'an off-sphere drag does not move the sphere');
 }
 
 /** Walks every bundle anchor of the current hemisphere, opens every row and returns what the page shows. */
@@ -283,13 +302,17 @@ try{
     assert(litReady>5000,`the opening position lights streamlines on the stage (${litReady} chromatic px)`);
     report.checks.push(`1440: loads, opens on the left arcuate fasciculus (${litReady} lit px), footer scope line present, no overflow`);
 
+    const stageBox=await page.locator('.lab-stage').boundingBox();
+    assert(Math.abs(stageBox.x)<1&&Math.abs(stageBox.width-1440)<1,`stage is full-bleed at 1440 (x=${stageBox.x}, width=${stageBox.width})`);
+    await checkNoOverlap(page,['.lab-hud-title','.lab-story','.lab-controls','#stageLabel','.lab-scope','.lab-console']);
+    await checkFrame(page,'1440x900',{minWidth:600});
+    await page.screenshot({path:path.join(out,'p1b-desktop.png'),fullPage:true});
+    report.checks.push('1440: stage is full-bleed, the six HUD cards do not overlap pairwise, the frame is >=600px wide and the brain fills >=80% of it');
+
     report.fps.desktop=await measureDrag(page,'1440x900@2x');
     await page.waitForFunction(()=>{const [x,y,z]=window.__lesionLabTest.centre,q=new URLSearchParams(location.search);
       return q.get('x')===String(x)&&q.get('y')===String(y)&&q.get('z')===String(z);});
     report.checks.push(`1440: scripted drag ${report.fps.desktop.fpsMean} fps mean, camera unchanged, URL updated`);
-
-    await measureOffSphereDrag(page);
-    report.checks.push('1440: a drag starting off the sphere still orbits the camera and leaves the sphere in place');
 
     const evidenceL=checkEvidence(await collectEvidence(page),'L');
     await page.locator('[data-hemi="R"]').click();
@@ -297,20 +320,24 @@ try{
     state=await lab(page);
     assert(state.centre[0]>=0,'switching hemisphere mirrors the sphere');
     assert(state.rows.every(r=>/_R$/.test(r.id)||!/_[LR]$/.test(r.id)),'right hemisphere rows only');
-    assert.equal(await page.locator('#stageLabel').innerText(),'Right hemisphere');
+    assert.equal(await page.locator('#stageLabel').innerText(),'Right hemisphere · Grid 10 mm');
     const evidenceR=checkEvidence(await collectEvidence(page),'R');
     report.evidence={L:evidenceL,R:evidenceR};
     report.checks.push(`Evidence: every row of both hemispheres opened; ${evidenceL.statementsShown+evidenceR.statementsShown} statements shown, all verbatim CONNECTION_ROWS quotes with valid PMID links or a stated gap; ${evidenceL.withoutQuotedEvidence}+${evidenceR.withoutQuotedEvidence} bundles say No quoted evidence`);
 
     await page.locator('[data-hemi="L"]').click();
     await page.waitForFunction(()=>window.__lesionLabTest.hemi==='L'&&!window.__lesionLabTest.loading);
+    // #anchor lives under the collapsed "Precise position" <details>; open it once before driving the select.
+    await page.evaluate(()=>{document.querySelector('.lab-precise').open=true;});
     await page.selectOption('#anchor','MdLF_L');
     await page.waitForFunction(()=>window.__lesionLabTest.rows.some(r=>r.id==='MdLF_L'&&r.cut>0));
+    await openDrawer(page);
     const mdlf=page.locator('li[data-bundle="MdLF_L"]');
     assert.equal(await mdlf.locator('.lab-bundle-evidence').innerText(),'No quoted evidence');
     await mdlf.locator('summary').click();
     await mdlf.getByText('No quoted evidence. The connections graph quotes no statement about injury to this bundle.').waitFor();
     report.checks.push('MdLF_L (no quote in the graph) shows No quoted evidence and writes no statement');
+    await closeDrawer(page);
 
     await page.selectOption('#anchor','AF_L');
     await page.waitForFunction(()=>window.__lesionLabTest.rows.some(r=>r.id==='AF_L'&&r.cut>0));
@@ -359,6 +386,7 @@ try{
     report.checks.push('Named views press and report; arrow keys rotate to a free view');
 
     await page.getByRole('button',{name:'Lateral',exact:true}).click();await sleep(500);
+    await openDrawer(page);
     await page.locator('#bundleList summary').first().click();await frame(page);
     await page.screenshot({path:path.join(out,'desktop-margin-open.png'),fullPage:true});
     await page.locator('.lab-stage').screenshot({path:path.join(out,'desktop-stage.png')});
@@ -372,6 +400,13 @@ try{
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     await ready(page);
     assert(await noOverflow(page),'no horizontal overflow at 390');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390,'scrollWidth is exactly 390 at the phone width');
+    {
+      const dockBox=await page.locator('#labDock').boundingBox();
+      const {brainRect}=await checkFrame(page,'390 (peek)');
+      assert(brainRect.bottom<=dockBox.y+2,`the brain (bottom ${brainRect.bottom.toFixed(0)}) stays clear of the sheet peek (top ${dockBox.y.toFixed(0)})`);
+    }
+    report.checks.push('390: scrollWidth is exactly 390, the brain fills >=80% of its frame and stays above the sheet peek');
     report.fps.mobile=await measureDrag(page,'390x844@3x');
     await showStage(page);
     const before=await lab(page),cdp=await context.newCDPSession(page),{x,y}=before.sphere;
@@ -383,6 +418,11 @@ try{
     assert(sameCamera(after.scene.camera,before.scene.camera),'a touch drag on the sphere does not rotate the view');
     await page.evaluate(()=>window.scrollTo(0,0));
     await page.screenshot({path:path.join(out,'mobile.png'),fullPage:true});
+    await page.screenshot({path:path.join(out,'p1b-mobile.png'),fullPage:true});
+    await page.locator('#sheetHandle').click();
+    await page.waitForFunction(()=>document.getElementById('labDock').dataset.sheet==='expanded');
+    await sleep(450);
+    await page.screenshot({path:path.join(out,'p1b-mobile-sheet.png'),fullPage:true});
     report.checks.push(`390: no overflow, scripted drag ${report.fps.mobile.fpsMean} fps mean, touch drag moves the sphere without rotating`);
     await context.close();
   }

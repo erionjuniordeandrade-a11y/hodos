@@ -7,6 +7,7 @@ import {labBundles,packStreamlines,classify,summarize,bundleAnchor,clampCentre,p
 import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
 import {VERBS} from './connections_graph.js';
+import {composeStory} from './lesion_story.js';
 
 const $=id=>document.getElementById(id);
 const testMode=new URLSearchParams(location.search).has('test');
@@ -17,15 +18,20 @@ const DEC=[0x62b97a,0x6a93e8,0xe0605a],GHOST=0x818d99;
 const TEX_WIDTH=128,SLOW_MS=30000,PANEL_MS=100,ANNOUNCE_MS=400;
 const PASSES=[{show:SPARED,alpha:.055,order:1},{show:MARGIN,alpha:.24,order:2},{show:CUT,alpha:.62,order:4}];
 const HEMI_NAME={L:'left',R:'right'};
-const VIEW_NAMES={lateral:'Lateral view',medial:'Medial view',superior:'Superior view',anterior:'Anterior view',
+const VIEW_NAMES={oblique:'Oblique view',lateral:'Lateral view',medial:'Medial view',superior:'Superior view',anterior:'Anterior view',
   posterior:'Posterior view',inferior:'Inferior view',free:'Free rotation'};
 
 const lab={hemi:initial.hemi,centre:null,radius:initial.radius,marginOn:initial.marginOn,margin:initial.margin,
-  ready:false,loading:false,slow:false,error:null,rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'lateral'};
+  ready:false,loading:false,slow:false,error:null,rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique'};
 let scene=null,stage=null,THREE=null,decodeAtlasBundle=null,leaving=false;
 let sphere=null,rings=null,ringScreen=null,drag=null,hover=false,focusIndex=-1,openIndex=-1;
+let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
 const mount=$('atlasCanvas'),status=$('sceneStatus'),list=$('bundleList'),controls=$('lesionControls');
+const drawer=$('evidenceDrawer'),dock=$('labDock'),sheetHandle=$('sheetHandle');
+const stageEl=mount.closest('.lab-stage'),hudTitle=document.querySelector('.lab-hud-title'),
+  consoleEl=document.querySelector('.lab-console'),chipsEl=document.querySelector('.lab-chips'),scopeEl=document.querySelector('.lab-scope'),
+  storyEl=document.querySelector('.lab-story'),stageLabelEl=$('stageLabel');
 
 const fmt=value=>(value<0?'−':'')+Math.abs(value).toFixed(1);
 const count=value=>value.toLocaleString('en-US');
@@ -47,6 +53,14 @@ function fail(error,{slow=false}={}){
 }
 $('retryScene').addEventListener('click',()=>location.reload());
 $('skipLink').addEventListener('click',event=>{event.preventDefault();$('labMain').focus();});
+
+// The full-bleed stage subtracts the site header's real height (it varies by breakpoint and can
+// wrap); lesion-lab.css falls back to a literal estimate, this corrects it once measured.
+function syncHeaderHeight(){
+  const header=document.querySelector('.studio-header');
+  if(header)document.documentElement.style.setProperty('--studio-header-h',`${header.getBoundingClientRect().height}px`);
+}
+if(document.querySelector('.studio-header')){new ResizeObserver(syncHeaderHeight).observe(document.querySelector('.studio-header'));syncHeaderHeight();}
 
 // ---- Line layer: one geometry per hemisphere, three passes that each keep one state ------------
 
@@ -218,6 +232,42 @@ function announce(){
     `${where} It cuts no sampled streamline.`;
 }
 
+// ---- Story: the HUD sentence and chips, built only from composeStory's closed templates ------
+
+function runNode(run){
+  switch(run.type){
+    case 'number':return el('span',{className:'lab-story-number',textContent:run.text});
+    case 'bundle':{const span=el('span',{className:'lab-story-bundle',textContent:run.text});span.dataset.group=run.group;return span;}
+    case 'deficit':{const button=el('button',{type:'button',className:'lab-story-chip',textContent:run.text});
+      button.addEventListener('click',()=>openEvidenceFor(run.id));return button;}
+    case 'more':{const button=el('button',{type:'button',className:'lab-story-chip',textContent:run.text});
+      button.addEventListener('click',()=>openDrawer());return button;}
+    default:return document.createTextNode(run.text);
+  }
+}
+function renderStory(entry,marginLines){
+  lastStory=composeStory({rows:lab.rows,hemi:lab.hemi,radius:lab.radius,marginOn:lab.marginOn,margin:lab.margin,
+    marginLines,totalLines:entry.pack.count});
+  $('storyText').replaceChildren(...lastStory.runs.map(runNode));
+}
+function updateChips(bundles,linesCut,linesTotal){
+  $('chipRadius').textContent=`${lab.radius} mm`;
+  $('chipMargin').textContent=lab.marginOn?`${lab.margin} mm`:'Off';
+  $('chipBundles').textContent=String(bundles);
+  $('chipLines').textContent=count(linesCut);
+  $('chipLinesTotal').textContent=count(linesTotal);
+}
+// A story chip names a bundle's first cited deficit; jump to that bundle's row and open it, the
+// same target a reader would reach by scanning the drawer themselves.
+function openEvidenceFor(id){
+  openDrawer();
+  const item=list.querySelector(`li[data-bundle="${id}"]`);
+  if(!item)return;
+  const details=item.querySelector('details');
+  if(details)details.open=true;
+  item.scrollIntoView({block:'nearest'});
+}
+
 // ---- Panel: summary, named deficits, one row per bundle reached ------------------------------
 
 function rowFor(entry,index){
@@ -318,6 +368,8 @@ function renderPanel(){
   });
   const current=[...list.children];
   if(current.length!==items.length||current.some((node,i)=>node!==items[i]))list.replaceChildren(...items);
+  renderStory(entry,marginLines);
+  updateChips(cutRows.length,cutLines,entry.pack.count);
 }
 
 // ---- Controls ---------------------------------------------------------------------------------
@@ -355,7 +407,7 @@ async function showHemisphere(hemi,{first=false}={}){
     lab.hemi=hemi;
     for(const object of entry.objects)if(!object.parent)stage.scene.add(object);
     scene.setHemisphere(hemi);
-    $('stageLabel').textContent=`${HEMI_NAME[hemi][0].toUpperCase()}${HEMI_NAME[hemi].slice(1)} hemisphere`;
+    $('stageLabel').textContent=`${HEMI_NAME[hemi][0].toUpperCase()}${HEMI_NAME[hemi].slice(1)} hemisphere · Grid 10 mm`;
     setPressed('[data-hemi]',hemi,'hemi');
     setRanges(entry);
     list.replaceChildren();focusIndex=-1;openIndex=-1;setFocus();
@@ -393,6 +445,65 @@ function bindControls(){
   });
 }
 
+// ---- Evidence drawer, frame insets and the phone sheet -----------------------------------------
+// setFrameInsets (atlas_scene.js) reframes the camera around whatever chrome currently overlaps the
+// stage; every element that can move or resize that chrome re-measures it here (contract 5.1/8).
+
+function updateInsets(){
+  if(!scene)return;
+  const stageRect=stageEl.getBoundingClientRect();
+  let insets;
+  if(innerWidth<=700){
+    const chipsRect=chipsEl.getBoundingClientRect(),dockRect=dock.getBoundingClientRect(),scopeRect=scopeEl.getBoundingClientRect();
+    insets={top:chipsRect.bottom-stageRect.top+8,left:8,right:8,
+      bottom:stageRect.bottom-Math.min(dockRect.top,scopeRect.top)+8};
+  }else{
+    // Frame the free middle column: left clears whichever of the title/story column runs wider,
+    // bottom clears the label row (stageLabel/scope, whichever sits higher), right clears the
+    // controls rail unless the drawer has slid over it (contract 5.1/8, reviewer correction 2).
+    const titleRect=hudTitle.getBoundingClientRect(),storyRect=storyEl.getBoundingClientRect(),
+      controlsRect=controls.getBoundingClientRect(),labelRect=stageLabelEl.getBoundingClientRect(),scopeRect=scopeEl.getBoundingClientRect();
+    insets={top:32,left:Math.max(titleRect.right,storyRect.right)-stageRect.left+8,
+      bottom:stageRect.bottom-Math.min(labelRect.top,scopeRect.top)+8,
+      right:drawer.inert?stageRect.right-controlsRect.left+8:drawer.getBoundingClientRect().width};
+  }
+  lastInsets=insets;
+  scene.setFrameInsets(insets);
+}
+function openDrawer(){
+  if(!drawer.inert)return;
+  drawerReturnFocus=document.activeElement;
+  drawer.inert=false;
+  $('openEvidence').setAttribute('aria-expanded','true');
+  $('drawerTitle').focus();
+  updateInsets();
+}
+function closeDrawer(){
+  if(drawer.inert)return;
+  drawer.inert=true;
+  $('openEvidence').setAttribute('aria-expanded','false');
+  (drawerReturnFocus&&document.body.contains(drawerReturnFocus)?drawerReturnFocus:$('openEvidence')).focus();
+  drawerReturnFocus=null;
+  updateInsets();
+}
+function setSheet(stateName){
+  dock.dataset.sheet=stateName;
+  sheetHandle.setAttribute('aria-expanded',String(stateName==='expanded'));
+  updateInsets();
+}
+function bindDrawer(){
+  $('openEvidence').addEventListener('click',openDrawer);
+  $('closeEvidence').addEventListener('click',closeDrawer);
+  sheetHandle.addEventListener('click',()=>setSheet(dock.dataset.sheet==='expanded'?'peek':'expanded'));
+  setSheet('peek');
+  // The drawer's slide and the sheet's peek/expand both move by `transform`, which never fires
+  // ResizeObserver (border-box size is unchanged); reframe explicitly once each finishes moving.
+  insetsObserver=new ResizeObserver(updateInsets);
+  for(const target of [stageEl,hudTitle,consoleEl,dock,controls,storyEl,stageLabelEl,scopeEl])insetsObserver.observe(target);
+  for(const target of [dock,drawer])target.addEventListener('transitionend',event=>{if(event.propertyName==='transform')updateInsets();});
+  updateInsets();
+}
+
 // ---- Drag: capture-phase listeners on the mount run before OrbitControls and the scene's picking --
 
 const dragTmp={};
@@ -423,7 +534,11 @@ function bindDrag(){
     if(!rayHit(point,t.hit))return;
     t.offset.fromArray(lab.centre).sub(t.hit);
     drag={pointerId:event.pointerId,rect};
-    mount.setPointerCapture(event.pointerId);setCursor('drag');stage.setInteracting(true);
+    // Holding the auto-frame camera fit for the drag's duration keeps the view still while this
+    // panel's own live readouts (MNI coordinates, the story sentence) update and reflow; see the
+    // matching note at atlas_scene.js's resize(). Only OUR sphere drag needs this; CameraControls'
+    // own orbit drag already disables auto-frame via its own controlstart handler.
+    mount.setPointerCapture(event.pointerId);setCursor('drag');stage.setInteracting(true);stage.setFrameHold(true);
   },true);
   mount.addEventListener('pointermove',event=>{
     if(drag){
@@ -444,7 +559,7 @@ function bindDrag(){
   const end=event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;
     event.stopPropagation();drag=null;
-    setCursor(hover?'hover':null);stage.setInteracting(false);stage.requestDraw();settle();
+    setCursor(hover?'hover':null);stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
   };
   for(const type of ['pointerup','pointercancel','lostpointercapture'])mount.addEventListener(type,end,true);
   mount.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=false;setCursor(null);}});
@@ -461,19 +576,55 @@ function fillNotes(){
   $('provenance').textContent=`Statements: ${EVIDENCE_SOURCES.graph}. Slides and PMIDs: ${EVIDENCE_SOURCES.deck}.`;
 }
 
+// Screen-space bounding box of the cortex shell (whichever meshes atlas_scene.js marks as the
+// cortex render role), found by unioning their world-space boxes and projecting all 8 corners
+// through the live camera; same NDC-to-viewport mapping the sphere silhouette (silhouette(), above)
+// already uses. Test-only: the layout gate (tests/perf/lesion_lab.mjs) checks the brain still fills
+// the frame and never spills under the phone sheet peek.
+function computeBrainRect(){
+  if(!stage||!THREE)return null;
+  // A hemisphere is hidden by clearing its GROUP's `visible` (atlas_scene.js setHemisphere), never
+  // the shell mesh's own flag, so node.visible alone reads true for a hidden hemisphere's shell too;
+  // walk the ancestor chain (matches computeViewTarget's own frameGeometry.filter on host.group.visible).
+  const effectivelyVisible=node=>{for(let o=node;o;o=o.parent)if(!o.visible)return false;return true;};
+  const rect=mount.getBoundingClientRect();
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity,found=false;
+  const world=new THREE.Vector3();
+  stage.scene.traverse(node=>{
+    if(node.material?.userData?.renderRole!=='atlas-cortex'||!effectivelyVisible(node)||!node.geometry)return;
+    // Project every vertex (world space), not a world-axis-aligned box's 8 corners: computeViewTarget
+    // itself fits the camera to the mesh's actual points, and under an oblique view the camera's
+    // right/up basis is not aligned with world X/Y/Z, so an AABB's corners are phantom points off the
+    // brain surface that overstate the true screen silhouette. Mirror the production fit exactly.
+    node.updateWorldMatrix(true,false);
+    const pos=node.geometry.attributes.position;
+    for(let i=0;i<pos.count;i++){
+      world.fromBufferAttribute(pos,i).applyMatrix4(node.matrixWorld).project(stage.camera);
+      const x=rect.left+(world.x+1)/2*rect.width,y=rect.top+(1-world.y)/2*rect.height;
+      if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;
+      found=true;
+    }
+  });
+  if(!found)return null;
+  return {left:minX,top:minY,right:maxX,bottom:maxY,width:maxX-minX,height:maxY-minY};
+}
+
 if(testMode)Object.defineProperty(window,'__lesionLabTest',{get:()=>{
-  const rect=mount.getBoundingClientRect(),entry=layer();
+  const rect=mount.getBoundingClientRect(),entry=layer(),sr=stageEl.getBoundingClientRect();
   return {ready:lab.ready,error:lab.error,slow:lab.slow,loading:lab.loading,hemi:lab.hemi,centre:lab.centre&&[...lab.centre],radius:lab.radius,
     marginOn:lab.marginOn,margin:lab.margin,rows:lab.rows.filter(r=>r.cut||r.margin).map(r=>({...r})),named:lab.named.map(n=>n.object),
     sphere:ringScreen?{x:rect.left+ringScreen.x,y:rect.top+ringScreen.y,r:ringScreen.r}:null,count:entry?.pack.count??0,
     extent:entry?entry.pack.extent.map(v=>[...v]):null,classifyMs:lab.classifyMs,classifyMax:lab.classifyMax,dragging:!!drag,
-    scene:scene?(({frames,view,hemisphere,camera,render})=>({frames,view,hemisphere,camera,pipeline:render.pipeline}))(scene.state):null};
+    scene:scene?(({frames,view,hemisphere,camera,render})=>({frames,view,hemisphere,camera,pipeline:render.pipeline}))(scene.state):null,
+    story:lastStory,insets:lastInsets,sheet:innerWidth<=700?(dock.dataset.sheet||'peek'):null,drawer:!drawer.inert,
+    frame:lastInsets?{left:sr.left+lastInsets.left,top:sr.top+lastInsets.top,right:sr.right-lastInsets.right,bottom:sr.bottom-lastInsets.bottom}:null,
+    brainRect:computeBrainRect()};
 }});
 if(testMode)window.__lesionLabResetStats=()=>{lab.classifyMax=0;};
 
 addEventListener('pagehide',event=>{
   if(event.persisted)return;
-  leaving=true;rings?.observer.disconnect();
+  leaving=true;rings?.observer.disconnect();insetsObserver?.disconnect();
   for(const entry of layers.values())disposeLayer(entry);layers.clear();
   scene?.dispose();scene=null;stage=null;
 });
@@ -503,11 +654,11 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
     scene=created;stage=scene.stage;
     if(!stage)throw Error('This atlas build does not expose the lab stage');
     scene.setProfile('presenter');scene.setPlaying(false);scene.setDeep(false);scene.setSurface(.14);scene.setHemisphere(lab.hemi);
-    scene.flyTo({view:lab.hemi==='L'?'left':'right',tweenMs:0});
+    scene.flyTo({view:'oblique',tweenMs:0});
     createSphere();
     await showHemisphere(lab.hemi,{first:true});
     if(leaving)return;
-    bindControls();bindDrag();
+    bindControls();bindDrag();bindDrawer();
     lab.ready=true;lab.slow=false;controls.disabled=false;$('retryScene').hidden=true;showStatus('');
     stage.requestDraw();
   }catch(error){fail(error);}

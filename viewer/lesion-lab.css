@@ -1,70 +1,165 @@
-/* Lesion lab: the MIPS workbench layout, the connections page's quoted-fact style, and the
-   lab's own controls and bundle list. Colour carries meaning only: the three DEC families. */
+/* Lesion lab v2: an immersive full-bleed 3D lab (contract sections 4 and 5). The stage fills the
+   viewport below the site header; the title, story, controls and console float on glass HUD cards
+   above the stage light. The connections page's quoted-fact style (.fact, .verb, .contested,
+   .lab-sources) and the bundle list (.lab-bundle, .lab-swatch, .lab-bar) carry over unchanged from
+   v1, now inside the evidence drawer. Colour still carries meaning only: the three DEC families;
+   everything else is monochrome ink and glass, per tokens.css's own design note. */
 .lab-page{background:var(--color-paper);color:var(--color-ink)}
-.lab-main{max-width:1560px;margin:0 auto;padding:var(--space-xl) var(--page-gutter) var(--space-2xl)}
-.lab-intro{max-width:850px;margin-bottom:var(--space-xl)}
-.lab-eyebrow{font-size:var(--text-sm);color:var(--color-muted);margin:0 0 var(--space-sm)}
-.lab-intro h1{font:500 var(--text-display)/var(--lh-display) var(--font-display);margin:0 0 var(--space-lg);letter-spacing:-.025em}
-.lab-intro>p:last-child{font-size:var(--text-base);line-height:var(--lh-body);color:var(--color-muted);max-width:72ch}
-.lab-workbench{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:var(--space-xl);align-items:start}
-.lab-figure{min-width:0;margin:0}
-.lab-stage{position:relative;background:var(--color-stage);border:1px solid var(--color-rule);height:clamp(390px,49vw,640px);overflow:hidden}
-.lab-page #atlasCanvas{position:absolute;inset:0;width:100%;height:100%;min-height:0}
-.lab-page #atlasCanvas canvas{display:block;width:100%;height:100%;touch-action:none}
-.lab-page #atlasCanvas[data-lesion=hover] canvas{cursor:move}
-.lab-page #atlasCanvas[data-lesion=drag] canvas{cursor:grabbing}
-.lab-stage-label{position:absolute;z-index:4;top:var(--space-md);left:var(--space-md);font-size:var(--text-xs);color:var(--color-muted);pointer-events:none}
-.lab-stage-note{position:absolute;z-index:4;top:var(--space-md);right:var(--space-md);max-width:22rem;margin:0;font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-ink);background:var(--color-stage);border-left:2px solid var(--color-rule-2);padding:var(--space-2xs) var(--space-xs);pointer-events:none}
-.lab-status{position:absolute;z-index:4;bottom:var(--space-md);left:var(--space-md);right:var(--space-md);margin:0;font-size:var(--text-sm);background:var(--color-stage);padding:var(--space-xs);pointer-events:none}
-#retryScene{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:4}
+.lab-page [hidden]{display:none!important}
+.lab-main{display:block;max-width:none;margin:0;padding:0}
+
+/* ---- Stage: full-bleed, below the unchanged site header ------------------------------------ */
+.lab-stage{position:relative;isolation:isolate;overflow:hidden;
+  height:max(560px,calc(100svh - var(--studio-header-h,68px)));width:100%;
+  background:radial-gradient(ellipse 80% 70% at 62% 45%,var(--color-paper) 0%,var(--color-stage) 55%,var(--color-plate) 100%)}
+.lab-stage::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 90% 85% at 62% 45%,transparent 55%,color-mix(in srgb,var(--color-plate) 70%,transparent) 100%)}
+/* hodos.css's unscoped #atlasCanvas rules (position:relative; height:auto) are id-selector
+   specificity and would otherwise beat this class regardless of source order, since this page
+   reuses the shared mount id; #atlasCanvas.lab-canvas matches specificity and wins on top. */
+.lab-canvas,#atlasCanvas.lab-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:0;z-index:0}
+.lab-canvas canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.lab-canvas[data-lesion=hover] canvas{cursor:grab}
+.lab-canvas[data-lesion=drag] canvas{cursor:grabbing}
+
 .lab-rings{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
-.lab-rings polygon{fill:none;stroke:#9be1f0;stroke-width:1.5;stroke-linejoin:round}
+.lab-rings polygon{fill:none;stroke:var(--color-focus);stroke-width:1.5;stroke-linejoin:round}
 .lab-rings .lab-ring-margin{stroke-dasharray:6 5;opacity:.75}
-.lab-views{display:flex;flex-wrap:wrap;gap:var(--space-xs);align-items:center;padding:var(--space-sm) 0}
-.lab-views button,.lab-options button{min-height:var(--control-height);padding:var(--space-xs) var(--space-sm)}
-.lab-views [aria-pressed=true],.lab-options [aria-pressed=true]{border-color:var(--color-accent);color:var(--color-ink);background:var(--color-accent-soft)}
-#viewStatus{font-size:var(--text-xs);color:var(--color-muted);margin-left:auto}
-.lab-help{font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-muted)}
-.lab-controls{border:0;border-top:1px solid var(--color-rule);margin:var(--space-md) 0 0;padding:var(--space-md) 0 0;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md) var(--space-lg)}
-.lab-controls legend{font-size:var(--text-sm);padding-right:var(--space-sm)}
-.lab-control{min-width:0;display:flex;flex-direction:column;gap:var(--space-2xs)}
+
+/* ---- HUD title: floats on the stage light, no card (contract 4.5 copy deck) ----------------- */
+.lab-hud-title{position:absolute;z-index:3;top:var(--space-xl);left:var(--page-gutter);max-width:min(46ch,44vw)}
+.lab-kicker{font-size:var(--text-sm);color:var(--color-muted);margin:0 0 var(--space-sm);text-shadow:0 1px 12px var(--color-plate)}
+.lab-hud-title h1{font:500 var(--text-display)/var(--lh-display) var(--font-display);margin:0 0 var(--space-md);
+  letter-spacing:-.025em;text-shadow:0 2px 20px var(--color-plate)}
+.lab-hud-title h1 span{display:block}
+.lab-lede{font-size:var(--text-base);line-height:var(--lh-body);color:var(--color-muted);margin:0 0 var(--space-lg);
+  max-width:60ch;text-shadow:0 1px 12px var(--color-plate)}
+.lab-chips{list-style:none;display:flex;flex-wrap:wrap;gap:var(--space-xs);margin:0;padding:0}
+.lab-chips li{display:flex;flex-direction:column;gap:2px;padding:var(--space-2xs) var(--space-sm);border-radius:var(--radius);
+  background:color-mix(in srgb,var(--color-plate) 62%,transparent);border:1px solid color-mix(in srgb,var(--color-rule-2) 55%,transparent)}
+.lab-chip-label{font-size:var(--text-xs);color:var(--color-muted)}
+.lab-chip-value{font:var(--text-sm)/1 var(--font-display);font-variant-numeric:tabular-nums;color:var(--color-ink)}
+.lab-chip-value small{color:var(--color-muted);font-size:var(--text-xs)}
+
+/* ---- Glass HUD cards: story, controls, console (contract 4.4) ------------------------------- */
+.lab-glass{background:color-mix(in srgb,var(--color-plate) 62%,transparent);
+  border:1px solid color-mix(in srgb,var(--color-rule-2) 55%,transparent);border-radius:var(--radius);
+  padding:var(--space-md) var(--space-lg)}
+@media(min-width:701px){.lab-glass{backdrop-filter:blur(16px)}}
+
+.lab-story{position:absolute;z-index:3;top:clamp(230px,34vh,320px);left:var(--page-gutter);width:min(380px,88vw)}
+.lab-story p{margin:0;font-size:var(--text-sm);line-height:var(--lh-body);color:var(--color-ink)}
+.lab-story-number{font-variant-numeric:tabular-nums;color:var(--color-ink);font-weight:600}
+.lab-story-bundle{font-weight:500}
+.lab-story-bundle[data-group=Association]{color:var(--color-dec-association)}
+.lab-story-bundle[data-group=Projection]{color:var(--color-dec-projection)}
+.lab-story-bundle[data-group=Commissural]{color:var(--color-dec-commissural)}
+.lab-story-chip{display:inline;font:inherit;font-weight:600;color:var(--color-ink);background:none;border:0;
+  padding:0;cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.lab-story-chip:hover{text-decoration-thickness:2px}
+.lab-story-chip:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+.lab-story-links{margin:var(--space-md) 0 0;display:flex;gap:var(--space-sm);flex-wrap:wrap;align-items:baseline;
+  font-size:var(--text-xs);color:var(--color-muted)}
+.lab-story-links button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.lab-story-links a{color:inherit}
+
+.lab-controls{position:absolute;z-index:3;top:var(--space-xl);right:var(--page-gutter);width:min(440px,90vw);
+  border:0;display:flex;flex-direction:column;gap:var(--space-sm)}
+.lab-controls legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.lab-control-row{display:flex;gap:var(--space-md);flex-wrap:wrap}
+.lab-control{min-width:0;flex:1;display:flex;flex-direction:column;gap:var(--space-2xs)}
+.lab-control>label{display:flex;justify-content:space-between;align-items:baseline}
 .lab-control>label,.lab-control-label,.lab-check label{font-size:var(--text-sm)}
 .lab-control output{font:var(--text-xs)/1 var(--font-outlier);color:var(--color-muted);margin-left:var(--space-xs)}
 .lab-control input[type=range]{width:100%;min-height:var(--control-height);margin:0}
-.lab-control select{width:100%;height:var(--control-height);font:inherit;background:var(--color-control);color:var(--color-ink);border:1px solid var(--color-rule);border-radius:var(--radius);font-size:var(--text-sm);padding:var(--space-xs);padding-right:var(--space-xl)}
-.lab-options{display:flex;gap:var(--space-xs)}
-.lab-options button{flex:1}
+.lab-control select{width:100%;height:var(--control-height);font:inherit;background:var(--color-control);color:var(--color-ink);
+  border:1px solid var(--color-rule);border-radius:var(--radius);font-size:var(--text-sm);padding:var(--space-xs);padding-right:var(--space-xl)}
+/* Hemisphere and Cortex are single-select groups, joined into one segmented strip (instrument
+   density, fix B10); Cut only/Turntable/Help stay independent toggles, not joined, since more than
+   one can be pressed at once. */
+.lab-options{display:flex;gap:0}
+.lab-options button{flex:1;min-height:var(--control-height);padding:var(--space-xs) var(--space-sm);
+  border-radius:0;margin-left:-1px;position:relative}
+.lab-options button:first-child{margin-left:0;border-top-left-radius:var(--radius);border-bottom-left-radius:var(--radius)}
+.lab-options button:last-child{border-top-right-radius:var(--radius);border-bottom-right-radius:var(--radius)}
+.lab-options button:focus-visible{z-index:1}
+.lab-toggle{min-height:var(--control-height);padding:var(--space-xs) var(--space-sm);flex:1}
+.lab-options [aria-pressed=true],.lab-toggle[aria-pressed=true]{border-color:var(--color-accent);color:var(--color-ink);
+  background:var(--color-accent-soft)}
 .lab-check{display:flex;align-items:center;gap:var(--space-xs);min-height:var(--control-height)}
 .lab-check input{margin:0;flex:none}
-.lab-position{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr;gap:0 var(--space-md);align-items:center}
+.lab-check output{margin-left:auto}
+.lab-controls button:disabled{opacity:.4;cursor:not-allowed}
+.lab-help{font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-muted);margin:0}
+.lab-precise{border-top:1px solid var(--color-rule);padding-top:var(--space-xs)}
+.lab-precise summary{font-size:var(--text-sm);cursor:pointer;padding:var(--space-2xs) 0;list-style:none}
+.lab-precise summary::-webkit-details-marker{display:none}
+.lab-precise summary::before{content:"+ ";color:var(--color-muted)}
+.lab-precise[open] summary::before{content:"− "}
+.lab-precise[open] summary{margin-bottom:var(--space-xs)}
+.lab-position{display:grid;grid-template-columns:auto 1fr;gap:0 var(--space-md);align-items:center;margin-top:var(--space-xs)}
 .lab-position .lab-control-label{grid-column:1/-1;margin-bottom:var(--space-2xs)}
+.lab-position select{grid-column:1/-1;margin-bottom:var(--space-xs)}
 .lab-position label{font-size:var(--text-xs);color:var(--color-muted)}
-.lab-coords{grid-column:1/-1;margin:0;font:var(--text-xs)/var(--lh-body) var(--font-outlier);color:var(--color-ink)}
-.lab-controls .lab-help{grid-column:1/-1;margin:0}
-.lab-controls:disabled{opacity:.6}
-.lab-panel h2,.lab-limits h2{font:500 var(--text-title)/var(--lh-title) var(--font-display);margin:0 0 var(--space-md)}
-.lab-panel h3{font:500 var(--text-base)/var(--lh-title) var(--font-display);margin:0 0 var(--space-sm)}
+.lab-coords{grid-column:1/-1;margin:var(--space-xs) 0 0;font:var(--text-xs)/var(--lh-body) var(--font-outlier);color:var(--color-ink)}
+
+.lab-console{position:absolute;z-index:3;left:var(--page-gutter);right:var(--page-gutter);bottom:var(--space-xl);
+  display:flex;align-items:center;min-height:64px}
+.lab-console .lab-views{display:flex;flex-wrap:wrap;gap:var(--space-xs);align-items:center}
+.lab-console .lab-control-label{margin-right:var(--space-2xs)}
+.lab-views button{min-height:var(--control-height);padding:var(--space-xs) var(--space-sm)}
+.lab-views [aria-pressed=true]{border-color:var(--color-accent);color:var(--color-ink);background:var(--color-accent-soft)}
+#viewStatus{font-size:var(--text-xs);color:var(--color-muted);margin-left:var(--space-xs)}
+
+/* ---- Stage captions and status, on the glass/stage light directly --------------------------- */
+.lab-stage-label{position:absolute;z-index:3;bottom:var(--space-xl);left:var(--page-gutter);font-size:var(--text-xs);
+  color:var(--color-muted);margin:0;pointer-events:none}
+.lab-scope{position:absolute;z-index:3;bottom:calc(var(--space-xl) + 176px);right:var(--page-gutter);margin:0;
+  font-size:13px;color:var(--color-muted)}
+.lab-stage-note{position:absolute;z-index:4;top:var(--space-md);right:var(--space-md);max-width:22rem;margin:0;
+  font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-ink);background:var(--color-stage);
+  border-left:2px solid var(--color-rule-2);padding:var(--space-2xs) var(--space-xs);pointer-events:none}
+.lab-status{position:absolute;z-index:4;top:50%;left:50%;transform:translate(-50%,-50%);margin:0;
+  font-size:var(--text-sm);background:var(--color-stage);padding:var(--space-xs);pointer-events:none;max-width:80vw;text-align:center}
+#retryScene{position:absolute;top:calc(50% + 2.5rem);left:50%;transform:translateX(-50%);z-index:4}
+
+/* ---- Evidence drawer: v1's panel, restyled for glass (contract 8) --------------------------- */
+.lab-drawer{position:fixed;z-index:var(--z-modal);top:0;right:0;bottom:0;width:440px;max-width:100vw;
+  overflow-y:auto;transform:translateX(100%);transition:transform var(--dur-long) var(--ease-out);
+  background:color-mix(in srgb,var(--color-plate) 92%,transparent);border-left:1px solid var(--color-rule-2);
+  padding:var(--space-lg)}
+@media(min-width:701px){.lab-drawer{backdrop-filter:blur(16px)}}
+.lab-drawer:not([inert]){transform:translateX(0)}
+.lab-drawer-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-md);margin-bottom:var(--space-md)}
+.lab-drawer-head h2{font:500 var(--text-title)/var(--lh-title) var(--font-display);margin:0}
+#closeEvidence{background:none;border:0;color:var(--color-muted);font-size:var(--text-lg);line-height:1;cursor:pointer;padding:var(--space-2xs)}
+#closeEvidence:hover{color:var(--color-ink)}
 .lab-summary{font-size:var(--text-sm);line-height:var(--lh-body);color:var(--color-ink);margin:0 0 var(--space-lg)}
 .lab-summary[data-empty=true]{color:var(--color-muted);border-left:2px solid var(--color-rule-2);padding-left:var(--space-md)}
 .lab-named-block{margin:0 0 var(--space-lg)}
+.lab-named-block h3{font:500 var(--text-base)/var(--lh-title) var(--font-display);margin:0 0 var(--space-sm)}
 .lab-named{list-style:none;margin:0 0 var(--space-sm);padding:0;display:flex;flex-wrap:wrap;gap:var(--space-xs)}
-.lab-named li{font-size:var(--text-sm);line-height:1.3;border:1px solid var(--color-rule-2);border-radius:var(--radius);padding:var(--space-2xs) var(--space-xs);background:var(--color-paper-2)}
+.lab-named li{font-size:var(--text-sm);line-height:1.3;border:1px solid var(--color-rule-2);border-radius:var(--radius);
+  padding:var(--space-2xs) var(--space-xs);background:var(--color-paper-2)}
 .lab-named small{display:block;font-size:var(--text-xs);color:var(--color-muted)}
-.lab-aside{font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-muted);border-left:2px solid var(--color-rule-2);padding-left:var(--space-md);margin:0}
+.lab-aside{font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-muted);border-left:2px solid var(--color-rule-2);
+  padding-left:var(--space-md);margin:0}
 .lab-bundles{list-style:none;margin:0;padding:0;border-top:1px solid var(--color-rule)}
 .lab-bundles>li{border-bottom:1px solid var(--color-rule)}
-.lab-bundle>summary{list-style:none;cursor:pointer;padding:var(--space-sm) 0;display:grid;grid-template-columns:.75rem minmax(0,1fr) auto;gap:var(--space-2xs) var(--space-sm);align-items:baseline}
+.lab-bundle>summary{list-style:none;cursor:pointer;padding:var(--space-sm) 0 var(--space-sm) 0;display:grid;
+  grid-template-columns:.75rem 1fr;column-gap:var(--space-sm);row-gap:var(--space-3xs);align-items:start;position:relative}
 .lab-bundle>summary::-webkit-details-marker{display:none}
-.lab-bundle>summary::after{content:"+";grid-column:3;grid-row:1;font:var(--text-sm)/1 var(--font-outlier);color:var(--color-muted)}
+.lab-bundle>summary::after{content:"+";position:absolute;top:var(--space-sm);right:0;font:var(--text-sm)/1 var(--font-outlier);color:var(--color-muted)}
 .lab-bundle[open]>summary::after{content:"−"}
-.lab-swatch{width:.75rem;height:.75rem;border-radius:50%;align-self:center;background:var(--color-muted)}
+.lab-swatch{grid-column:1;grid-row:1;width:.75rem;height:.75rem;margin-top:.2em;border-radius:50%;background:var(--color-muted)}
 .lab-swatch[data-group=Association]{background:var(--color-dec-association)}
 .lab-swatch[data-group=Projection]{background:var(--color-dec-projection)}
 .lab-swatch[data-group=Commissural]{background:var(--color-dec-commissural)}
-.lab-bundle-name{font-size:var(--text-sm);font-weight:500;color:var(--color-ink);min-width:0}
-.lab-bundle-count,.lab-bundle-evidence{grid-column:2/-1;font-size:var(--text-xs);color:var(--color-muted)}
+.lab-bundle-name{grid-column:2;grid-row:1;font-size:var(--text-sm);font-weight:500;color:var(--color-ink);min-width:0;padding-right:var(--space-md)}
+.lab-bundle-count{grid-column:2;grid-row:2;font-size:var(--text-xs);color:var(--color-muted)}
+.lab-bundle-evidence{grid-column:2;grid-row:4;font-size:var(--text-xs);color:var(--color-muted)}
 .lab-bundle-evidence[data-none=true]{color:var(--color-faint)}
-.lab-bar{grid-column:2/-1;height:4px;background:var(--color-paper-3);position:relative;overflow:hidden}
+.lab-bar{grid-column:2;grid-row:3;height:4px;background:var(--color-paper-3);position:relative;overflow:hidden;margin:var(--space-3xs) 0}
 .lab-bar>span{position:absolute;inset:0 auto 0 0;width:var(--share,0%);background:var(--color-muted)}
 .lab-bar>span+span{left:var(--share,0%);width:var(--margin-share,0%);opacity:.4}
 .lab-bundle[data-group=Association] .lab-bar>span{background:var(--color-dec-association)}
@@ -77,7 +172,7 @@
 .fact{border-top:1px solid var(--color-rule);padding:var(--space-md) 0}
 .fact-rel{margin:0 0 var(--space-sm);font-size:var(--text-sm)}
 .verb{color:var(--color-accent)}
-.contested{font-size:var(--text-xs);color:#d9837a;margin:0 0 var(--space-sm)}
+.contested{font-size:var(--text-xs);color:var(--color-ink);font-weight:600;margin:0 0 var(--space-sm)}
 .lab-tag{font-size:var(--text-xs);color:var(--color-muted);margin:0 0 var(--space-sm)}
 .fact blockquote{margin:0 0 var(--space-sm);padding-left:var(--space-md);border-left:2px solid var(--color-accent)}
 .fact blockquote p{margin:0;color:var(--color-ink);font-size:var(--text-sm);line-height:var(--lh-body)}
@@ -85,13 +180,97 @@
 .lab-sources{font-size:var(--text-xs);line-height:var(--lh-body);color:var(--color-muted);margin:0}
 .lab-sources a{font-family:var(--font-outlier)}
 .lab-sources span{display:block}
-.lab-limits{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2xl);border-top:1px solid var(--color-rule);padding-top:var(--space-xl);margin-top:var(--space-2xl)}
+
+/* ---- Below the stage: unchanged method/sources and footer (contract: text stays verbatim) --- */
+.lab-limits{max-width:1560px;margin:var(--space-2xl) auto 0;padding:0 var(--page-gutter) var(--space-2xl);
+  display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2xl);border-top:1px solid var(--color-rule);padding-top:var(--space-xl)}
 .lab-limits p{font-size:var(--text-sm);line-height:var(--lh-body);max-width:var(--measure)}
 .lab-limits .lab-aside{margin:var(--space-md) 0}
+.lab-eyebrow{font-size:var(--text-sm);color:var(--color-muted);margin:0 0 var(--space-sm)}
+.lab-limits h2{font:500 var(--text-title)/var(--lh-title) var(--font-display);margin:0 0 var(--space-md)}
 .lab-provenance{font:var(--text-xs)/var(--lh-body) var(--font-outlier);color:var(--color-faint)}
 .lab-foot-scope{color:var(--color-ink)}
 .lab-noscript{margin:var(--space-xl)}
-.lab-page [hidden]{display:none!important}
-@media(max-width:850px){.lab-main{padding-top:var(--space-lg)}.lab-workbench{grid-template-columns:1fr;gap:var(--space-xl)}.lab-stage{height:440px}.lab-limits{grid-template-columns:1fr;gap:var(--space-lg)}.lab-intro h1{font-size:var(--text-title)}#viewStatus{display:none}.lab-controls{grid-template-columns:1fr}.lab-stage-note{left:var(--space-md);max-width:none;top:auto;bottom:6rem}}
-@media(max-width:420px){.lab-stage{height:360px}.lab-views button{flex:1;padding:var(--space-xs)}}
+
+/* ---- Desktop: a CSS grid frames the brain (contract 4.3, reviewer correction 2026-09-27). The
+   dock's children become the grid's own items via display:contents, so none of them changes DOM
+   parent: column 1 is the title and story, column 3 is the controls rail, the label row and
+   console span the full width on the last two rows, and the untouched middle column is the free
+   frame updateInsets() measures around and hands to setFrameInsets. ------------------------------ */
+@media(min-width:701px){
+  .lab-dock{display:contents}
+  .lab-sheet-handle{display:none}
+
+  .lab-stage{--lab-col1:300px;--lab-col3:280px;
+    display:grid;grid-template-columns:var(--lab-col1) minmax(0,1fr) var(--lab-col3);
+    grid-template-rows:auto minmax(0,1fr) auto auto;column-gap:var(--space-lg);row-gap:var(--space-sm)}
+  .lab-hud-title{position:static;max-width:none;grid-column:1;grid-row:1;align-self:start;
+    margin:var(--space-xl) 0 0 var(--page-gutter)}
+  .lab-hud-title h1{font-size:var(--text-title);line-height:var(--lh-title)}
+  /* The composed narrative is unbounded prose (lesion_story.js chains up to ~7 sentences), so the
+     card is capped to its share of the free row and scrolls internally: without min-height:auto's
+     content-based floor removed (overflow != visible is what removes it), this row's fr track would
+     inflate to the story's full content height and push the label row and console off the stage
+     (the P1b regression the reviewer's checkFrame catch caught). */
+  .lab-story{position:static;width:auto;grid-column:1;grid-row:2;align-self:start;
+    max-height:100%;overflow-y:auto;overscroll-behavior:contain;
+    margin:0 0 0 var(--page-gutter)}
+  .lab-controls{position:static;width:auto;grid-column:3;grid-row:1/3;align-self:start;
+    margin:var(--space-xl) var(--page-gutter) 0 0}
+  #stageLabel{position:static;grid-column:1;grid-row:3;align-self:end;justify-self:start;
+    margin:0 0 0 var(--page-gutter)}
+  .lab-scope{position:static;grid-column:3;grid-row:3;align-self:end;justify-self:end;
+    margin:0 var(--page-gutter) 0 0}
+  .lab-console{position:static;left:auto;right:auto;bottom:auto;grid-column:1/-1;grid-row:4;
+    margin:0 var(--page-gutter) var(--space-xl)}
+
+  /* Bottom-left inside the brain frame, clear of the title column (contract 4's orientation triad;
+     hodos.css centres it bottom-middle by default, which this page overrides, never hodos.css itself). */
+  .lab-canvas .atlas-orientation{left:calc(var(--lab-col1) + var(--page-gutter) + var(--space-lg));
+    right:auto;transform:none;bottom:calc(var(--space-xl) + 7rem)}
+}
+@media(min-width:1200px){
+  .lab-stage{--lab-col1:360px;--lab-col3:320px}
+}
+
+/* ---- Phone (up to 700px): the dock becomes a bottom sheet (contract 4.2) --------------------- */
+@media(max-width:700px){
+  .lab-stage{height:calc(100svh - var(--studio-header-h,64px))}
+  .lab-hud-title{left:var(--page-gutter);right:var(--page-gutter);max-width:none;top:var(--space-lg)}
+  .lab-hud-title h1{font-size:var(--text-title)}
+  .lab-lede{display:none}
+  .lab-chips{gap:var(--space-2xs)}
+  .lab-chips li{flex:1 1 22%}
+  .lab-stage-label,.lab-scope{bottom:calc(150px + var(--space-xs))}
+  .lab-scope{right:var(--page-gutter);left:auto}
+  /* Above the sheet's permanent 150px peek, never behind it (contract 4's orientation triad). */
+  .lab-canvas .atlas-orientation{bottom:calc(150px + var(--space-sm))}
+  #viewStatus{display:none}
+
+  .lab-dock{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;flex-direction:column;
+    max-height:78svh;overflow-y:auto;background:color-mix(in srgb,var(--color-plate) 94%,transparent);
+    border-top:1px solid var(--color-rule-2);border-radius:var(--radius) var(--radius) 0 0;
+    padding:var(--space-sm) var(--page-gutter) var(--space-lg);
+    transform:translateY(calc(100% - 150px));transition:transform var(--dur-long) var(--ease-out)}
+  .lab-dock[data-sheet=expanded]{transform:translateY(0)}
+  /* A transparent 44px hit target (fix B12): the visible bar stays a slim decorative 36x4 sliver,
+     centred inside a much larger tap area, with the mobile tap-highlight flash suppressed so only
+     the sitewide :focus-visible ring (hodos.css) ever outlines it. */
+  .lab-sheet-handle{order:1;display:block;align-self:center;width:100%;max-width:10rem;min-height:var(--control-height);
+    margin:0 0 var(--space-2xs);background:none;border:0;position:relative;-webkit-tap-highlight-color:transparent}
+  .lab-sheet-handle::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:2.25rem;height:4px;border-radius:2px;background:var(--color-rule-2)}
+  .lab-story{order:2;position:static;width:auto;background:none;border:0;padding:0 0 var(--space-sm)}
+  .lab-story p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* The console's own links column is P2/P3 (contract 4.1); until it exists, the story card is
+     the one reachable place for them on phone too, so the drawer stays reachable without a mouse. */
+  .lab-story-links{margin-top:var(--space-xs)}
+  .lab-controls{order:4;position:static;width:auto;right:auto;top:auto;background:none;border:0;
+    padding:var(--space-sm) 0 0;border-top:1px solid var(--color-rule)}
+  .lab-console{order:6;position:static;left:auto;right:auto;bottom:auto;padding-top:var(--space-sm);border-top:1px solid var(--color-rule)}
+  .lab-console .lab-views{overflow-x:auto}
+  /* The bottom captions sit just above the peeking sheet (contract 4.2); once the sheet expands
+     past that fixed spot they would float over its own content, so they step aside instead. */
+  .lab-dock[data-sheet=expanded] ~ .lab-stage-label,.lab-dock[data-sheet=expanded] ~ .lab-scope{opacity:0;pointer-events:none}
+}
 @media(forced-colors:active){.lab-swatch,.lab-bar>span{forced-color-adjust:none}}

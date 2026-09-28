@@ -147,17 +147,37 @@ test('lab links restore allowed values and discard malformed ones',()=>{
 
 test('the page states its scope, sample sizes that match the atlas, and follows the site CSP',async()=>{
   assert(page.includes('<p class="lab-foot-scope">Group reference, not this patient.</p>'));
+  assert(page.includes('<p class="lab-scope">Group reference, not this patient.</p>'));
   assert(page.includes('Educational draft awaiting independent clinical review'));
   const af=tractMeta.bundles.find(b=>b.id==='AF_L'),sampled=Math.max(...labBundles(tractMeta,'L').concat(labBundles(tractMeta,'R')).map(b=>b.lines));
   assert(page.includes(`(${af.streamlines_in_atlas.toLocaleString('en-US')} in the left arcuate fasciculus)`));
   assert(page.includes(`at most ${sampled} streamlines`));
   assert.doesNotMatch(page,/\sstyle=|<style[ >]/);
-  for(const file of ['viewer/labs/lesion-lab.html','viewer/lesion_lab.js','viewer/lesion-lab.css','viewer/lesion_model.js']){
+  for(const file of ['viewer/labs/lesion-lab.html','viewer/lesion_lab.js','viewer/lesion-lab.css','viewer/lesion_model.js','viewer/lesion_story.js']){
     const text=file.endsWith('.html')?page:await readFile(path.join(root,file),'utf8');
     assert.doesNotMatch(text,/[–—]/,`${file}: no en or em dash`);
   }
+  const css=await readFile(path.join(root,'viewer/lesion-lab.css'),'utf8');
+  assert.doesNotMatch(css,/#[0-9a-fA-F]{3,8}\b/,'lesion-lab.css: colors come from tokens.css custom properties, not raw hex');
   const atlas=await readFile(path.join(root,'viewer/atlas.html'),'utf8'),importMap=/<script type="importmap">[^<]*<\/script>/;
   assert.equal(page.match(importMap)[0],atlas.match(importMap)[0]);
+});
+
+test('new P1 stage copy (kicker, lede, chips, scope caption, drawer links) has no dash and at most one middle dot per string',()=>{
+  const strings=[
+    page.match(/<p class="lab-kicker">([^<]*)<\/p>/)?.[1],
+    page.match(/<p class="lab-lede">([^<]*)<\/p>/)?.[1],
+    page.match(/<p class="lab-scope">([^<]*)<\/p>/)?.[1],
+    ...[...page.matchAll(/<span class="lab-chip-label">([^<]*)<\/span>/g)].map(m=>m[1]),
+    page.match(/id="openEvidence"[^>]*>([^<]*)<\/button>/)?.[1],
+    page.match(/<a href="#limitsTitle">([^<]*)<\/a>/)?.[1],
+  ];
+  assert.equal(strings.length,9,'kicker + lede + scope caption + 4 chip labels + openEvidence button + limits link');
+  assert(strings.every(s=>typeof s==='string'&&s.length>0),'every copy string was found in the page');
+  for(const s of strings){
+    assert.doesNotMatch(s,/[–—]/,s);
+    assert((s.match(/·/g)||[]).length<=1,s);
+  }
 });
 
 test('the export publishes the lab with keyed assets and the atlas import map',async t=>{

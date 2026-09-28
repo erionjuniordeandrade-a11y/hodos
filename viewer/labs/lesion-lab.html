@@ -18,35 +18,76 @@
 <a class="skip-link" id="skipLink" href="/labs/lesion-lab#labMain">Skip to the lab</a>
 <header class="studio-header"><a class="brand" href="./index.html"><img src="./brand/hodos-mark.svg" width="28" height="28" alt=""><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a><nav aria-label="Site"><a href="./atlas.html">Atlas &amp; lessons</a><a href="./case-conference.html">Case Conference</a><a href="./mips.html" class="nav-long">MIPS</a><a href="./labs/lesion-lab.html" aria-current="page" class="nav-long">Lesion lab</a><a href="./connections.html" class="nav-long">Connections</a><a href="./atlas-sources.html" class="header-sources">Sources</a></nav></header>
 <main id="labMain" class="lab-main" tabindex="-1">
-  <header class="lab-intro"><p class="lab-eyebrow">Lesion lab · Group reference</p><h1>Where a lesion sits decides what it disconnects.</h1><p>Drag the sphere through the white matter. Every sampled streamline that passes through it is drawn along its whole length, so you can see which regions it runs between. The panel lists the bundles it cuts and what the author’s teaching notes say injury to each causes, quoted verbatim.</p></header>
-  <div class="lab-workbench">
-    <figure class="lab-figure">
-      <div class="lab-stage" data-surface="dark"><div id="atlasCanvas"></div><p id="sceneStatus" class="lab-status" role="status">Loading reference anatomy…</p><button id="retryScene" type="button" hidden>Retry atlas</button><span id="stageLabel" class="lab-stage-label">Left hemisphere</span><p id="midlineNote" class="lab-stage-note" hidden>The sphere reaches the midline. Bundles of the other hemisphere are not drawn or tested.</p></div>
-      <div class="lab-views" role="group" aria-label="Named anatomical views"><button type="button" data-view="lateral" aria-pressed="true">Lateral</button><button type="button" data-view="medial" aria-pressed="false">Medial</button><button type="button" data-view="superior" aria-pressed="false">Superior</button><button type="button" data-view="anterior" aria-pressed="false">Anterior</button><span id="viewStatus">Lateral view</span></div>
-      <p id="canvasHelp" class="lab-help">Drag the sphere to move it across the screen; drag anywhere else to rotate, and pinch or scroll to zoom. Rotate the view, or use the position sliders, to move it along the third axis. With the canvas focused, arrow keys rotate, Shift + arrows pan, + / − zoom and Home resets the view.</p>
-      <fieldset id="lesionControls" class="lab-controls" disabled><legend>Lesion</legend>
+  <section class="lab-stage" data-surface="dark" aria-labelledby="labTitle">
+    <div id="atlasCanvas" class="lab-canvas" aria-describedby="canvasHelp"></div>
+
+    <header class="lab-hud-title">
+      <p class="lab-kicker">Lesion lab · Group reference</p>
+      <h1 id="labTitle"><span>Where a lesion sits</span><span>decides what it disconnects.</span></h1>
+      <p class="lab-lede">Drag the sphere through the white matter. Every streamline it cuts stays lit end to end, and what the notes say about each bundle is quoted, never written here.</p>
+      <ul class="lab-chips">
+        <li><span class="lab-chip-label">Radius</span><span class="lab-chip-value"><span id="chipRadius">10 mm</span></span></li>
+        <li><span class="lab-chip-label">Margin</span><span class="lab-chip-value"><span id="chipMargin">Off</span></span></li>
+        <li><span class="lab-chip-label">Bundles cut</span><span class="lab-chip-value"><span id="chipBundles">0</span></span></li>
+        <li><span class="lab-chip-label">Streamlines cut</span><span class="lab-chip-value"><span id="chipLines">0</span> <small>of <span id="chipLinesTotal">0</span></small></span></li>
+      </ul>
+    </header>
+
+    <div class="lab-dock" id="labDock">
+      <button type="button" class="lab-sheet-handle" id="sheetHandle" aria-expanded="false" aria-controls="labDock"><span class="sr-only">Show lab controls</span></button>
+
+      <article class="lab-story lab-glass" id="labStory">
+        <p id="storyText" aria-live="polite"></p>
+        <p class="lab-story-links"><button type="button" id="openEvidence" aria-haspopup="dialog" aria-controls="evidenceDrawer">Quotes and sources</button><span aria-hidden="true"> · </span><a href="#limitsTitle">How the lab decides</a></p>
+      </article>
+
+      <fieldset id="lesionControls" class="lab-controls lab-glass" disabled>
+        <legend>Lesion controls</legend>
         <div class="lab-control"><span class="lab-control-label" id="hemiLabel">Hemisphere</span><div class="lab-options" role="group" aria-labelledby="hemiLabel"><button type="button" data-hemi="L" aria-pressed="true">Left</button><button type="button" data-hemi="R" aria-pressed="false">Right</button></div></div>
         <div class="lab-control"><label for="radius">Radius <output id="radiusValue" for="radius">10 mm</output></label><input id="radius" type="range" min="3" max="30" step="1" value="10"></div>
-        <div class="lab-control"><div class="lab-check"><input id="marginOn" type="checkbox"><label for="marginOn">Resection margin ring</label><output id="marginValue" for="margin">5 mm</output></div><input id="margin" type="range" min="1" max="20" step="1" value="5" aria-label="Margin beyond the sphere, in millimetres" disabled></div>
-        <div class="lab-control"><label for="anchor">Centre the sphere on a bundle</label><select id="anchor"><option value="">Choose a bundle</option></select></div>
-        <div class="lab-control lab-position"><span class="lab-control-label">Position</span>
-          <label for="posX">Left to right (x)</label><input id="posX" type="range" min="-70" max="0" step="0.5" value="-38">
-          <label for="posY">Posterior to anterior (y)</label><input id="posY" type="range" min="-105" max="75" step="0.5" value="-32">
-          <label for="posZ">Inferior to superior (z)</label><input id="posZ" type="range" min="-54" max="82" step="0.5" value="29">
+        <div class="lab-control">
+          <div class="lab-check"><input id="marginOn" type="checkbox" role="switch"><label for="marginOn">Resection margin</label><output id="marginValue" for="margin">5 mm</output></div>
+          <input id="margin" type="range" min="1" max="20" step="1" value="5" aria-label="Margin beyond the sphere, in millimetres" disabled>
+          <p class="lab-help">The ring marks a chosen distance beyond the sphere and counts the streamlines that run inside it. It is a geometric band for discussion, not a safe distance.</p>
         </div>
-        <p id="positionReadout" class="lab-coords">MNI x −38.0 · y −32.2 · z 29.1 mm</p>
-        <p class="lab-help">The ring marks a chosen distance beyond the sphere and counts the streamlines that run inside it. It is a geometric band for discussion, not a safe distance.</p>
+        <details class="lab-precise">
+          <summary>Precise position</summary>
+          <div class="lab-position">
+            <span class="lab-control-label">Centre the sphere on a bundle</span>
+            <label for="anchor" class="sr-only">Bundle</label>
+            <select id="anchor"><option value="">Choose a bundle</option></select>
+            <label for="posX">Left to right (x)</label><input id="posX" type="range" min="-70" max="0" step="0.5" value="-38">
+            <label for="posY">Posterior to anterior (y)</label><input id="posY" type="range" min="-105" max="75" step="0.5" value="-32">
+            <label for="posZ">Inferior to superior (z)</label><input id="posZ" type="range" min="-54" max="82" step="0.5" value="29">
+            <p id="positionReadout" class="lab-coords">MNI x −38.0 · y −32.2 · z 29.1 mm</p>
+          </div>
+        </details>
       </fieldset>
-    </figure>
-    <section class="lab-panel" aria-labelledby="panelTitle">
-      <p class="lab-eyebrow">Sampled streamlines the sphere cuts</p>
-      <h2 id="panelTitle">What this position disconnects</h2>
-      <p id="labSummary" class="lab-summary">The bundle list appears when the reference atlas has loaded.</p>
-      <div id="namedBlock" class="lab-named-block" hidden><h3>Named in the notes for these bundles</h3><ul id="namedList" class="lab-named"></ul><p class="lab-aside">Statements that need damage on both sides, or that place the injury at one site of a bundle, are listed under that bundle, not here. The share of sampled streamlines is a geometric count, not the probability of a deficit.</p></div>
-      <ol id="bundleList" class="lab-bundles" aria-label="Bundles the sphere reaches"></ol>
-      <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
-    </section>
-  </div>
+
+      <div class="lab-console lab-glass" role="group" aria-label="Named anatomical views">
+        <span class="lab-control-label">View</span>
+        <div class="lab-views">
+          <button type="button" data-view="oblique" aria-pressed="true">Oblique</button><button type="button" data-view="lateral" aria-pressed="false">Lateral</button><button type="button" data-view="medial" aria-pressed="false">Medial</button><button type="button" data-view="superior" aria-pressed="false">Superior</button><button type="button" data-view="anterior" aria-pressed="false">Anterior</button><span id="viewStatus">Oblique view</span>
+        </div>
+      </div>
+    </div>
+
+    <p id="stageLabel" class="lab-stage-label">Left hemisphere</p>
+    <p class="lab-scope">Group reference, not this patient.</p>
+    <p id="sceneStatus" class="lab-status" role="status">Loading reference anatomy…</p>
+    <button id="retryScene" type="button" hidden>Retry atlas</button>
+    <p id="midlineNote" class="lab-stage-note" hidden>The sphere reaches the midline. Bundles of the other hemisphere are not drawn or tested.</p>
+    <span id="canvasHelp" class="sr-only">Drag the sphere to move it across the screen; drag anywhere else to rotate, and pinch or scroll to zoom. Rotate the view, or use the position sliders, to move it along the third axis. With the canvas focused, arrow keys rotate, Shift + arrows pan, + / − zoom and Home resets the view.</span>
+  </section>
+
+  <aside id="evidenceDrawer" class="lab-drawer" aria-labelledby="drawerTitle" inert>
+    <div class="lab-drawer-head"><h2 id="drawerTitle" tabindex="-1">What this position disconnects</h2><button type="button" id="closeEvidence"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button></div>
+    <p id="labSummary" class="lab-summary">The bundle list appears when the reference atlas has loaded.</p>
+    <div id="namedBlock" class="lab-named-block" hidden><h3>Named in the notes for these bundles</h3><ul id="namedList" class="lab-named"></ul><p class="lab-aside">Statements that need damage on both sides, or that place the injury at one site of a bundle, are listed under that bundle, not here. The share of sampled streamlines is a geometric count, not the probability of a deficit.</p></div>
+    <ol id="bundleList" class="lab-bundles" aria-label="Bundles the sphere reaches"></ol>
+  </aside>
+  <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+
   <section class="lab-limits" aria-labelledby="limitsTitle">
     <div><p class="lab-eyebrow">How the lab decides</p><h2 id="limitsTitle">A geometric test on group anatomy.</h2>
       <p>Each bundle is drawn from its HCP1065 sample: at most 220 streamlines of the thousands in the population atlas (34,156 in the left arcuate fasciculus). A streamline counts as cut when any of its segments passes within the sphere's radius of the centre, and as inside the margin when it passes within the radius plus the margin.</p>

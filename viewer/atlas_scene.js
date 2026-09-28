@@ -87,7 +87,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const centre=new THREE.Vector3(0,-18,8),hemis={},deep=[],bundles=new Map(),frameGeometry=[];
   let playing=false,profile='teaching',frame=0,last=0,time=0,disposed=false,view='left';
   let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
-  let hoveredLine=null,controlsActive=false;
+  let hoveredLine=null,controlsActive=false,frameHold=false;
   let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false;
   let corridorOverlay=null;
   let annotations=[],annotationStamp='',annotationTime=-Infinity;
@@ -145,15 +145,42 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();contextLost=true;cancelAnimationFrame(frame);frame=0;
     onStatus('Graphics context lost. Waiting for the browser to restore it; reload if the atlas stays blank.');});
   renderer.domElement.addEventListener('webglcontextrestored',()=>{contextLost=false;annotationStamp='';resize();onStatus('Atlas ready',{ready:true});requestDraw();});
+  let insets=null,insetsWereSet=false;
   const resize=()=>{const w=mount.clientWidth,h=mount.clientHeight;
-    if(w<=0||h<=0)return;camera.aspect=w/h;camera.updateProjectionMatrix();
+    if(w<=0||h<=0)return;
+    if(insets){
+      const fw=Math.max(1,w-insets.left-insets.right),fh=Math.max(1,h-insets.top-insets.bottom);
+      camera.aspect=fw/fh;
+      camera.setViewOffset(fw,fh,-insets.left,-insets.top,w,h);
+      insetsWereSet=true;
+    }else{
+      camera.aspect=w/h;
+      if(insetsWereSet){camera.clearViewOffset();insetsWereSet=false;}
+    }
+    camera.updateProjectionMatrix();
     pipeline.resize(w,h,Math.min(devicePixelRatio,innerWidth<700?2:3));
     updateLineResolutions();
     annotationStamp='';
-    if(framed&&autoFrame){
+    // frameHold (lesion-lab only, via stage.setFrameHold): while a caller is mid-drag on its own
+    // overlay (the lesion sphere), that caller's own live readouts (story text, MNI coordinates)
+    // reflow the DOM elements setFrameInsets watches, firing this same resize() through the
+    // insetsObserver mid-drag. Re-fitting the camera to that incidental reflow moves the view the
+    // user never asked to move (measured: ~1-2mm drift at a 390px frame, where those readouts are
+    // near a text-wrap boundary; a wide desktop frame never wraps, so it never showed the bug).
+    // The projection/viewport update above still applies so the frame itself tracks size changes;
+    // only the auto-frame camera re-fit is held.
+    if(framed&&autoFrame&&!frameHold){
       const target=computeViewTarget(view,cameraTransition?.zoom??1,frameFocus);
       lookAt(target.position,target.centre,!!cameraTransition&&!reduced.matches);controls.update(0);
     }requestDraw();};
+  // Opt-in only (contract 5.1): with insets never set, resize() takes exactly the branch above
+  // (no setViewOffset/clearViewOffset call), so a caller that never calls this sees today's
+  // behaviour unchanged. null or an all-zero rect clears a previously set inset.
+  function setFrameInsets(next){
+    const has=next&&(next.top||next.right||next.bottom||next.left);
+    insets=has?{top:next.top||0,right:next.right||0,bottom:next.bottom||0,left:next.left||0}:null;
+    resize();
+  }
   const observer=new ResizeObserver(resize);observer.observe(mount);
   function disposeBase(){disposed=true;cameraTransition=null;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
     reduced.removeEventListener('change',requestDraw);reduced.removeEventListener('change',motionChanged);document.removeEventListener('visibilitychange',requestDraw);
@@ -175,12 +202,23 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   function computeViewTarget(key,zoom=1,focus=false) {
     const resolved=key in ATLAS_VIEWS?key:'left';
     const direction=new THREE.Vector3(...ATLAS_VIEWS[resolved]);
-    if(resolved==='medial'&&visibleHemi==='R')direction.x*=-1;
+    if((resolved==='medial'||resolved==='oblique')&&visibleHemi==='R')direction.x*=-1;
     direction.normalize();
     const right=new THREE.Vector3().crossVectors(camera.up,direction).normalize();
     const up=new THREE.Vector3().crossVectors(direction,right).normalize();
     const tanV=Math.tan(THREE.MathUtils.degToRad(camera.fov/2)),tanH=tanV*camera.aspect;
-    const geometries=framed?frameGeometry.filter(geo=>!Object.values(hemis).some(h=>h.geo===geo&&!h.group.visible)):frameGeometry;
+    // With frame insets active (lesion-lab only: atlas.html/mips.html never call setFrameInsets, so
+    // `insets` stays null for them and this branch never runs there, keeping their fit and visual-
+    // regression baselines byte-for-byte unchanged), the cortex shell is the framing contract
+    // (computeBrainRect's fill gate in lesion_lab.js measures only the atlas-cortex render role).
+    // frameGeometry's other member, the faint inferior-context mesh, still rides along for `centre`'s
+    // bounds union but must not be the reason distance grows past what the cortex itself needs — at a
+    // phone-width frame, context reaching further inferiorly than the cortex was pulling distance ~15%
+    // past the cortex's own fit, under-filling the frame it owns (measured: 79.7% cortex fill at 390px
+    // vs the required 80%, with context alone accounting for the shortfall). A little edge cropping of
+    // that near-invisible (opacity .12) context silhouette is imperceptible.
+    const geometries=!framed?[]:insets?Object.values(hemis).filter(h=>h.group.visible).map(h=>h.geo)
+      :frameGeometry.filter(geo=>!Object.values(hemis).some(h=>h.geo===geo&&!h.group.visible));
     const points=focus?focusPoints():[],focusing=points.length>0;
     const origin=focusing?new THREE.Box3().setFromPoints(points).getCenter(new THREE.Vector3()):centre;
     let minR=Infinity,maxR=-Infinity,minU=Infinity,maxU=-Infinity;const p=new THREE.Vector3();
@@ -710,11 +748,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
-    setSurface,setLesion,setCorridors,projectBundleVertex,
+    setSurface,setLesion,setCorridors,projectBundleVertex,setFrameInsets,
     // For a page that draws its own layer (the lesion lab): the live scene, camera and controls,
     // the on-demand redraw, the interactive size budget, and verified bundle bytes by id.
     get stage(){return {scene,camera,controls,canvas:renderer.domElement,requestDraw,setInteracting:pipeline.setInteracting,
-      loadBundleBytes:ids=>tractRangeLoader.load(ids)};},
+      setFrameHold(v){frameHold=!!v;},loadBundleBytes:ids=>tractRangeLoader.load(ids)};},
     setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,
