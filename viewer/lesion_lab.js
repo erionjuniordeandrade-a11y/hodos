@@ -16,7 +16,7 @@ const GROUPS=['Association','Projection','Commissural'];
 // tokens.css --color-dec-association, -projection, -commissural; the ghost is atlas_scene.js GHOST_TINT.
 const DEC=[0x62b97a,0x6a93e8,0xe0605a],GHOST=0x818d99;
 const TEX_WIDTH=128,SLOW_MS=30000,PANEL_MS=100,ANNOUNCE_MS=400;
-const PASSES=[{show:SPARED,alpha:.055,order:1},{show:MARGIN,alpha:.24,order:2},{show:CUT,alpha:.62,order:4}];
+const PASSES=[{show:SPARED,alpha:.015,order:1},{show:MARGIN,alpha:.24,order:2},{show:CUT,alpha:.62,order:4}];
 const HEMI_NAME={L:'left',R:'right'};
 const VIEW_NAMES={oblique:'Oblique view',lateral:'Lateral view',medial:'Medial view',superior:'Superior view',anterior:'Anterior view',
   posterior:'Posterior view',inferior:'Inferior view',free:'Free rotation'};
@@ -249,6 +249,17 @@ function renderStory(entry,marginLines){
   lastStory=composeStory({rows:lab.rows,hemi:lab.hemi,radius:lab.radius,marginOn:lab.marginOn,margin:lab.margin,
     marginLines,totalLines:entry.pack.count});
   $('storyText').replaceChildren(...lastStory.runs.map(runNode));
+}
+// The desktop story card is capped to its grid row and scrolls; data-more fades its bottom edge
+// while text remains below, so a cut-off line reads as "scroll for more", not as a clipped card.
+function syncStoryMore(){
+  const card=$('labStory');if(!card)return;
+  card.dataset.more=String(card.scrollHeight-card.clientHeight-card.scrollTop>2);
+}
+if($('labStory')){
+  $('labStory').addEventListener('scroll',syncStoryMore,{passive:true});
+  new ResizeObserver(syncStoryMore).observe($('labStory'));
+  new MutationObserver(syncStoryMore).observe($('storyText'),{childList:true,subtree:true,characterData:true});
 }
 function updateChips(bundles,linesCut,linesTotal){
   $('chipRadius').textContent=`${lab.radius} mm`;
