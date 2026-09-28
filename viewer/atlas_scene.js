@@ -60,7 +60,7 @@ function fatLine(positions,{arc=[],normals=[],color,opacity=1,linewidth,depthTes
 const CORTEX_TINTS={neutral:0xaaa09c,focus:0x9be1f0,context:0xdcc39a,hover:0xf6ede6};
 
 /** Owns one reference scene. Its inputs never include a case result or mask. */
-export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onStatus=()=>{},onInteraction=()=>{},onView=()=>{}}={}) {
+export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onStatus=()=>{},onInteraction=()=>{},onView=()=>{},hover=true}={}) {
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const scene=new THREE.Scene();
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
@@ -632,7 +632,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(!down||e.button!==0||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5){down=null;return;}down=null;
     const pick=pickAt(e);if(pick)onPick(pick);
   });
-  renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch'||controlsActive)return;
+  if(hover)renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch'||controlsActive)return;
     cancelAnimationFrame(hoverFrame);hoverFrame=requestAnimationFrame(()=>{hoverFrame=0;if(disposed||controlsActive)return;const pick=pickAt(e,true);
       if(pick?.bundle)showBundleHover(pick.bundle,pick.streamline);else clearBundleHover();
       onHover(pick,{x:e.clientX,y:e.clientY});
@@ -684,6 +684,10 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
     setSurface,setLesion,setCorridors,projectBundleVertex,
+    // For a page that draws its own layer (the lesion lab): the live scene, camera and controls,
+    // the on-demand redraw, the interactive size budget, and verified bundle bytes by id.
+    get stage(){return {scene,camera,controls,canvas:renderer.domElement,requestDraw,setInteracting:pipeline.setInteracting,
+      loadBundleBytes:ids=>tractRangeLoader.load(ids)};},
     setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,

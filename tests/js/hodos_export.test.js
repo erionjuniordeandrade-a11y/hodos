@@ -52,7 +52,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const asset of ['mips.js','mips_content.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
   const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
   const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
-  assert.equal(sitemapLocs.length,21);
+  assert.equal(sitemapLocs.length,22);
   assert(sitemapLocs.includes('https://hodosatlas.com/lessons'));
   assert.deepEqual(sitemapLocs.filter(url=>url.startsWith('https://hodosatlas.com/lessons/')),lessonIdsInCurriculum().map(id=>`https://hodosatlas.com/lessons/${id}`));
   assert(!sitemap.includes('/atlas?lesson='));

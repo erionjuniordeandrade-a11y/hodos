@@ -10,6 +10,7 @@ const modules=[
   'case_images.js',
   'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'connections.js','connections_graph.js','connections_data.js',
+  'lesion_lab.js','lesion_model.js','lesion_evidence.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','atlas_arterial.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',
@@ -26,7 +27,7 @@ const modules=[
 const supportingFiles=[
   'case-images/medial-frontal.png','case-images/insular.png','case-images/temporoparietal.png','case-images/right-medial-frontal.png',
   'case-images/medial-frontal-t1c.png','case-images/insular-t1c.png','case-images/temporoparietal-t1c.png','case-images/right-medial-frontal-t1c.png','case-images/README.md',
-  'case_conference.css','mips.css','connections.css',
+  'case_conference.css','mips.css','connections.css','lesion-lab.css',
   'vendor/vis-data.min.js','vendor/vis-network.min.js','vendor/vis-LICENSE.md',
   'tokens.css','hodos.css','landing.css','lesson-page.css',
   'media/landing/hero-atlas-poster-1920-20260919.jpg','media/landing/hero-atlas-poster-1200-20260919.jpg',
@@ -87,6 +88,7 @@ function publicHTML(html){
   html=html.replace('THIRD_PARTY_NOTICES.md in the source checkout','<a href="./THIRD_PARTY_NOTICES.md">Third-party notices and software licenses</a>');
   html=html.replaceAll('href="./mips.html"','href="./mips"');
   html=html.replaceAll('href="./connections.html"','href="./connections"');
+  html=html.replaceAll('href="./labs/lesion-lab.html"','href="./labs/lesion-lab"');
   if(!html.includes('name="description"'))html=html.replace('</head>','<meta name="description" content="Hodos: an interactive cortex and white matter atlas for neurosurgical residents. Explore anatomy, relationships and brain networks. Created by Dr. Erion de Andrade."></head>');
   if(/profile=clinical|Case reconstruction/.test(html))throw Error('Local case navigation remains in the public page');
   return html;
@@ -131,7 +133,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     add(name,bytes);
   }
   const processedPages=new Map();
-  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html','connections.html']){
+  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html','connections.html','labs/lesion-lab.html']){
     const html=publicHTML((await safeRead(viewer,name)).toString());
     processedPages.set(name,html);add(name,html);
   }
@@ -151,7 +153,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   if(lessonIds.length!==14)throw Error(`Expected exactly 14 lesson ids, found ${lessonIds.length}`);
   const landingLessonIds=lessonIdsFromLanding(processedPages.get('index.html'));
   if(landingLessonIds.length!==14||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
-  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/lessons`,
+  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/labs/lesion-lab`,`${SITE_ORIGIN}/lessons`,
     ...lessonIds.map(id=>`${SITE_ORIGIN}/lessons/${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
     sitemapUrls.map(u=>`  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')+`\n</urlset>\n`);
@@ -181,6 +183,8 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   if(inlineScripts.length!==1)throw Error('Expected exactly one inline script (the import map) in atlas.html');
   const mipsInline=[...files.get('mips.html').toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m=>!isLdJson(m[1])).map(m=>m[2]);
   if(mipsInline.length!==1||mipsInline[0]!==inlineScripts[0])throw Error('MIPS must use the same single import map as the atlas');
+  const labInline=[...files.get('labs/lesion-lab.html').toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m=>!isLdJson(m[1])).map(m=>m[2]);
+  if(labInline.length!==1||labInline[0]!==inlineScripts[0])throw Error('The lesion lab must use the same single import map as the atlas');
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
   // Cloudflare Web Analytics (auto-injected beacon) is the only third-party script allowed; it is
   // the site's usage signal and carries no user identity beyond Cloudflare's own privacy terms.
