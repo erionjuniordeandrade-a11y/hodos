@@ -12,7 +12,7 @@ const modules=[
   'case_images.js',
   'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'connections.js','connections_graph.js','connections_data.js',
-  'lesion_lab.js','lesion_model.js','lesion_evidence.js',
+  'lesion_lab.js','lesion_model.js','lesion_evidence.js','lesion_story.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','atlas_arterial.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',

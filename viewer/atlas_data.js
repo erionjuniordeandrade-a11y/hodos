@@ -48,6 +48,7 @@ export function decodeAtlasBundle(meta,buffer) {
 export const ATLAS_VIEWS=Object.freeze({
   left:[-1,-.22,.18],right:[1,-.22,.18],superior:[-.04,-.12,1],
   anterior:[-.03,1,.08],posterior:[.02,-1,.12],inferior:[-.04,-.12,-1],medial:[1,-.08,.12],
+  oblique:[-.80,-.20,.56],
 });
 
 // Bundle catalogue mirrors ./atlas/tracts.json (87 ids as shipped; see atlas-sources.html for
