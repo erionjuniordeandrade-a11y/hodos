@@ -15,7 +15,7 @@ import {configContextMaterial} from './scene_materials.js';
 import {createRenderPipeline} from './render_pipeline.js';
 import {createCorridorOverlay} from './corridor_overlay.js';
 import {createTractRangeLoader} from './tract_ranges.js';
-const MANIFEST_SHA256='637ab561b28e13447d9e7e020f4e324122052d5dd43fa2734310d053d1e4600e';
+const MANIFEST_SHA256='bf5707b28928159c7f9d5cb0aaeec360c8e99b97f653ed00023fa0c34bcd65ac';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 THREE.BufferGeometry.prototype.computeBoundsTree=computeBoundsTree;
 THREE.BufferGeometry.prototype.disposeBoundsTree=disposeBoundsTree;
@@ -259,6 +259,26 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     return bytes;
   }
   const json=async path=>JSON.parse(new TextDecoder().decode(await checked(path)));
+  // surface-labels.bin is served application/octet-stream, which Cloudflare Pages never
+  // compresses on the fly, so a static build-time gzip sibling (manifest asset.gzip) carries
+  // the same bytes over the wire at ~4% of the size. Decoding re-verifies the DECODED bytes
+  // against the asset's own sha256/bytes, so a bad transport or a stale sibling still throws
+  // instead of silently serving wrong data. Browsers without DecompressionStream (or an asset
+  // with no gzip sibling) fall back to the uncompressed fetch checked() already does.
+  async function checkedMaybeGzip(path){
+    const record=manifest.assets.find(a=>a.path===path);if(!record)throw new Error('Unlisted atlas asset');
+    if(!record.gzip||typeof DecompressionStream!=='function')return checked(path);
+    const gz=record.gzip;
+    const response=await fetch(`./atlas/${gz.path}?v=${gz.sha256.slice(0,12)}`);
+    if(!response.ok)throw new Error(`Atlas asset unavailable: ${gz.path}`);
+    const compressed=await response.arrayBuffer();
+    if(compressed.byteLength!==gz.bytes||await sha256(compressed)!==gz.sha256)throw new Error(`Atlas asset integrity failed: ${gz.path}`);
+    const decompressedStream=new Response(compressed).body.pipeThrough(new DecompressionStream('gzip'));
+    const bytes=await new Response(decompressedStream).arrayBuffer();
+    const hash=await sha256(bytes);
+    if(hash!==record.sha256||bytes.byteLength!==record.bytes)throw new Error(`Atlas asset integrity failed: ${path}`);
+    return bytes;
+  }
   const draco=new DRACOLoader();draco.setDecoderPath('./vendor/addons/libs/draco/gltf/');draco.setWorkerLimit(2);
   const loader=new GLTFLoader();loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
   async function geometry(path){
@@ -283,7 +303,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     onStatus('Loading the reference atlas · cortical surface…');
     // Pathway metadata is small; bundle bytes are fetched by range when a scene needs them.
     const pathways=Promise.all([json('tracts.json'),json('tracts-ranges.json')]);pathways.catch(()=>{});
-    const [left,right,labelBuffer,surfaceJson]=await Promise.all([geometry('cortex-L.glb'),geometry('cortex-R.glb'),checked('surface-labels.bin'),json('surface.json')]);
+    const [left,right,labelBuffer,surfaceJson]=await Promise.all([geometry('cortex-L.glb'),geometry('cortex-R.glb'),checkedMaybeGzip('surface-labels.bin'),json('surface.json')]);
     surfaceMeta=surfaceJson;
     const counts=[left.attributes.position.count,right.attributes.position.count];
     labels=decodeAtlasLabels(surfaceMeta,labelBuffer,counts,'glasser');

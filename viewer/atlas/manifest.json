@@ -15,7 +15,13 @@
       "source_path": "data/surface-labels.bin",
       "source_sha256": "af4501db39581825a841857ca32d2025829d5611c3c8cd3444008b1221c00ada",
       "terms": "HCP Open Access Data Use Terms + Yeo 2011 networks \u2014 FreeSurfer atlas license (fs_LR 32k via DiedrichsenLab) + Liu 2023 arterial territories, CC BY-SA 4.0 (block 4, arterial2)",
-      "derived_from_source_sha256": "af4501db39581825a841857ca32d2025829d5611c3c8cd3444008b1221c00ada"
+      "derived_from_source_sha256": "af4501db39581825a841857ca32d2025829d5611c3c8cd3444008b1221c00ada",
+      "gzip": {
+        "path": "surface-labels.bin.gz",
+        "bytes": 21973,
+        "sha256": "e97cf99663fe822b49ae56e1f627abbb17c306fb302ce0d110161f1b56d81a6d",
+        "note": "Static build-time gzip of the unchanged surface-labels.bin bytes above (Cloudflare Pages never compresses application/octet-stream on the fly); decoded client-side and re-verified against this asset's own sha256/bytes before use."
+      }
     },
     {
       "path": "licenses/freesurfer-atlas-license.txt",
