@@ -9,7 +9,14 @@
   var saveData=Boolean(navigator.connection&&navigator.connection.saveData);
   if(reduced.matches||saveData)return;
   var narrow=matchMedia('(max-width: 700px)').matches;
-  var src=narrow?video.getAttribute('data-src-narrow'):video.getAttribute('data-src');
+  var av1Supported=(function(){
+    try{var ct=video.canPlayType('video/mp4; codecs="av01.0.05M.08"');if(ct==='probably'||ct==='maybe')return true;}catch(e){}
+    try{if(window.MediaSource&&MediaSource.isTypeSupported('video/mp4; codecs="av01.0.05M.08"'))return true;}catch(e){}
+    return false;
+  })();
+  var av1Src=video.getAttribute(narrow?'data-src-av1-narrow':'data-src-av1');
+  var fallbackSrc=video.getAttribute(narrow?'data-src-narrow':'data-src');
+  var src=(av1Supported&&av1Src)||fallbackSrc;
   if(!src)return;
   var userPaused=false, onScreen=true, ready=false;
   var label=function(){var playing=!video.paused;toggle.textContent=playing?'Pause the walkthrough':'Play the walkthrough';toggle.setAttribute('aria-pressed',String(playing));};

@@ -45,7 +45,9 @@ const supportingFiles=[
   'media/landing/lesson-language-networks-20260914.jpg',
   'media/landing/lesson-default-mode-network-20260914.jpg',
   'media/landing/lesson-salience-network-20260914.jpg',
-  'media/landing/lesson-demo-20260926.jpg','media/landing/lesson-demo-loop-20260926.mp4','media/landing/lesson-demo-phone-20260926.jpg','media/landing/hero-atlas-loop-1400-20260919.mp4','media/landing/hero-atlas-loop-880-20260919.mp4',
+  'media/landing/lesson-demo-20260926.jpg','media/landing/lesson-demo-loop-20260926.mp4','media/landing/lesson-demo-phone-20260926.jpg',
+  'media/landing/hero-atlas-loop-1400-20260928.mp4','media/landing/hero-atlas-loop-880-20260928.mp4',
+  'media/landing/hero-atlas-loop-1400-av1-20260928.mp4','media/landing/hero-atlas-loop-880-av1-20260928.mp4',
   'media/landing/case-right-medial-frontal-20260914.jpg',
   'media/landing/lesion-lab-20260928.jpg',
   'media/lesson-previews/plate-motor-cst-20260919.jpg',
@@ -202,6 +204,9 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     '/vendor/addons/*',...vendorCached,'/vendor/addons/libs/draco/*',...vendorCached,
     'https://hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://:version.hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://www.hodosatlas.com/*','  X-Robots-Tag: noindex',
     ...keyed.filter(n=>n.endsWith('.css')).flatMap(n=>['/'+n,...cached]),''].join('\n'));
+  // Static rules only today (no splat); a splat rule, if one is ever added, must stay below
+  // every static rule since Pages matches _redirects top-to-bottom.
+  add('_redirects','/sources /atlas-sources 301\n');
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
   for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);
