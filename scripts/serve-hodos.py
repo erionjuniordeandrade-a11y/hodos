@@ -7,6 +7,12 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 
+class HodosServer(ThreadingHTTPServer):
+    # The stdlib listen backlog of 5 resets connections when a page requests its meshes in a
+    # parallel burst, which leaves the atlas or a lab in its "Failed to fetch" state.
+    request_queue_size = 128
+
+
 class HodosHandler(SimpleHTTPRequestHandler):
     def send_head(self):
         self._range_end = None
@@ -94,6 +100,6 @@ if __name__ == "__main__":
     if not (directory / "release.json").is_file():
         parser.error("Use a built Hodos export directory containing release.json")
     handler = partial(HodosHandler, directory=str(directory))
-    with ThreadingHTTPServer((args.bind, args.port), handler) as server:
+    with HodosServer((args.bind, args.port), handler) as server:
         print(f"Hodos preview: http://{args.bind}:{args.port}", flush=True)
         server.serve_forever()
