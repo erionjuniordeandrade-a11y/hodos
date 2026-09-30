@@ -40,7 +40,7 @@ main.landing{max-width:none;margin:0;padding:0}
 .film-toggle:active{transform:scale(0.97)}
 .film-toggle:focus-visible{outline:var(--radius) solid var(--color-focus);outline-offset:var(--radius)}
 .hero-scrim{position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,var(--color-plate) 0%,var(--color-plate) 30%,color-mix(in oklab,var(--color-plate) 70%,transparent) 50%,transparent 68%)}
-.hero .studio-header{grid-column:1 / -1;grid-row:1;position:relative;top:auto;background:transparent;border-bottom:0;padding:var(--space-md) var(--page-gutter);min-height:calc(var(--control-height) + var(--space-xl))}
+.hero .studio-header{grid-column:1 / -1;grid-row:1;flex-wrap:wrap;position:relative;top:auto;background:transparent;border-bottom:0;padding:var(--space-md) var(--page-gutter);min-height:calc(var(--control-height) + var(--space-xl))}
 .hero .studio-header nav{width:auto;gap:var(--space-xs)}
 .hero .studio-header nav a{font-size:var(--text-sm);padding:0 var(--space-sm)}
 .hero-copy{grid-column:1;grid-row:2;align-self:end;min-width:0;max-width:900px;padding:var(--space-2xl) var(--page-gutter) var(--space-xl);display:flex;flex-direction:column;gap:var(--space-lg)}
