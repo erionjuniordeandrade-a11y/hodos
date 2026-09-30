@@ -101,17 +101,29 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const axes=[];
   for(const [axis,positive,negative] of [[new THREE.Vector3(1,0,0),'R','L'],[new THREE.Vector3(0,1,0),'A','P'],[new THREE.Vector3(0,0,1),'S','I']]){
     const line=document.createElementNS(svgNS,'line'),a=document.createElementNS(svgNS,'text'),b=document.createElementNS(svgNS,'text');
-    a.textContent=positive;b.textContent=negative;orientation.append(line,a,b);axes.push({axis,line,a,b});
+    a.textContent=positive;b.textContent=negative;orientation.append(line,a,b);axes.push({axis,line,a,b,letters:[positive,negative]});
   }
   mount.append(orientation);let viewStamp='';
   function updateOrientation(){
     const inverse=camera.quaternion.clone().invert();
-    for(const {axis,line,a,b} of axes){const p=axis.clone().applyQuaternion(inverse),x=p.x*25,y=-p.y*25;
+    const shown=[];
+    for(const {axis,line,a,b,letters} of axes){const p=axis.clone().applyQuaternion(inverse),x=p.x*25,y=-p.y*25;
       line.setAttribute('x1',String(40-x));line.setAttribute('y1',String(40-y));line.setAttribute('x2',String(40+x));line.setAttribute('y2',String(40+y));
-      for(const [text,sign] of [[a,1],[b,-1]]){text.setAttribute('x',String(40+sign*x*1.2));text.setAttribute('y',String(40+sign*y*1.2));
+      for(const [text,sign,letter] of [[a,1,letters[0]],[b,-1,letters[1]]]){const tx=40+sign*x*1.2,ty=40+sign*y*1.2;
+        text.setAttribute('x',String(tx));text.setAttribute('y',String(ty));text.textContent=letter;text.style.textAnchor='';
         // When an axis points at the viewer, show its near end once.
-        text.style.opacity=Math.hypot(x,y)<7&&sign*p.z<0?'0':'1';}
+        const visible=!(Math.hypot(x,y)<7&&sign*p.z<0);text.style.opacity=visible?'1':'0';
+        if(visible)shown.push({text,letter,x:tx,y:ty});}
     }
+    // A diagonal view projects two axes onto one screen direction, which stacked R on A and P on L:
+    // merge each such pair into one oblique label ("RA", "LP"), the way radiology viewers mark it. Beside
+    // the triad, the two-letter label grows outward so it keeps clear of the line ends.
+    for(let i=0;i<shown.length;i++)for(let j=i+1;j<shown.length;j++){const m=shown[i],n=shown[j];
+      if(m.merged||n.merged||Math.hypot(m.x-n.x,m.y-n.y)>=12)continue;
+      const x=(m.x+n.x)/2,y=(m.y+n.y)/2,side=Math.abs(x-40)>=Math.abs(y-40)?Math.sign(x-40):0;
+      // Above or below the triad, it steps 4 px further out so the two line ends stay clear of it.
+      m.text.textContent=m.letter+n.letter;m.text.setAttribute('x',String(x-side*3.5));m.text.setAttribute('y',String(side?y:y+Math.sign(y-40)*4));
+      m.text.style.textAnchor=side<0?'end':side>0?'start':'';n.text.style.opacity='0';m.merged=n.merged=true;}
     const next=`${visibleHemi}:${autoFrame?view:'free'}`;
     if(next!==viewStamp){viewStamp=next;onView({hemisphere:visibleHemi,view:autoFrame?view:'free'});}
   }

@@ -29,6 +29,8 @@ let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
 const mount=$('atlasCanvas'),status=$('sceneStatus'),list=$('bundleList'),controls=$('lesionControls');
 const drawer=$('evidenceDrawer'),dock=$('labDock'),sheetHandle=$('sheetHandle');
+// The bottom-sheet layout; must match lesion-lab.css's sheet media query (phones, portrait tablets).
+const SHEET_LAYOUT=matchMedia('(max-width:700px),(max-width:900px) and (orientation:portrait)');
 const stageEl=mount.closest('.lab-stage'),hudTitle=document.querySelector('.lab-hud-title'),
   consoleEl=document.querySelector('.lab-console'),chipsEl=document.querySelector('.lab-chips'),scopeEl=document.querySelector('.lab-scope'),
   storyEl=document.querySelector('.lab-story'),stageLabelEl=$('stageLabel');
@@ -250,15 +252,24 @@ function renderStory(entry,marginLines){
     marginLines,totalLines:entry.pack.count});
   $('storyText').replaceChildren(...lastStory.runs.map(runNode));
 }
-// The desktop story card is capped to its grid row and scrolls; data-more fades its bottom edge
-// while text remains below, so a cut-off line reads as "scroll for more", not as a clipped card.
-function syncStoryMore(){
-  const card=$('labStory');if(!card)return;
-  card.dataset.more=String(card.scrollHeight-card.clientHeight-card.scrollTop>2);
+// The desktop story card and controls rail are capped to their grid rows and scroll; data-more fades
+// the bottom edge while content remains below, so a cut-off line reads as "scroll for more", not as
+// a clipped card.
+function syncMore(card){if(card)card.dataset.more=String(card.scrollHeight-card.clientHeight-card.scrollTop>2);}
+const syncStoryMore=()=>syncMore($('labStory'));
+for(const card of [$('labStory'),$('lesionControls')].filter(Boolean)){
+  card.addEventListener('scroll',()=>syncMore(card),{passive:true});
+  new ResizeObserver(()=>syncMore(card)).observe(card);
 }
+// Opening Precise position grows the rail past its cap: scroll the section into the rail's view.
+$('lesionControls')?.querySelector('.lab-precise')?.addEventListener('toggle',event=>{
+  const details=event.currentTarget,rail=SHEET_LAYOUT.matches?dock:$('lesionControls');
+  syncMore($('lesionControls'));
+  if(!details.open)return;
+  const over=details.getBoundingClientRect().bottom-rail.getBoundingClientRect().bottom;
+  if(over>0)rail.scrollBy({top:over+8,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+});
 if($('labStory')){
-  $('labStory').addEventListener('scroll',syncStoryMore,{passive:true});
-  new ResizeObserver(syncStoryMore).observe($('labStory'));
   new MutationObserver(syncStoryMore).observe($('storyText'),{childList:true,subtree:true,characterData:true});
 }
 function updateChips(bundles,linesCut,linesTotal){
@@ -464,7 +475,7 @@ function updateInsets(){
   if(!scene)return;
   const stageRect=stageEl.getBoundingClientRect();
   let insets;
-  if(innerWidth<=700){
+  if(SHEET_LAYOUT.matches){
     const chipsRect=chipsEl.getBoundingClientRect(),dockRect=dock.getBoundingClientRect(),scopeRect=scopeEl.getBoundingClientRect();
     insets={top:chipsRect.bottom-stageRect.top+8,left:8,right:8,
       bottom:stageRect.bottom-Math.min(dockRect.top,scopeRect.top)+8};
@@ -479,6 +490,8 @@ function updateInsets(){
       right:drawer.inert?stageRect.right-controlsRect.left+8:drawer.getBoundingClientRect().width};
   }
   lastInsets=insets;
+  // The midline note centres itself on the frame's top edge (lesion-lab.css .lab-stage-note).
+  for(const side of ['top','left','right','bottom'])stageEl.style.setProperty(`--lab-frame-${side}`,`${Math.max(0,Math.round(insets[side]))}px`);
   scene.setFrameInsets(insets);
 }
 function openDrawer(){
@@ -549,7 +562,9 @@ function bindDrag(){
     // panel's own live readouts (MNI coordinates, the story sentence) update and reflow; see the
     // matching note at atlas_scene.js's resize(). Only OUR sphere drag needs this; CameraControls'
     // own orbit drag already disables auto-frame via its own controlstart handler.
-    mount.setPointerCapture(event.pointerId);setCursor('drag');stage.setInteracting(true);stage.setFrameHold(true);
+    // setInteracting resizes (and so clears) the drawing buffer: redraw now, or the canvas shows blank
+    // until the first pointermove moves the sphere (the drag-start flicker).
+    mount.setPointerCapture(event.pointerId);setCursor('drag');stage.setInteracting(true);stage.setFrameHold(true);stage.requestDraw();
   },true);
   mount.addEventListener('pointermove',event=>{
     if(drag){
@@ -627,7 +642,7 @@ if(testMode)Object.defineProperty(window,'__lesionLabTest',{get:()=>{
     sphere:ringScreen?{x:rect.left+ringScreen.x,y:rect.top+ringScreen.y,r:ringScreen.r}:null,count:entry?.pack.count??0,
     extent:entry?entry.pack.extent.map(v=>[...v]):null,classifyMs:lab.classifyMs,classifyMax:lab.classifyMax,dragging:!!drag,
     scene:scene?(({frames,view,hemisphere,camera,render})=>({frames,view,hemisphere,camera,pipeline:render.pipeline}))(scene.state):null,
-    story:lastStory,insets:lastInsets,sheet:innerWidth<=700?(dock.dataset.sheet||'peek'):null,drawer:!drawer.inert,
+    story:lastStory,insets:lastInsets,sheet:SHEET_LAYOUT.matches?(dock.dataset.sheet||'peek'):null,drawer:!drawer.inert,
     frame:lastInsets?{left:sr.left+lastInsets.left,top:sr.top+lastInsets.top,right:sr.right-lastInsets.right,bottom:sr.bottom-lastInsets.bottom}:null,
     brainRect:computeBrainRect()};
 }});
@@ -648,7 +663,7 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
 (async()=>{
   const slow=setTimeout(()=>{if(!lab.ready&&!lab.error)fail(new Error('Atlas load exceeded 30 s'),{slow:true});},SLOW_MS);
   try{
-    const [sceneModule,three,data]=await Promise.all([import('./atlas_scene.js?v=lesion-20260926-1'),import('three'),import('./atlas_data.js')]);
+    const [sceneModule,three,data]=await Promise.all([import('./atlas_scene.js?v=lesion-20260930-1'),import('three'),import('./atlas_data.js')]);
     THREE=three;decodeAtlasBundle=data.decodeAtlasBundle;
     const created=await sceneModule.createAtlasScene(mount,{
       hover:false,
