@@ -14,6 +14,66 @@ const stage=$('graphCanvas'),inspector=$('inspector'),status=$('graphStatus');
 const tok=getComputedStyle(stage),T=n=>tok.getPropertyValue(n).trim();
 const INK=T('--color-ink'),MUTED=T('--color-muted'),EDGE=T('--color-rule-2'),ACCENT=T('--color-accent'),STAGE=T('--color-stage'),FACE=T('--font-body');
 
+
+// Node labels are drawn by vis-network outside the physics model, so stabilised nodes can print over each
+// other. Push overlapping label boxes apart, then fit the union of boxes (labels included) into the stage.
+function boxes(ids,rel){
+  return ids.map(id=>{const p=network.getPosition(id),o=rel.get(id);return {id,b:{left:p.x+o.left,right:p.x+o.right,top:p.y+o.top,bottom:p.y+o.bottom}};});
+}
+// vis-network refreshes a node's bounding box only on redraw, so read each box once, relative to the node
+// position, and recompute it from the moved position on every pass.
+function boxOffsets(ids){
+  network.redraw();
+  const rel=new Map();
+  for(const id of ids){const p=network.getPosition(id),b=network.getBoundingBox(id);rel.set(id,{left:b.left-p.x,right:b.right-p.x,top:b.top-p.y,bottom:b.bottom-p.y});}
+  return rel;
+}
+function separateLabels(ids,rel){
+  const gap=4;
+  for(let pass=0;pass<80;pass++){
+    const bs=boxes(ids,rel);let moved=false;
+    for(let i=0;i<bs.length;i++)for(let j=i+1;j<bs.length;j++){
+      const p=bs[i].b,q=bs[j].b;
+      const ox=Math.min(p.right,q.right)-Math.max(p.left,q.left)+gap,oy=Math.min(p.bottom,q.bottom)-Math.max(p.top,q.top)+gap;
+      if(ox<=0||oy<=0)continue;
+      moved=true;
+      const a=network.getPosition(bs[i].id),c=network.getPosition(bs[j].id);
+      const half=oy/2;
+      const up=(p.top+p.bottom)/2<=(q.top+q.bottom)/2?-1:1;
+      network.moveNode(bs[i].id,a.x,a.y+up*half);network.moveNode(bs[j].id,c.x,c.y-up*half);
+    }
+    if(!moved)break;
+  }
+}
+// Edge labels sit at the middle of their edge, so two edges that meet at a hub can print one verb over the
+// other. Where two label boxes overlap, keep the edge with more evidence and blank the other's label
+// (the edge stays and its verb is still in the side panel).
+function hideOverlappingEdgeLabels(links,ids,rel){
+  // Edge labels are rotated along their edge, so use the axis-aligned box of the rotated label.
+  const items=links.filter(l=>VERBS[l.rel]).map(l=>{
+    const a=network.getPosition(l.subj),b=network.getPosition(l.obj),e=network.body.edges[l.id],sz=e&&e.labelModule&&e.labelModule.size;
+    const w=(sz&&sz.width)||VERBS[l.rel].length*5.6+8,h=(sz&&sz.height)||14,cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+    const t=Math.atan2(b.y-a.y,b.x-a.x),c=Math.abs(Math.cos(t)),sn=Math.abs(Math.sin(t)),hw=(w*c+h*sn)/2,hh=(w*sn+h*c)/2;
+    return {l,box:{left:cx-hw,right:cx+hw,top:cy-hh,bottom:cy+hh},keep:true};
+  }).sort((x,y)=>y.l.evidence.length-x.l.evidence.length);
+  const hits=(p,q)=>Math.min(p.right,q.right)-Math.max(p.left,q.left)>-2&&Math.min(p.bottom,q.bottom)-Math.max(p.top,q.top)>-2;
+  const nodeBoxes=boxes(ids,rel).map(o=>o.b);
+  const hidden=[];
+  for(let i=0;i<items.length;i++){
+    if(items[i].keep&&nodeBoxes.some(nb=>hits(items[i].box,nb))){items[i].keep=false;hidden.push(items[i].l.id);continue;}
+    if(!items[i].keep)continue;
+    for(let j=i+1;j<items.length;j++)if(items[j].keep&&hits(items[i].box,items[j].box)){items[j].keep=false;hidden.push(items[j].l.id);}
+  }
+  if(hidden.length)network.body.data.edges.update(hidden.map(id=>({id,label:''})));
+}
+function frameLabels(ids,rel){
+  const bs=boxes(ids,rel).map(o=>o.b);
+  const left=Math.min(...bs.map(b=>b.left)),right=Math.max(...bs.map(b=>b.right)),top=Math.min(...bs.map(b=>b.top)),bottom=Math.max(...bs.map(b=>b.bottom));
+  const pad=16,w=stage.clientWidth,h=stage.clientHeight;
+  const scale=Math.min(w/(right-left+2*pad),h/(bottom-top+2*pad),1.5);
+  network.moveTo({position:{x:(left+right)/2,y:(top+bottom)/2},scale,animation:false});
+}
+
 function draw(links,focus){
   currentLinks=links;
   const names=new Set();links.forEach(l=>{names.add(l.subj);names.add(l.obj);});
@@ -29,7 +89,7 @@ function draw(links,focus){
     interaction:{hover:true,tooltipDelay:150,keyboard:false},edges:{smooth:{type:'continuous'}}};
   if(network)network.destroy();
   network=new window.vis.Network(stage,{nodes,edges},options);
-  network.once('stabilizationIterationsDone',()=>{network.setOptions({physics:false});network.fit({animation:false});});
+  network.once('stabilizationIterationsDone',()=>{network.setOptions({physics:false});const ids=nodes.map(n=>n.id),rel=boxOffsets(ids);separateLabels(ids,rel);hideOverlappingEdgeLabels(links,ids,rel);frameLabels(ids,rel);});
   network.on('click',p=>{if(p.nodes.length)showNode(p.nodes[0]);else if(p.edges.length)showLink(graph.links.find(l=>l.id===p.edges[0]));else showIntro();});
   $('viewCount').textContent=`${names.size} structures · ${links.length} links`;
   stage.setAttribute('aria-label',`${current.title}: graph of ${names.size} structures and ${links.length} links. The structure list in the side panel gives the same content.`);

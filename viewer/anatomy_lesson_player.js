@@ -154,12 +154,12 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     const sources=el('section',{class:'lesson-sources'}),ids=sourceIdsForStep(step);
     sources.append(el('h4',{},`Sources & limits (${ids.length})`),el('p',{class:'evidence-type'},step.evidenceClass.replaceAll('_',' ')));
     for(const id of ids){const source=SOURCES[id],row=el('div');
-      row.append(el('a',{href:source.url,target:'_blank',rel:'noopener noreferrer'},`${id} · ${source.title}`),el('p',{},source.scope));sources.append(row);}
+      row.append(el('a',{href:source.url,target:'_blank',rel:'noopener noreferrer'},`${id} · ${source.title.replaceAll(' · ',', ')}`),el('p',{},source.scope));sources.append(row);}
     if(!ids.length)sources.append(el('p',{},'Local display contract; no external biological claim.'));
     notes.append(sources);
     for(const id of step.regions){const region=REGIONS[id],card=el('details',{'data-region-card':id});
       card.append(el('summary',{},region.name),el('p',{},region.text));const links=el('small');
-      for(const [index,sourceId] of region.sources.entries()){if(index)links.append(document.createTextNode(' · '));
+      for(const [index,sourceId] of region.sources.entries()){if(index)links.append(document.createTextNode(', '));
         const source=SOURCES[sourceId];links.append(el('a',{href:source.url,target:'_blank',rel:'noopener noreferrer','aria-label':source.title},sourceId));}
       card.append(links);notes.append(card);
     }

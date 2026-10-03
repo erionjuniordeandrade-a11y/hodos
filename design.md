@@ -10,8 +10,8 @@ per page. Tokens live in `viewer/tokens.css`; the page layers that consume them 
 ## Genre
 A reading console for a neuroanatomy coursebook. Scanner graphite page, film white text, and
 the tractography direction code (DEC) as the only colour. Principle: colour is data, never
-decoration. Preserve: routes, copy, brand, ids, the draft wording, every credit and the
-analytics-free markup.
+decoration. Preserve: routes, copy, brand, ids, the draft wording, every credit.
+Cloudflare Web Analytics only (cookieless, injected by the host); no other trackers, disclosed in the Privacy section.
 
 ## Macrostructure family
 - Landing (/): viewport-sized hero on the plate colour with the atlas loop to the right and a

@@ -25,7 +25,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   // 2026-09-28: recaptured lesson-demo stills from the current (post-CSS-token) build were added
   // alongside the 2026-09-26 originals (add-only), so the landing asset count grew by 2.
   // Same day: the two 20260919 hero loops left the allowlist and four 20260928 loops (AV1 + H.264) entered (+2).
-  assert.equal(landingAssets.length,31);
+  assert.equal(landingAssets.length,32);
   assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
   assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));

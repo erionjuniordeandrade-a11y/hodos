@@ -35,7 +35,15 @@ try{
   await shot(`${id}-imaging`);if(index===0)await shot('medial-case');
   await next();await page.locator('#initialResponse').fill(`Initial teaching answer ${id}`);await next();
   if(index===0){
-   await page.locator('.stage-body .reference-links button').first().click();
+   const marker=page.locator('.stage-body .reference-links button',{hasText:'Lesion marker'});
+   assert.equal(await marker.count(),1,'one lesion-marker reference');
+   await marker.click();
+   assert.match(await page.locator('#referenceDialog iframe').getAttribute('src'),/caseReference=1/);
+   await page.frameLocator('#referenceDialog iframe').locator('canvas').first().waitFor({state:'attached'});
+   await page.keyboard.press('Escape');await page.locator('#referenceDialog').waitFor({state:'hidden'});
+   report.checks.push('lesion-marker reference opens the atlas frame with a canvas');
+   // The first LESSON reference is whichever reference button is not the lesion marker; the marker has no lesson phases.
+   await page.locator('.stage-body .reference-links button').filter({hasNot:page.getByText('Lesion marker')}).first().click();
    const frame=page.frameLocator('#referenceDialog iframe');await frame.locator('#phase-compare').waitFor();await frame.locator('#phase-compare').click();
    await frame.locator('#lessonNext').click();assert.equal(await savedLearning(),learning);
    await frame.getByRole('link',{name:'Sources',exact:true}).click();
@@ -48,6 +56,8 @@ try{
    assert.equal(await page.locator('#stageTitle').textContent(),'Explore the relationships');report.checks.push('reference round trip preserves original progress and case stage');
   }
   await next();await page.locator('#revisedResponse').fill(`Reconsidered teaching answer ${id}`);await next();
+  // Cases with a Decide stage lock a choice before the conference response; commit the first option, then continue.
+  if(await page.locator('.decision-options').count()){await page.locator('.decision-options input').first().check();await page.getByRole('button',{name:'Commit choice'}).click();await page.getByText('Choice committed.',{exact:false}).first().waitFor();report.checks.push(`${id}: decision committed`);await next();}
   await page.locator('#finalResponse').fill(`Final teaching response ${id}`);
   await page.getByRole('button',{name:'Speak',exact:true}).click();
   if(index===0){
@@ -79,9 +89,9 @@ try{
  await page.getByRole('button',{name:'Practice this case'}).click();assert.match(await page.locator('.stage-body>.status').innerText(),/Practice response completed/);
  const denied=await browser.newContext();await denied.addInitScript(()=>{Object.defineProperty(navigator.mediaDevices,'getUserMedia',{value:()=>Promise.reject(new DOMException('Denied','NotAllowedError'))});Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Denied','SecurityError');}});});
  const dp=await denied.newPage();dp.on('pageerror',e=>report.errors.push(e.message));await dp.goto(new URL('case-conference.html',base).href);
- await dp.getByRole('button',{name:'Review debrief'}).first().click();assert.equal(await dp.locator('.stage-nav button:disabled').count(),5);
+ await dp.getByRole('button',{name:'Review debrief'}).first().click();assert.equal(await dp.locator('.stage-nav button:disabled').count(),(await dp.locator('.stage-nav button').count())-1);
  await dp.getByRole('button',{name:'Practice this case'}).click();await dp.getByRole('heading',{name:'Read the case'}).waitFor();
- for(let i=0;i<4;i++)await dp.locator('.stage-actions .primary').click();await dp.getByRole('button',{name:'Speak',exact:true}).click();await dp.getByRole('button',{name:'Record response',exact:true}).click();await dp.getByText(/Microphone access was denied/).waitFor();
+ for(let i=0;i<5;i++){if(await dp.locator('.decision-options input:not(:disabled)').count()){await dp.locator('.decision-options input').first().check();await dp.getByRole('button',{name:'Commit choice'}).click();}await dp.locator('.stage-actions .primary').click();}await dp.getByRole('button',{name:'Speak',exact:true}).click();await dp.getByRole('button',{name:'Record response',exact:true}).click();await dp.getByText(/Microphone access was denied/).waitFor();
  await dp.getByRole('button',{name:'Write',exact:true}).click();await dp.locator('#finalResponse').fill('Session draft survives denied storage');await dp.locator('#rememberCase').click();assert.equal(await dp.locator('#rememberCase').isChecked(),false);assert.equal(await dp.locator('#finalResponse').inputValue(),'Session draft survives denied storage');
  report.checks.push('denied microphone and storage preserve usable written response');
  assert.deepEqual(report.errors,[]);assert.deepEqual(report.externalRequests,[]);

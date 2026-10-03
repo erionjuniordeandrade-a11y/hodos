@@ -195,7 +195,7 @@ function applyGeometry(){
   sphere.position.fromArray(lab.centre);sphere.scale.setScalar(lab.radius);
   stage.requestDraw();
   const [x,y,z]=lab.centre;
-  $('positionReadout').textContent=`MNI x ${fmt(x)} · y ${fmt(y)} · z ${fmt(z)} mm`;
+  $('positionReadout').textContent=`MNI x ${fmt(x)}, y ${fmt(y)}, z ${fmt(z)} mm`;
   for(const [axis,id] of [[0,'posX'],[1,'posY'],[2,'posZ']])if(document.activeElement!==$(id))$(id).value=String(lab.centre[axis]);
   $('midlineNote').hidden=Math.abs(x)>=radiusOuter();
   schedulePanel();
@@ -256,7 +256,28 @@ function renderStory(entry,marginLines){
 // the bottom edge while content remains below, so a cut-off line reads as "scroll for more", not as
 // a clipped card.
 function syncMore(card){if(card)card.dataset.more=String(card.scrollHeight-card.clientHeight-card.scrollTop>2);}
-const syncStoryMore=()=>syncMore($('labStory'));
+// The capped story card ends on a whole line: its height is snapped to padding plus a whole number of
+// text lines, and scrolling settles on line boundaries (padding is one line, so both edges stay clean).
+function storyLineHeight(){return parseFloat(getComputedStyle($('storyText')).lineHeight)||0;}
+function snapStory(){
+  const card=$('labStory');if(!card)return;
+  card.style.maxHeight='';
+  const cs=getComputedStyle(card),lh=storyLineHeight();
+  if(cs.overflowY!=='auto'||!(lh>0)||card.scrollHeight<=card.clientHeight+1){syncMore(card);return;}
+  const pt=parseFloat(cs.paddingTop),border=parseFloat(cs.borderTopWidth)+parseFloat(cs.borderBottomWidth);
+  const k=Math.floor((card.clientHeight-pt)/lh);
+  if(k>=1)card.style.maxHeight=`${pt+k*lh+border}px`;
+  syncMore(card);
+}
+$('labStory')?.addEventListener('scrollend',()=>{
+  const card=$('labStory'),lh=storyLineHeight();
+  if(!lh||getComputedStyle(card).overflowY!=='auto')return;
+  const max=card.scrollHeight-card.clientHeight,target=Math.min(Math.round(card.scrollTop/lh)*lh,Math.floor(max/lh)*lh);
+  if(Math.abs(target-card.scrollTop)>1)card.scrollTo({top:target});
+});
+addEventListener('resize',()=>snapStory());
+const syncStoryMore=()=>{snapStory();};
+document.fonts?.ready.then(()=>snapStory());
 for(const card of [$('labStory'),$('lesionControls')].filter(Boolean)){
   card.addEventListener('scroll',()=>syncMore(card),{passive:true});
   new ResizeObserver(()=>syncMore(card)).observe(card);

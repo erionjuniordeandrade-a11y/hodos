@@ -32,6 +32,14 @@
   --color-parcel-focus:oklch(86.8% 0.073 213);
   --color-parcel-context:oklch(82.8% 0.061 80);
   --color-parcel-hover:oklch(95.1% 0.014 61);
+  /* Data pigments named once: connections node types and MIPS tract hues. They encode data, not chrome. */
+  --pigment-node-tract:#d8bf8e;--pigment-node-cortical-area:#86c7dc;--pigment-node-network:#b39abd;--pigment-node-function:#8fc4a0;
+  --pigment-node-deficit:#d9837a;--pigment-node-test:#dca66a;--pigment-node-model:#e9e4d8;
+  --pigment-tract-fat:#e3bf82;--pigment-tract-cst:#7cbbc4;--pigment-tract-slf:#b39abd;
+  /* Scrims and popover shadows (static; never animated). */
+  --color-scrim:oklch(0% 0 0 / .73);
+  --shadow-pop:0 8px 24px oklch(10% 0.01 248 / .5);
+  --shadow-drawer:0 12px 32px oklch(10% 0.01 248 / .55);
 
   --font-display:"Archivo","Archivo Fallback",Arial,sans-serif;
   --font-body:"Archivo","Archivo Fallback",Arial,sans-serif;
@@ -47,6 +55,10 @@
   --text-2xl:2.4414rem;  /* 39 */
   --text-display:clamp(2.5rem,3.2vw + 1rem,4rem);
   --text-title:clamp(1.75rem,1.4vw + 1rem,2.25rem);
+  /* Display type, one definition for every page h1 (design.md Typography): bold, expanded, tight. */
+  --display-weight:700;
+  --display-wdth:"wdth" 125;
+  --display-tracking:-0.03em;
   --lh-display:1.06;
   --lh-title:1.15;
   --lh-body:1.6;
@@ -131,9 +143,6 @@
   --legacy-selection-bg:#2b4a53;
   --legacy-shadow-soft:#29252d22;
   --legacy-shadow-strong:#29252d33;
-  --legacy-stage-gradient-end:#080f17;
-  --legacy-stage-gradient-mid:#0a131e;
-  --legacy-stage-gradient-start:#122436;
   --legacy-stage-ink-fc:#ebe7df;
   --legacy-surface-button:#202936;
   --legacy-surface-button-hover:#21364a;
@@ -186,3 +195,5 @@
   --color-muted:#B2B9C0;--color-ink:#E4E6E3;--color-ink-on-ink:var(--color-paper);
   color:var(--color-ink);
 }
+/* Higher contrast preference: lift the muted text and rule tokens. */
+@media(prefers-contrast:more){:root{--color-muted:oklch(88% 0.008 248);--color-rule:oklch(60% 0.015 248);--color-rule-2:oklch(78% 0.015 248)}}
