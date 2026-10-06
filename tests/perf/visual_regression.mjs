@@ -82,7 +82,7 @@ try{
     await page.evaluate(()=>window.__atlasTest.togglePathway('AF_L'));
     await page.waitForFunction(previous=>window.__atlasTest?.bundles?.includes('AF_L')&&window.__atlasTest.frames>previous,frames);
     const projected=await page.evaluate(()=>{
-      const atlas=window.__atlasTest,rect=document.querySelector('#atlasCanvas canvas').getBoundingClientRect(),points=[];
+      const atlas=window.__atlasTest,rect=document.querySelector('#atlasCanvas>canvas').getBoundingClientRect(),points=[];
       for(let line=0;line<20;line++)for(const vertex of [4,8,12,16,20,24]){
         const point=atlas.projectBundleVertex('AF_L',line,vertex);
         if(point&&point.z>-1&&point.z<1&&point.x>Math.max(rect.left,0)+8&&point.x<Math.min(rect.right,innerWidth)-8&&

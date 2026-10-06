@@ -31,7 +31,7 @@ try{
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const layout=await page.evaluate(()=>{
       const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
-      return {canvas:rect(document.querySelector('canvas')),labels:[...document.querySelectorAll('.atlas-parcel-label')].map(e=>({...rect(e),text:e.textContent})),axis:rect(document.querySelector('.atlas-orientation'))};
+      return {canvas:rect(document.querySelector('#atlasCanvas>canvas')),labels:[...document.querySelectorAll('.atlas-parcel-label')].map(e=>({...rect(e),text:e.textContent})),axis:rect(document.querySelector('.atlas-orientation'))};
     });
     const overlaps=(a,b)=>a.left<b.right-.5&&a.right>b.left+.5&&a.top<b.bottom-.5&&a.bottom>b.top+.5;
     for(const [i,a] of layout.labels.entries()){
@@ -203,7 +203,7 @@ try{
   assert.equal(await page.locator('#selectedPathways button').count(),12);
   await page.locator('#selectedPathways button').first().click();assert.equal((await state()).bundles.length,11);
   await page.keyboard.press('Escape');await page.locator('#atlasFit').click();const fitted=(await state()).camera;
-  await page.locator('canvas').focus();await page.keyboard.press('ArrowRight');assert.notDeepEqual((await state()).camera,fitted);
+  await page.locator('#atlasCanvas>canvas').focus();await page.keyboard.press('ArrowRight');assert.notDeepEqual((await state()).camera,fitted);
   await page.keyboard.press('Home');sameCamera((await state()).camera,fitted);
   assert(await page.locator('#tracePlay').isDisabled());
   await page.waitForTimeout(200);const idle=await state();await page.waitForTimeout(250);

@@ -74,6 +74,8 @@ try {
         await page.goto(new URL(scenario.path, base).href, {waitUntil: 'domcontentloaded'});
         assert.equal(await page.evaluate(() => innerWidth), size.width, `${label} viewport width applied`);
         await page.waitForFunction(() => document.getElementById('atlasLoading')?.hidden === true, null, {timeout: 30000});
+        // The slice view never opens on load; the Views menu is its only entry point.
+        assert.equal(await page.locator('#slicePanel').isHidden(), true, `${label} slice view closed on load`);
 
         for (const view of scenario.views) {
           await page.locator('.atlas-view-menu summary').click();
@@ -98,6 +100,34 @@ try {
           );
           report.checks.push(`${label}: ${view.key} -> "${view.expect}"`);
         }
+
+        // On short phones the stage starts below the fold; a reader scrolls it up before opening its menu.
+        await page.evaluate(() => document.querySelector('.atlas-stage').scrollIntoView({block: 'start'}));
+        await page.locator('.atlas-view-menu summary').click();
+        const slice = page.locator('.atlas-view-menu [data-slice-open="coronal"]');
+        const sliceBox = await slice.boundingBox();
+        assert(sliceBox && sliceBox.x >= -0.5 && sliceBox.x + sliceBox.width <= size.width + 0.5 && sliceBox.y >= -0.5 && sliceBox.y + sliceBox.height <= size.height + 0.5,
+          `${label} coronal slice choice is inside the viewport: ${JSON.stringify(sliceBox)}`);
+        assert.equal(await page.evaluate(({x, y}) => document.elementFromPoint(x, y)?.closest('[data-slice-open]')?.dataset.sliceOpen ?? null,
+          {x: sliceBox.x + sliceBox.width / 2, y: sliceBox.y + sliceBox.height / 2}), 'coronal', `${label} coronal slice choice is not covered or clipped`);
+        await slice.click();
+        await page.waitForSelector('#slicePanel:not([hidden])');
+        const panel = await page.evaluate(() => {
+          const root = document.getElementById('slicePanel');
+          return {axis: root.querySelector('[data-slice-axis][aria-pressed="true"]')?.dataset.sliceAxis,
+            overflow: root.scrollHeight - root.clientHeight, menuOpen: document.querySelector('.atlas-view-menu').open,
+            slice: new URLSearchParams(location.search).has('slice'),
+            // Sticky lesson controls and the header must not paint over the panel's own controls.
+            covered: ['[data-slice-close]', '[data-slice-range]', '[data-slice-flip]', '.slice-readout'].filter(selector => {
+              const box = root.querySelector(selector).getBoundingClientRect();
+              const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+              return !hit || !root.contains(hit);
+            })};
+        });
+        assert.deepEqual(panel, {axis: 'coronal', overflow: 0, menuOpen: false, slice: false, covered: []}, `${label} slice view opens on the chosen plane, fits its box and stays on top`);
+        await page.locator('#slicePanel [data-slice-close]').click();
+        assert.equal(await page.locator('#slicePanel').isHidden(), true, `${label} slice view closes`);
+        report.checks.push(`${label}: slice view opens from the Views menu and closes`);
       } finally {
         await browser.close();
       }
