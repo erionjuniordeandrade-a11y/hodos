@@ -77,7 +77,7 @@
 
   --radius:2px;
   --control-height:2.75rem; /* 44 px: inputs, buttons and selects share it */
-  --stage-sticky:max(300px,36dvh);
+  --stage-sticky:max(348px,40dvh); /* phones: room for the 44 px tool row and still a 190 px 3D view */
 
   --ease-out:cubic-bezier(0.16,1,0.3,1);
   --ease-in:cubic-bezier(0.7,0,0.84,0);

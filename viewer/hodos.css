@@ -611,7 +611,7 @@ body[data-profile=presenter]{--muted:var(--legacy-text-faint-cool);--faint:var(-
   --stage-line:var(--color-rule-2);--stage-control:var(--color-control);
   --parcel-focus:var(--color-parcel-focus);--parcel-context:var(--color-parcel-context);
   --display:var(--font-display);--reading:var(--font-display);--mono:var(--font-outlier);
-  --stage-sticky:max(300px,36dvh); /* re-stated here: the older sheet declares a plain 36dvh */
+  --stage-sticky:max(348px,40dvh); /* re-stated here: the older sheet declares a plain 36dvh */
   font-family:var(--font-body);font-size:16px;line-height:var(--lh-body);background:var(--color-paper);color:var(--color-ink);
 }
 [data-surface=dark]{
@@ -938,7 +938,7 @@ body.sources main,.sources-page main{max-width:none}
   main{padding:var(--space-sm) var(--page-gutter)}
   .intro{margin:var(--space-md) 0 var(--space-lg)}
   .intro>p{font-size:var(--text-base)}
-  #atlasWorkspace .atlas-stage{height:var(--stage-sticky);min-height:300px;max-height:420px;position:sticky;top:0;z-index:var(--z-sticky);margin:0}
+  #atlasWorkspace .atlas-stage{height:var(--stage-sticky);min-height:348px;max-height:420px;position:sticky;top:0;z-index:var(--z-sticky);margin:0}
   .stage-head{padding:var(--space-xs) var(--space-md);min-height:2.75rem}
   .stage-head{gap:var(--space-xs)}
   .stage-head>div:first-child{flex:1 1 0%;min-width:0;max-width:none}
@@ -978,6 +978,9 @@ body.sources main,.sources-page main{max-width:none}
   .dissection-open,.dissection-reference{scroll-margin-top:var(--space-sm)}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:150ms!important;animation-duration:150ms!important;animation-iteration-count:1!important}button:hover{transform:none}}
+/* The label layout measures each label's height right after setting its width. The reduced-motion rule above gives every element a
+   150 ms transition on all properties, so the width would lag and the height read would be stale (labels overflowing a short phone stage). */
+.atlas-parcel-label{transition-property:none}
 @media print{.studio-header{position:static}.studio-header nav,.stage-tools,.lesson-controls{display:none!important}:root{--color-paper:white;--color-paper-2:white;--color-ink:black;--color-muted:var(--legacy-print-muted);--color-rule:var(--legacy-print-rule);--color-accent:black}}
 
 /* Standalone pages place the colophon directly in body; give it the page gutter. */

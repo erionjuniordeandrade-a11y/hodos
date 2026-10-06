@@ -501,7 +501,6 @@ async function recordVideo(base){
       await page.mouse.move(x0+(to[0]-x0)*e,y0+(to[1]-y0)*e);if(t<1)await sleep(14);}
     pointer=to;};
   const centreOf=async locator=>{const box=await locator.boundingBox();return [box.x+box.width/2,box.y+box.height/2];};
-  const smoothScroll=async top=>{await page.evaluate(top=>window.scrollBy({top,behavior:'smooth'}),top);await sleep(700);};
   const reveal=async locator=>{if(!await locator.evaluate(e=>{const r=e.getBoundingClientRect();return r.top>=70&&r.bottom<=innerHeight-60;})){
     await locator.evaluate(e=>e.scrollIntoView({behavior:'smooth',block:'center'}));await sleep(800);}return centreOf(locator);};
   await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
@@ -517,14 +516,17 @@ async function recordVideo(base){
   await glide([sphere.x-120,sphere.y-60],1900);await sleep(200);
   await glide([sphere.x-20,sphere.y+10],900);
   await page.mouse.up();await sleep(700);mark('drag');
-  await smoothScroll(300);
-  await glide(await centreOf(page.locator('#marginOn')),700);await page.mouse.down();await page.mouse.up();await sleep(700);mark('margin');
+  // The controls card sits in the stage's top-right corner; each control is scrolled into view only if it is not
+  // already, and every press is checked in the page state, so a click that lands off-screen fails here.
+  await glide(await reveal(page.locator('#marginOn')),700);await page.mouse.down();await page.mouse.up();
+  await page.waitForFunction(()=>window.__lesionLabTest.marginOn===true);await sleep(700);mark('margin');
+  await reveal(page.locator('#radius'));
   const radius=await page.locator('#radius').boundingBox(),thumb=[radius.x+radius.width*(10-3)/27,radius.y+radius.height/2];
-  await glide(thumb,600);await page.mouse.down();await glide([radius.x+radius.width*(17-3)/27,thumb[1]],1000);await page.mouse.up();await sleep(500);mark('radius');
+  await glide(thumb,600);await page.mouse.down();await glide([radius.x+radius.width*(17-3)/27,thumb[1]],1000);await page.mouse.up();
+  await page.waitForFunction(()=>{const r=window.__lesionLabTest.radius;return r>=16&&r<=18;});await sleep(500);mark('radius');
   // Hemisphere: the sphere is mirrored across the midline and the view turns to the right lateral view.
-  await glide(await centreOf(page.locator('[data-hemi=R]')),700);await page.mouse.down();await page.mouse.up();
+  await glide(await reveal(page.locator('[data-hemi=R]')),700);await page.mouse.down();await page.mouse.up();
   await page.waitForFunction(()=>{const t=window.__lesionLabTest;return t.hemi==='R'&&!t.loading&&t.scene.view==='right';});mark('hemisphere');await sleep(800);
-  await smoothScroll(-300);
   sphere=(await lab(page)).sphere;
   await glide([sphere.x,sphere.y],700);await page.mouse.down();
   await glide([sphere.x+60,sphere.y-70],1400);await page.mouse.up();await sleep(500);mark('right drag');

@@ -41,11 +41,11 @@ try{
     }
   };
   await visit('');assert.equal((await state()).lesson.status,'inactive');
-  assert.equal(await page.title(),'Hodos · Brain networks & white matter tracts');
+  assert.equal(await page.title(),'Hodos · The atlas and lessons');
   assert.match(await page.locator('.brand-name').innerText(),/^Hodos/);
   await page.evaluate(()=>document.fonts.ready);assert(await page.evaluate(()=>document.fonts.check('600 26px "Archivo"')));
-  assert.match(await page.locator('link[rel=icon]').getAttribute('href'),/hodos-favicon/);
-  assert.equal(await page.locator('.curriculum-row').count(),10);assert.equal(new URL(page.url()).searchParams.has('lesson'),false);
+  assert.match(await page.locator('link[rel=icon][type="image/svg+xml"]').getAttribute('href'),/hodos-favicon/);
+  assert.equal(await page.locator('.curriculum-row').count(),LESSONS.length);assert.equal(new URL(page.url()).searchParams.has('lesson'),false);
   assert.equal(await page.locator('#anatomyDrawer').getAttribute('open'),null);
   await page.screenshot({path:`${out}/library-desktop.png`,fullPage:true});
   report.checks.push('Fresh entry offers learning/exploration without an implicit motor lesson');
@@ -159,7 +159,7 @@ try{
   await choose('motor-cst');await page.locator('#lessonNext').click();await jump(4);await page.locator('#phase-compare').click();
   for(const [width,height,profile] of [[1440,900,'teaching'],[1157,601,'teaching'],[851,900,'teaching'],[390,844,'teaching'],[320,700,'teaching'],[1440,900,'presenter']]){
     await page.setViewportSize({width,height});await page.locator('#lessonProfile').selectOption(profile);await page.locator('.brand').scrollIntoViewIfNeeded();
-    const metrics=await page.evaluate(()=>{const rect=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,bottom:r.bottom,scroll:e.scrollHeight,client:e.clientHeight};};return {width:innerWidth,height:innerHeight,pageWidth:document.documentElement.scrollWidth,stage:rect('.atlas-stage'),canvas:rect('canvas'),panel:rect('#lessonPanel'),readout:rect('.scene-readout'),nav:rect('.lesson-controls')};});
+    const metrics=await page.evaluate(()=>{const rect=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,bottom:r.bottom,scroll:e.scrollHeight,client:e.clientHeight};};return {width:innerWidth,height:innerHeight,pageWidth:document.documentElement.scrollWidth,stage:rect('.atlas-stage'),canvas:rect('#atlasCanvas>canvas'),panel:rect('#lessonPanel'),readout:rect('.scene-readout'),nav:rect('.lesson-controls')};});
     assert(metrics.pageWidth<=width,`horizontal overflow at ${width}`);
     assert(metrics.readout.bottom<=metrics.stage.bottom+1,`readout outside stage at ${width}`);
     assert(metrics.stage.scroll<=metrics.stage.client+1,`stage overflow at ${width}`);
@@ -210,7 +210,7 @@ try{
   assert.equal((await state()).frames,idle.frames);assert.equal((await state()).time,idle.time);
   report.checks.push('12-pathway capacity, keyboard rotation/fit and reduced-motion idle rendering');
   await page.goto(new URL('atlas-sources.html',base).href);await page.evaluate(()=>document.fonts.ready);
-  assert.equal(await page.title(),'Hodos · Atlas sources');assert(await page.evaluate(()=>document.fonts.check('600 26px "Archivo"')));
+  assert.equal(await page.title(),'Hodos · Sources and use terms');assert(await page.evaluate(()=>document.fonts.check('600 26px "Archivo"')));
   assert.match(await page.locator('.brand-name').innerText(),/^Hodos/);
   assert.match(await page.locator('main').innerText(),/Amy Sterling/);
   await page.emulateMedia({forcedColors:'active'});
