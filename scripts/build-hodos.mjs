@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {gunzipSync} from 'node:zlib';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {generateLessonPages,lessonIdsFromLanding,lessonIdsInCurriculum} from './lesson-pages.mjs';
+import {generateLessonPages,lessonIdsFromLanding,lessonIdsInCurriculum,rootAbsoluteMarkup,extractSingleElement} from './lesson-pages.mjs';
 import {resolveDependency,bundleModules} from './bundle-esm.mjs';
 
 const repoRoot=fileURLToPath(new URL('../',import.meta.url));
@@ -50,7 +50,7 @@ const supportingFiles=[
   'media/landing/lesson-demo-20260926.jpg','media/landing/lesson-demo-loop-20260926.mp4','media/landing/lesson-demo-phone-20260926.jpg',
   'media/landing/hero-atlas-loop-1400-20260928.mp4','media/landing/hero-atlas-loop-880-20260928.mp4',
   'media/landing/hero-atlas-loop-1400-av1-20260928.mp4','media/landing/hero-atlas-loop-880-av1-20260928.mp4',
-  'media/landing/lesson-demo-20260928.jpg','media/landing/lesson-demo-phone-20260928.jpg',
+  'media/landing/lesson-demo-20260928.jpg','media/landing/lesson-demo-phone-20260928.jpg','media/landing/lesson-demo-phone-20261003.jpg',
   'media/landing/case-right-medial-frontal-20260914.jpg',
   'media/landing/lesion-lab-20260928.jpg',
   'media/lesson-previews/plate-motor-cst-20260919.jpg',
@@ -71,7 +71,7 @@ const supportingFiles=[
   'atlas/licenses/hcp-data-use-terms.txt','atlas/licenses/melbourne-subcortex.txt',
   'atlas/licenses/mni-template-license.txt','atlas/licenses/freesurfer-atlas-license.txt',
   'atlas/tracts-ranges.json',
-  'favicon.ico','apple-touch-icon.png','site.webmanifest',
+  'favicon.ico','apple-touch-icon.png','icon-192.png','icon-512.png','site.webmanifest',
 ];
 const SITE_ORIGIN='https://hodosatlas.com';
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -204,7 +204,11 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   for(const [name,html] of lessonPages)add(name,html);
   add('THIRD_PARTY_NOTICES.md',(await safeRead(root,'THIRD_PARTY_NOTICES.md')).toString().replaceAll('(viewer/atlas/','(atlas/'));
   add('LICENSE',await safeRead(root,'LICENSE'));
-  add('404.html','<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/hodos.css"></head><body><main class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main></body></html>\n');
+  // The 404 page carries the shared header and colophon (same extraction as the lesson pages) so a
+  // dead link still offers a way back; Pages keeps serving it with status 404.
+  const notFoundHeader=rootAbsoluteMarkup(extractSingleElement(processedPages.get('atlas-sources.html'),'header','atlas-sources header'));
+  const notFoundFooter=rootAbsoluteMarkup(extractSingleElement(processedPages.get('case-conference.html'),'footer','case-conference footer','source-footer'));
+  add('404.html',`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><meta name="theme-color" content="#1E2227"><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/hodos.css"></head><body><a class="skip-link" href="#notFoundMain">Skip to content</a>${notFoundHeader}<main id="notFoundMain" class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main>${notFoundFooter}</body></html>\n`);
   // Sitemap and robots.txt are generated from the exported files, never hand-maintained: lesson
   // ids come from the landing page's own lesson links (the same list residents see), and lastmod
   // comes from the shipped content version.
@@ -251,15 +255,16 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const scriptHashes=inlineScripts.map(s=>`'sha256-${createHash('sha256').update(s).digest('base64')}'`);
   // Cloudflare Web Analytics (auto-injected beacon) is the only third-party script allowed; it is
   // the site's usage signal and carries no user identity beyond Cloudflare's own privacy terms.
-  const csp=`default-src 'self'; script-src 'self' ${scriptHashes.join(' ')} 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'`;
+  const csp=`default-src 'self'; script-src 'self' ${scriptHashes.join(' ')} 'wasm-unsafe-eval' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://cloudflareinsights.com; worker-src 'self' blob:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'`;
   // Pages are revalidated on every visit; hashed or key-versioned assets are cached for 30 days.
   // Vendor scripts are referenced by plain path, so they revalidate like the page. Pages applies
   // every matching rule and appends same-named headers, so the asset rules detach the page-level
   // Cache-Control ("! Header") before setting their own.
   const cached=['  ! Cache-Control','  Cache-Control: public, max-age=2592000'];
   const vendorCached=['  ! Cache-Control','  Cache-Control: public, max-age=14400, must-revalidate'];
-  add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin',`  Content-Security-Policy: ${csp}`,
+  add('_headers',['/*','  X-Content-Type-Options: nosniff','  Referrer-Policy: strict-origin-when-cross-origin','  Strict-Transport-Security: max-age=15552000',`  Content-Security-Policy: ${csp}`,
     '  Permissions-Policy: microphone=(self), camera=(), geolocation=(), payment=(), usb=()','  Cache-Control: public, max-age=0, must-revalidate',
+    '/LICENSE','  ! Content-Type','  Content-Type: text/plain; charset=utf-8','/THIRD_PARTY_NOTICES.md','  ! Content-Type','  Content-Type: text/plain; charset=utf-8',
     '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,'/media/*',...cached,
     '/vendor/addons/*',...vendorCached,'/vendor/addons/libs/draco/*',...vendorCached,
     'https://hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://:version.hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://www.hodosatlas.com/*','  X-Robots-Tag: noindex',

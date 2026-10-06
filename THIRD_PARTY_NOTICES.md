@@ -6,8 +6,8 @@ excluded from the original-work license grant.
 
 ## human-brain tract pulse technique
 
-Hodos derives from the TractLab teaching atlas and acknowledges
-[human-brain](https://github.com/amyleesterling/human-brain), including the
+Hodos derives from the author's teaching atlas and acknowledges
+[human-brain](https://amyleesterling.github.io/human-brain/somatotopy.html), including the
 reference geometry preparation and MIT-licensed picking approach below.
 
 MIT License
@@ -59,6 +59,16 @@ and nearest-corner picking technique are adapted from her MIT-licensed
   Fonov et al., 2011, doi:10.1016/j.neuroimage.2010.07.033,
   [MNI permission notice](viewer/atlas/licenses/mni-template-license.txt).
   This is a mask remainder, not a named cerebellar or brainstem segmentation.
+- Yeo-7 and Yeo-17 resting-state network labels: Yeo et al., 2011, PMID 21653723,
+  [PubMed](https://pubmed.ncbi.nlm.nih.gov/21653723/). Per-vertex labels on the fs_LR 32k
+  surface, resampled by the DiedrichsenLab
+  [fs_LR_32](https://github.com/DiedrichsenLab/fs_LR_32) project; terms in the
+  [FreeSurfer atlas license](viewer/atlas/licenses/freesurfer-atlas-license.txt).
+  Only the 7-network set is exposed in the interface.
+- Arterial territories: Digital 3D Brain MRI Arterial Territories Atlas, Liu et al., 2023,
+  PMID 36739282, [PubMed](https://pubmed.ncbi.nlm.nih.gov/36739282/),
+  [Arterial_Atlas repository](https://github.com/Chin-Fu-Liu/Arterial_Atlas), CC BY-SA 4.0.
+  Level 2 is carried as a per-vertex label set on the same surface.
 
 Data were provided in part by the Human Connectome Project, WU-Minn Consortium
 (Principal Investigators: David Van Essen and Kamil Ugurbil; 1U54MH091657)
@@ -73,7 +83,7 @@ registration or patient-to-atlas mapping.
 
 ## Three.js and Draco
 
-Three.js 0.185.0 and its bundled Draco decoder are vendored in `viewer/vendor/`.
+Three.js 0.186.1 and its bundled Draco decoder are vendored in `viewer/vendor/`.
 The Three.js MIT license is in `viewer/vendor/LICENSE.md`; Draco's license
 and author notices are in `viewer/vendor/addons/libs/draco/LICENSE` and
 `viewer/vendor/addons/libs/draco/AUTHORS`, retrieved from the official
@@ -86,6 +96,14 @@ vis-network 9.1.9 and vis-data 7.1.9 (peer UMD builds, from the npm registry on 
 vendored in `viewer/vendor/` and draw the graph on the Connections page. They are dual licensed
 Apache-2.0 OR MIT and are used under MIT; the license text is in `viewer/vendor/vis-LICENSE.md`.
 Served locally; no external CDN.
+
+## camera-controls and three-mesh-bvh
+
+camera-controls 3.1.2 (Copyright (c) 2017 @yomotsu) and three-mesh-bvh 0.9.15
+(Copyright (c) 2018 Garrett Johnson) are vendored in `viewer/vendor/` and used by the atlas
+and MIPS pages. Both are MIT licensed; the license texts are in
+`viewer/vendor/camera-controls-LICENSE.md` and `viewer/vendor/three-mesh-bvh-LICENSE.md`.
+Versions are those recorded in `viewer/vendor/VENDOR.json`. Served locally; no external CDN.
 
 ## Archivo
 

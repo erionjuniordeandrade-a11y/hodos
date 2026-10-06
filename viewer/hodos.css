@@ -69,7 +69,7 @@ main{max-width:1680px;margin:auto;padding:28px 36px 18px}
 .intro h1{font-size:32px;letter-spacing:-.04em;font-weight:550;margin:0}
 .intro>p{font-size:13px;line-height:1.7;margin:0;color:var(--legacy-text-subtle)}
 .intro>p span{color:var(--muted);font-size:12px}
-.atlas-stage{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto auto;background:radial-gradient(ellipse at 48% 50%,var(--legacy-stage-gradient-start) 0%,var(--legacy-stage-gradient-mid) 53%,var(--legacy-stage-gradient-end) 78%)}
+.atlas-stage{position:relative;min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto auto;background:var(--color-stage)}
 .stage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px 0;z-index:1}
 .stage-head p{font-size:11px;color:var(--muted);margin:4px 0}
 .stage-head strong{font:17px var(--mono);color:var(--ink);margin-right:4px}
@@ -273,7 +273,7 @@ button,select,.studio-header nav button,.studio-header #lessonProfile,.stage-too
 button,select,.stage-tools>button,.atlas-view-menu>summary,.views button,#lessonPanel button,.scene-details>summary,.studio-header nav button,.studio-header nav a{min-height:2.75rem}}
 @media(prefers-contrast:more){button,select,input,#atlasWorkspace,#anatomyResults{border-color:var(--legacy-border-contrast)}
 #lessonPanel .lesson-capability,.trace-note,.canvas-help,.source-footer{color:var(--legacy-text-contrast)}
-:root{--color-muted:oklch(88% 0.008 248);--color-rule:oklch(60% 0.015 248);--color-rule-2:oklch(78% 0.015 248)}}
+}
 @media(forced-colors:active){button,select,input{border:2px solid ButtonText}
 .bundle-chip[aria-pressed=true],#selectedPathways button,#lessonPanel button[aria-current=step]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}
 #atlasCanvas{forced-color-adjust:none;background:var(--legacy-surface-void)}
@@ -555,8 +555,8 @@ body[data-mode=library] #atlasWorkspace .atlas-stage{position:relative;height:30
 /* Cold-cache loading state: an indeterminate bar above the status text. */
 #atlasLoading{display:grid;gap:12px;justify-items:center}
 #atlasLoading .loading-bar{display:block;width:min(240px,60%);height:3px;border-radius:var(--radius);background:var(--line);overflow:hidden;position:relative}
-#atlasLoading .loading-bar::after{content:"";position:absolute;left:-40%;top:0;bottom:0;width:40%;background:var(--accent);animation:hodos-loading 1.4s ease-in-out infinite}
-@keyframes hodos-loading{to{left:100%}}
+#atlasLoading .loading-bar::after{content:"";position:absolute;left:0;top:0;bottom:0;width:40%;background:var(--accent);transform:translateX(-100%);animation:hodos-loading 1.4s ease-in-out infinite}
+@keyframes hodos-loading{to{transform:translateX(250%)}}
 @media (prefers-reduced-motion:reduce){#atlasLoading .loading-bar::after{animation:none;left:0;width:100%;opacity:.5}}
 #lessonPanel .lesson-nav button[hidden]{display:none}
 /* Short sticky viewer on phones: keep the Views menu inside it (two columns, compact rows). */
@@ -637,7 +637,7 @@ button,select,input[type=search],input[type=text]{
   font-family:var(--font-body);font-size:var(--text-sm);font-weight:500;line-height:1.2;
   min-height:var(--control-height);padding:0 var(--space-md);border-radius:var(--radius);
   background:var(--color-control);color:var(--color-ink);border:1px solid var(--color-rule-2);
-  transition:background-color var(--dur-micro) var(--ease-out),border-color var(--dur-micro) var(--ease-out),transform var(--dur-micro) var(--ease-out);
+  transition:transform var(--dur-micro) var(--ease-out);
 }
 button{cursor:pointer;white-space:nowrap}
 @media(hover:hover){button:hover{background:var(--color-control-hover);border-color:var(--color-rule-2);transform:translateY(-1px)}
@@ -650,7 +650,7 @@ button{cursor:pointer;white-space:nowrap}
 .bundle-chip:hover{background:var(--color-control);color:var(--color-ink)}}
 button:active{transform:translateY(0)}
 button:disabled,button[aria-disabled=true]{opacity:.55;cursor:not-allowed;transform:none;background:var(--color-control);color:var(--color-muted);border-color:var(--color-rule)}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,#atlasCanvas canvas:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;transition:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[role=tab]:focus-visible,[tabindex]:not([tabindex="-1"]):focus-visible,#atlasCanvas canvas:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;transition:none}
 select{padding-right:var(--space-xl);appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--color-muted) 50%),linear-gradient(135deg,var(--color-muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
 input[type=search]{font-weight:400;background:var(--color-paper);border-color:var(--color-rule-2);outline:2px solid transparent;outline-offset:1px}
 input[type=search]::placeholder{color:var(--color-muted);opacity:1}
@@ -683,7 +683,7 @@ main{padding-top:var(--space-md)}
 /* ---- Home intro: one stacked column, measure held. Index-First heading paragraph. ---- */
 .intro{display:block;margin:var(--space-lg) 0 var(--space-xl);max-width:var(--measure)}
 .intro .lesson-kicker{display:none}
-.intro h1,body[data-profile=presenter] .intro h1{font:500 var(--text-display)/var(--lh-display) var(--font-display);letter-spacing:-0.01em;margin:0 0 var(--space-md);color:var(--color-ink)}
+.intro h1,body[data-profile=presenter] .intro h1{font:var(--display-weight) var(--text-display)/var(--lh-display) var(--font-display);font-variation-settings:var(--display-wdth);letter-spacing:var(--display-tracking);margin:0 0 var(--space-md);color:var(--color-ink)}
 .intro>p{font-size:var(--text-md);line-height:1.5;color:var(--color-muted);margin:0;max-width:44ch}
 .intro>p br{display:none}
 /* ---- Workspace: the stage is the only bordered container. ---- */
@@ -703,7 +703,7 @@ main{padding-top:var(--space-md)}
 .atlas-view-menu>summary{cursor:pointer;list-style:none}
 .atlas-view-menu>summary::-webkit-details-marker{display:none}
 .atlas-view-menu[open]>summary{color:var(--color-ink);border-color:var(--color-rule-2)}
-.atlas-view-menu .views{width:11rem;padding:var(--space-2xs);gap:0;grid-template-columns:1fr;background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:0 8px 24px oklch(10% 0.01 248 / .5);z-index:var(--z-dropdown);top:calc(100% + var(--space-2xs))}
+.atlas-view-menu .views{width:11rem;padding:var(--space-2xs);gap:0;grid-template-columns:1fr;background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:var(--shadow-pop);z-index:var(--z-dropdown);top:calc(100% + var(--space-2xs))}
 .views button{min-height:2.25rem;padding:0 var(--space-sm);border:0;background:transparent;color:var(--color-ink);font-size:var(--text-sm);font-weight:400;text-align:left;border-radius:var(--radius)}
 #atlasCanvas{min-height:0;height:auto;overflow:hidden}
 #atlasHover{font:400 var(--text-sm)/1.3 var(--font-body);background:var(--color-paper-2);color:var(--color-ink);border:1px solid var(--color-rule-2);border-radius:var(--radius)}
@@ -723,7 +723,7 @@ main{padding-top:var(--space-md)}
 .scene-details>summary{font:500 var(--text-xs)/1 var(--font-body);color:var(--color-muted);min-height:2.25rem;padding:0 var(--space-sm);border:1px solid transparent;border-radius:var(--radius);display:inline-flex;align-items:center;cursor:pointer;list-style:none;white-space:nowrap}
 .scene-details>summary::-webkit-details-marker{display:none}
 .scene-details[open]>summary{color:var(--color-ink);border-color:var(--color-rule-2)}
-.scene-details-body{position:absolute;right:var(--space-md);bottom:calc(100% + var(--space-xs));left:auto;width:min(28rem,calc(100% - 2 * var(--space-md)));max-height:min(24rem,55dvh);overflow:auto;padding:var(--space-md) var(--space-lg);background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:0 8px 24px oklch(10% 0.01 248 / .5);z-index:var(--z-dropdown)}
+.scene-details-body{position:absolute;right:var(--space-md);bottom:calc(100% + var(--space-xs));left:auto;width:min(28rem,calc(100% - 2 * var(--space-md)));max-height:min(24rem,55dvh);overflow:auto;padding:var(--space-md) var(--space-lg);background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:var(--shadow-pop);z-index:var(--z-dropdown)}
 .scene-details-body p,.scene-details-body .scene-footer{font:400 var(--text-sm)/1.5 var(--font-body);color:var(--color-muted);margin:var(--space-xs) 0}
 .scene-details-body .parcel-legend{color:var(--color-muted)}
 .focus-key{color:var(--color-parcel-focus);font-weight:600}
@@ -745,7 +745,7 @@ main{padding-top:var(--space-md)}
 #lessonPanel .lesson-outline button{font-size:var(--text-sm);font-weight:400;min-height:2.25rem;padding:var(--space-2xs) var(--space-xs);color:var(--color-muted);white-space:normal;text-align:left}
 #lessonPanel .lesson-outline [aria-current=step]{color:var(--color-ink);font-weight:500;background:var(--color-paper-2);box-shadow:inset 2px 0 0 var(--color-accent)}
 .learning-phases{margin:var(--space-xs) 0 var(--space-md);border-bottom:1px solid var(--color-rule)}
-#lessonPanel .learning-phases button{min-height:2.75rem;font-size:var(--text-sm);font-weight:500;color:var(--color-muted);border:0;border-radius:0;background:transparent;padding:0;box-shadow:inset 0 -2px 0 transparent;transition:box-shadow var(--dur-micro) var(--ease-out),color var(--dur-micro) var(--ease-out)}
+#lessonPanel .learning-phases button{min-height:2.75rem;font-size:var(--text-sm);font-weight:500;color:var(--color-muted);border:0;border-radius:0;background:transparent;padding:0;box-shadow:inset 0 -2px 0 transparent}
 #lessonPanel .learning-phases button:hover{transform:none;color:var(--color-ink);background:transparent}
 #lessonPanel .learning-phases button[aria-pressed=true]{color:var(--color-ink);font-weight:600;box-shadow:inset 0 -2px 0 var(--color-accent)}
 #lessonPanel .lesson-scroll{padding:var(--space-xs) var(--space-xs) var(--space-lg) 0}
@@ -809,7 +809,7 @@ body[data-mode=library] #atlasWorkspace #lessonPanel{padding:0;overflow:visible;
 #lessonPanel .lesson-catalog .curriculum-row:hover{background:transparent;transform:none}
 #lessonPanel .lesson-catalog .curriculum-row:hover .curriculum-name{color:var(--color-accent-strong)}
 #lessonPanel .lesson-catalog .curriculum-number{font:400 var(--text-sm)/1.4 var(--font-body);font-variant-numeric:tabular-nums;color:var(--color-muted)}
-#lessonPanel .lesson-catalog .curriculum-name{font:500 var(--text-md)/1.3 var(--font-display);color:var(--color-ink);letter-spacing:0;display:block;transition:color var(--dur-micro) var(--ease-out)}
+#lessonPanel .lesson-catalog .curriculum-name{font:500 var(--text-md)/1.3 var(--font-display);color:var(--color-ink);letter-spacing:0;display:block}
 #lessonPanel .lesson-catalog small,.lesson-catalog span,.lesson-catalog small{font:400 var(--text-sm)/1.5 var(--font-body);color:var(--color-muted);letter-spacing:0;margin-top:var(--space-3xs);display:block}
 .lesson-catalog section+section{margin-top:var(--space-xl)}
 /* ---- Layers: overlay while teaching, docked column while exploring. ---- */
@@ -817,7 +817,7 @@ body[data-mode=library] #atlasWorkspace #lessonPanel{padding:0;overflow:visible;
 .anatomy-drawer>summary{font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink);padding:var(--space-sm) var(--space-md);min-height:var(--control-height);display:flex;align-items:baseline;gap:var(--space-sm);list-style:none;cursor:pointer}
 .anatomy-drawer>summary::-webkit-details-marker{display:none}
 .anatomy-drawer>summary span{font:400 var(--text-xs)/1.4 var(--font-body);color:var(--color-muted);margin:0;display:inline}
-.anatomy-drawer[open]{top:5.5rem;right:var(--page-gutter);bottom:var(--space-lg);width:min(30rem,calc(100vw - 2 * var(--page-gutter)));box-shadow:0 12px 32px oklch(10% 0.01 248 / .55);z-index:var(--z-dropdown)}
+.anatomy-drawer[open]{top:5.5rem;right:var(--page-gutter);bottom:var(--space-lg);width:min(30rem,calc(100vw - 2 * var(--page-gutter)));box-shadow:var(--shadow-drawer);z-index:var(--z-dropdown)}
 .anatomy-drawer .atlas-controls{padding:var(--space-md);gap:var(--space-md);border:0;align-items:end}
 .atlas-controls>div{min-width:0}
 .atlas-controls label .picker-count{display:block;margin:0;font-size:var(--text-xs)}
@@ -857,7 +857,7 @@ body[data-mode=explore] .anatomy-drawer .atlas-controls{padding:var(--space-md) 
 body[data-mode=explore] .studio-header nav button#openAtlasTools{display:none}
 body[data-expanded=true] .anatomy-drawer{display:none}
 /* ---- Find anatomy popover ---- */
-.anatomy-search{top:var(--space-xs);left:var(--page-gutter);width:min(44rem,calc(100% - 2 * var(--page-gutter)));padding:var(--space-md) var(--space-lg);background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:0 12px 32px oklch(10% 0.01 248 / .55);z-index:var(--z-dropdown)}
+.anatomy-search{top:var(--space-xs);left:var(--page-gutter);width:min(44rem,calc(100% - 2 * var(--page-gutter)));padding:var(--space-md) var(--space-lg);background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:var(--shadow-drawer);z-index:var(--z-dropdown)}
 .anatomy-search>label{font:600 var(--text-sm)/1.4 var(--font-body);color:var(--color-ink);margin-bottom:var(--space-xs)}
 .search-field{gap:var(--space-xs)}
 #pathwayFilter{margin:0;font-size:var(--text-base);padding:0 var(--space-sm);min-height:var(--control-height);border-radius:var(--radius)}
@@ -901,7 +901,7 @@ body[data-expanded=true] .anatomy-drawer{display:none}
 /* ---- Sources page: Long Document. ---- */
 body.sources main,.sources-page main{max-width:none}
 .prose{box-sizing:content-box;max-width:var(--measure);margin:var(--space-xl) auto var(--space-2xl);padding:0 var(--page-gutter)}
-.prose h1{font:500 var(--text-display)/var(--lh-display) var(--font-display);letter-spacing:-0.01em;margin:0 0 var(--space-lg);color:var(--color-ink)}
+.prose h1{font:var(--display-weight) var(--text-display)/var(--lh-display) var(--font-display);font-variation-settings:var(--display-wdth);letter-spacing:var(--display-tracking);margin:0 0 var(--space-lg);color:var(--color-ink)}
 .prose h2{font:500 var(--text-lg)/1.25 var(--font-display);letter-spacing:0;margin:var(--space-xl) 0 var(--space-sm);color:var(--color-ink)}
 .prose p,.prose li{font-size:var(--text-base);line-height:var(--lh-body);color:var(--color-ink);margin:0 0 var(--space-md)}
 .prose p.sources{font-size:var(--text-sm);color:var(--color-muted)}
@@ -954,7 +954,12 @@ body.sources main,.sources-page main{max-width:none}
   .scene-details>summary{min-height:2rem}
   .scene-details-body{right:var(--space-xs);bottom:calc(100% + var(--space-2xs));width:min(22rem,calc(100vw - 2 * var(--space-xs)));max-height:60dvh}
   /* The base .views max-width:100% resolves against the trigger-sized details box; size to the viewport. */
-  .atlas-view-menu .views{width:14rem;max-width:calc(100vw - 2 * var(--space-xs));grid-template-columns:1fr 1fr;gap:var(--space-2xs)}
+  .atlas-view-menu .views{width:19rem;max-width:calc(100vw - 2 * var(--space-xs));grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2xs)}
+  /* Anchor the menu to the tool row, not the trigger, so three columns stay inside a 320 px screen. */
+  .stage-tools{position:relative}
+  .atlas-view-menu{position:static}
+  .atlas-view-menu .views{left:0;right:auto;max-width:calc(100vw - 2 * var(--page-gutter) - 2 * var(--space-xs))}
+  .atlas-view-menu .views button{padding-inline:var(--space-2xs)}
   .atlas-view-menu .views button{min-height:var(--control-height)}
   #atlasWorkspace #lessonPanel,#atlasWorkspace #lessonPanel[data-active-lesson=true]{padding:var(--space-sm) 0 0}
   #lessonPanel .lesson-controls{position:sticky;bottom:0;z-index:var(--z-sticky);padding:var(--space-xs) 0 max(var(--space-xs),env(safe-area-inset-bottom));background:var(--color-paper)}
@@ -993,3 +998,54 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 .brand,.skip-link,.case-row>a,.node-list .node-link,.lesson-navigation a{display:inline-flex;align-items:center}
 .lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary{display:flex;align-items:center}
 }
+
+/* ---- Prelaunch layer (design.md: nothing links smaller than the control height, nothing wraps). ----
+ * Placed last: the sheets above carry older 32-40 px floors and 11-12 px header type. */
+.brand,.studio-header nav a,.studio-header nav button,.studio-header #lessonProfile,.skip-link,
+#lessonPanel #lessonLibrary,#lessonPanel #lessonSelect,#lessonPanel .lesson-outline>summary,#lessonPanel .lesson-targets button,#lessonPanel summary,
+#lessonPanel select,#lessonPanel .lesson-nav button,.atlas-controls select,
+.lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,
+.case-row>a,.lesson-navigation a,
+.stage-tools>button,.atlas-view-menu>summary,.views button,.atlas-view-menu .views button,.scene-details>summary,.scene-footer button{min-height:var(--control-height)}
+.stage-tools>button,.atlas-view-menu>summary{min-width:var(--control-height);padding:0 var(--space-sm);font-size:var(--text-sm)}
+.brand,.skip-link,.case-row>a,.lesson-navigation a{display:inline-flex;align-items:center}
+.lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,.scene-details>summary,.atlas-view-menu>summary{display:flex;align-items:center}
+/* Header: links never wrap; at narrow widths the nav drops to its own tidy row. */
+.brand,.brand .brand-name,.studio-header nav a,.studio-header nav button,.studio-header #lessonProfile{white-space:nowrap}
+.studio-header nav a,.studio-header nav button{min-width:var(--control-height);justify-content:center}
+.studio-header nav{flex-wrap:wrap;row-gap:0}
+.studio-header #lessonProfile{font-size:var(--text-sm)}
+@media(max-width:760px){
+  .studio-header{row-gap:0}
+  .studio-header nav{width:100%;justify-content:flex-start;column-gap:var(--space-2xs)}
+  .studio-header nav a,.studio-header nav button{padding:0 var(--space-sm);font-size:var(--text-sm)}
+  .hero .studio-header nav a{padding:0 var(--space-sm)}
+  /* Four links share one row on a phone; Sources never drops alone. */
+  .studio-header nav a,.studio-header nav button{padding-inline:var(--space-xs)}
+  .studio-header nav .header-sources{margin-left:0}
+  /* The atlas has six entries: break them three and three. */
+  .studio-header nav[aria-label=Workspace]::after{content:"";flex-basis:100%;order:1}
+  .studio-header nav[aria-label=Workspace]>a{order:2}
+}
+@media(max-width:350px){
+  .studio-header nav{column-gap:0}
+  .studio-header nav a,.studio-header nav button{padding-inline:var(--space-2xs)}
+}
+/* 701-1100: tighten the nav so six links sit on one row rather than leaving one orphaned. */
+@media(min-width:701px) and (max-width:1100px){
+  .studio-header nav{gap:0}
+  .studio-header nav a,.studio-header nav button{padding-inline:var(--space-xs);font-size:var(--text-sm)}
+  .studio-header nav .header-sources{margin-left:0}
+  .studio-header .brand{font-size:20px}
+  /* Tools sit right of the caption here, so the Views menu hangs from the right edge. */
+  .atlas-view-menu .views{left:auto;right:0}
+}
+/* Phones: the stage caption takes its own full-width line above the tool row, never truncated. */
+@media(max-width:700px){
+  .stage-head{flex-wrap:wrap;row-gap:var(--space-2xs)}
+  .stage-head>div:first-child{flex:1 1 100%}
+  .stage-head p,#sceneOrientation{max-width:none;display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible;text-overflow:clip;white-space:normal}
+  .stage-tools{margin-left:0;flex-wrap:wrap}
+}
+h1,h1 span{text-wrap:balance}
+.intro{max-width:none}

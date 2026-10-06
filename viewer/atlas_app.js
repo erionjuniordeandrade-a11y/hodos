@@ -77,13 +77,13 @@ function readRegion(hemi,id,vertex=null){
   const aid=(vertex!=null&&hemi!=='both'&&scene.state.arterial?.mode!=='off')?scene.arterialAt(hemi,vertex):null;
   $('pickedNetwork').textContent=aid!=null?(aid===0?'Arterial atlas at this vertex: unlabelled':`Arterial atlas at this vertex: ${arterialLabel(scene.arterialRows,aid)} · group template, not an individual`)
     :nid==null?'':nid===0?'Yeo-7 at this vertex: medial wall (unlabelled)'
-    :`Yeo-7 at this vertex: ${networkLabel(nid)} · group resting-state label, not an individual`;
+    :`Yeo-7 at this vertex: ${networkLabel(nid).replace(' · ',', ')} · group resting-state label, not an individual`;
   syncURL();
 }
 /** Majority Yeo-7 label across a parcel's vertices: a group expectation, shown with its share. */
 function parcelNetworkNote(hemi,id){
   const summary=scene.parcelNetwork?.(hemi,id);if(!summary||!summary.id)return '';
-  return ` Mostly ${networkLabel(summary.id)} in the Yeo-7 group atlas (${Math.round(summary.share*100)}% of its vertices).`;
+  return ` Mostly ${networkLabel(summary.id).replace(' · ',', ')} in the Yeo-7 group atlas (${Math.round(summary.share*100)}% of its vertices).`;
 }
 /** Arterial-territory wash: select + legend + URL key. Exclusive with the Yeo-7 wash so one
  * colour on the cortex always means one thing. */
@@ -117,7 +117,7 @@ function applyNetworks(sel){
   const legend=$('networkLegend');legend.hidden=live.mode==='off';
   for(const li of legend.children)li.classList.toggle('dim',live.mode==='focus'&&Number(li.dataset.id)!==live.focus);
   const networkReadout=$('sceneNetwork');networkReadout.hidden=live.mode==='off';
-  networkReadout.querySelector('span').textContent=live.mode==='all'?'Yeo-7 · all group networks':`${networkLabel(live.focus)} · Yeo-7 group`;
+  networkReadout.querySelector('span').textContent=live.mode==='all'?'Yeo-7 · all group networks':`${networkLabel(live.focus).replace(' · ',', ')} · Yeo-7 group`;
   networkReadout.querySelector('i').style.background=live.mode==='focus'?rgbCss(YEO7.find(n=>n.id===live.focus).rgb)
     :`linear-gradient(90deg,${YEO7.map(n=>rgbCss(n.rgb)).join(',')})`;
   if(!currentPick&&!currentDeep&&live.mode!=='off'){
@@ -170,12 +170,12 @@ function applyBundles(ids,ghostIds=[]){
   const metaOf=id=>scene.tractMeta.bundles.find(x=>x.id===id);
   const ghostNote=ghostIds.length?`${ghostIds.length} ghosted for context`:'';
   let summary;
-  if(ids.length===1){const b=metaOf(ids[0]);summary=b?`${bundleLabel(ids[0])} · ${b.lines} sampled atlas paths`:bundleLabel(ids[0]);}
+  if(ids.length===1){const b=metaOf(ids[0]);summary=b?`${bundleLabel(ids[0])}, ${b.lines} sampled atlas paths`:bundleLabel(ids[0]);}
   else if(ids.length){
     // Several primaries: one total, then the names in pick (= tint) order — the per-bundle
     // "220 sampled atlas paths" repeated N times was unreadable past three picks.
     const total=ids.reduce((n,id)=>n+(metaOf(id)?.lines||0),0);
-    summary=`${ids.length} pathways with ${total.toLocaleString('en-GB')} sampled atlas paths · ${ids.map(bundleLabel).join(', ')}`;
+    summary=`${ids.length} pathways with ${total.toLocaleString('en-GB')} sampled atlas paths · ${ids.map(id=>bundleLabel(id).replace(' · ',' ')).join(', ')}`;
   }
   // Ghost-only steps (no primary bundle) must not open with a dangling separator.
   $('pathwaySummary').textContent=summary
@@ -385,7 +385,7 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 try{
   scene=await createAtlasScene($('atlasCanvas'),{onStatus:(text,{ready=false}={})=>{const status=$('atlasLoading');status.textContent=text;status.hidden=ready;},
     onHover:(pick,pointer)=>{const tip=$('atlasHover');tip.hidden=!pick;if(!pick)return;
-      tip.textContent=pick.bundle?`${bundleLabel(pick.bundle)} · streamline ${pick.streamline+1} of ${pick.total}`
+      tip.textContent=pick.bundle?`${bundleLabel(pick.bundle)}, streamline ${pick.streamline+1} of ${pick.total}`
         :pick.deep?`${pick.deep.name} · ${pick.deep.hemisphere==='L'?'left':'right'}`
         :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code}, ${pick.hemi==='L'?'left':'right'} · click to select`;
       if(pointer){const rect=$('atlasCanvas').getBoundingClientRect();
@@ -513,6 +513,6 @@ try{
     togglePathway,projectBundleVertex:scene.projectBundleVertex,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
   window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
 }catch(error){
-  $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${error.message}. Reload to retry.`;
+  $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`;
   $('tracePlay').disabled=true;console.error(error);
 }

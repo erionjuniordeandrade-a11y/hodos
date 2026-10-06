@@ -14,7 +14,7 @@ import {internalCapsule,INTERNAL_CAPSULE_SOURCES} from './lessons/internal-capsu
 import {VENTRAL_LESSONS,VENTRAL_SOURCES} from './lessons/ventral-stream.js';
 import {BRAINSTEM_LESSONS,BRAINSTEM_SOURCES} from './lessons/brainstem-corridors.js';
 import {DISSECTION_PLATES} from './dissection_references.js';
-export const CONTENT_VERSION='2026-09-13.1';
+export const CONTENT_VERSION='2026-10-03.1';
 export const EVIDENCE_CLASSES=Object.freeze(['atlas','reconstruction','association',
   'schematic','recovery_overlay','functional_measurement','model_metric',
   'experimental_anatomy','conceptual_model']);

@@ -41,7 +41,7 @@ const credit=()=>{const p=node('p',{class:'dissection-credit'},'K. Yagmurlu. ');
 export function createDissectionReference(id){
   const plate=DISSECTION_PLATES[id];if(!plate)return null;
   const figure=node('figure',{'data-dissection':id,class:'dissection-reference'});
-  figure.append(node('h3',{},'Compare with dissection'),node('p',{class:'dissection-orientation'},'Left hemisphere · lateral dissection · anterior at image left'));
+  figure.append(node('h3',{},'Compare with dissection'),node('p',{class:'dissection-orientation'},'Left hemisphere · lateral dissection, anterior at image left'));
   const open=node('button',{type:'button',class:'dissection-open','aria-haspopup':'dialog','aria-label':`Enlarge ${plate.title}`});
   const image=photo(id,plate);open.append(image,node('span',{},'Enlarge reference'));
   const status=node('p',{class:'dissection-status',role:'status',hidden:''},'Reference image unavailable. Continue with the atlas and the written comparison.');

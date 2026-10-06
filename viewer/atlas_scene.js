@@ -664,7 +664,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       }
       requestDraw();
     }catch(error){
-      if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${error.message}. Reload to retry.`);console.error(error);}
+      if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`);console.error(error);}
     }
   }
   const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();ray.firstHitOnly=true;ray.params.Line2={threshold:2};let down,hoverFrame=0;

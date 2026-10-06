@@ -71,5 +71,5 @@ See [Third-party notices](THIRD_PARTY_NOTICES.md), the
 Photograph watermarks and credits must remain intact; MIT does not grant
 unrestricted reuse of those photographs.
 
-This standalone repository was extracted from the TractLab teaching atlas.
+This standalone repository was extracted from the author's teaching atlas.
 It contains the public educational application and its tests, with fresh history.

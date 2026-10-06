@@ -1,11 +1,11 @@
 .lesson-page,.lessons-index-page{max-width:var(--measure)}
 .breadcrumbs{font-size:var(--text-sm);margin:0 0 var(--space-lg)}
 .breadcrumbs ol{display:flex;flex-wrap:wrap;gap:var(--space-2xs) var(--space-sm);padding:0;margin:0;list-style:none;color:var(--color-muted)}
-.breadcrumbs li+li::before{content:'→';margin-right:var(--space-sm);color:var(--color-rule-2)}
+.breadcrumbs li:not(:first-child)::before{content:'→';margin:0 var(--space-sm) 0 0;color:var(--color-rule-2)}
 .breadcrumbs a,.lesson-page a,.lessons-index-page a{color:var(--color-accent)}
 .lesson-draft-notice{border-left:2px solid var(--color-accent);padding:var(--space-sm) var(--space-md);background:var(--color-paper-2);font-size:var(--text-sm)!important;color:var(--color-ink)!important}
 .lesson-meta,.lesson-step-meta,.lesson-index-number,.lesson-evidence,.lesson-source-meta,.lesson-region-meta,.lesson-step-source-count{font-size:var(--text-sm)!important;color:var(--color-muted)!important}
-.lesson-page h1,.lessons-index-page h1{margin-bottom:var(--space-md)}
+.lesson-page h1,.lessons-index-page h1{margin-bottom:var(--space-md);font-size:clamp(1.9rem,2vw + 1rem,3rem)}
 .lesson-summary{font-size:var(--text-md)!important;max-width:52ch}
 .lesson-goals{border-top:1px solid var(--color-rule);margin-top:var(--space-xl);padding-top:var(--space-md)}
 .lesson-goals h2,.lesson-relationships>h2,.lesson-recap>h2,.lesson-full-sources>h2{margin-top:0}
@@ -20,7 +20,7 @@
 .lesson-targets li{margin:var(--space-2xs) 0}
 .lesson-question{border-left-color:var(--color-accent)}
 .lesson-explanation,.lesson-step-notes,.lesson-recap details{border-top:1px solid var(--color-rule);margin-top:var(--space-md);padding-top:var(--space-xs)}
-.lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary{color:var(--color-accent);cursor:pointer;font-size:var(--text-sm);font-weight:600}
+.lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary{color:var(--color-accent);cursor:pointer;font-size:var(--text-sm);font-weight:600;display:flex;align-items:center;min-height:var(--control-height)}
 .lesson-step-notes{margin-top:var(--space-xl);border-left:0;padding-left:0}
 .lesson-step-sources{font-size:var(--text-sm);padding-left:1.2em}
 .lesson-region{border-top:1px solid var(--color-rule);margin-top:var(--space-md);padding-top:var(--space-sm)}
