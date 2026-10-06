@@ -1,0 +1,28 @@
+{
+ "template": "MNI152NLin2009aAsym",
+ "resolution_mm": 1,
+ "dims": [
+  147,
+  184,
+  156
+ ],
+ "origin_mm": [
+  -73,
+  -109,
+  -72
+ ],
+ "layout": "uint8, x fastest then y then z; voxel (i,j,k) centre at origin_mm + (i,j,k) mm; MNI x=Right, y=Anterior, z=Superior",
+ "window": {
+  "black": 0,
+  "white": 9919,
+  "note": "raw T1w intensity mapped linearly to 0-255 inside the brain mask; 0 outside"
+ },
+ "source": {
+  "t1": "tpl-MNI152NLin2009aAsym_res-1_T1w.nii.gz",
+  "t1_sha256": "a12fa7be3c02762e14ec770e940a46ce57dc6d7e4953c5228e4da646301b9fe1",
+  "mask": "tpl-MNI152NLin2009aAsym_res-1_desc-brain_mask.nii.gz",
+  "mask_sha256": "17afe7c0696e788aeceb656e16bb5e907e8d22cf8871e088e31b31c9a1941b67",
+  "url": "https://templateflow.s3.amazonaws.com/tpl-MNI152NLin2009aAsym/",
+  "reference": "Fonov et al., NeuroImage 2011;54:313-327, doi:10.1016/j.neuroimage.2010.07.033"
+ }
+}

@@ -6,7 +6,7 @@
   "source_commit": "e02876655d0216995340a9c153d37d49ff649078",
   "license_review_date": "2026-09-09",
   "coordinate_contract": "Group reference surfaces and pathways in MNI conventions. Different template constructions; illustrative juxtaposition only. No cross-atlas distance or endpoint connectivity inference, no case registration.",
-  "modifications": "GLB, tract binary and the per-vertex label binary copied unchanged (Yeo-7, Yeo-17 and HCP-MMP1 blocks with their paired hemisphere tables; vertex order unchanged). Paths shortened. No H01 assets included. 2026-09-14: a fourth per-vertex block (arterial2, Liu 2023 supply territories, four codes per hemisphere) appended after the original 389,904 bytes, which are unchanged; surface.json gained sets.arterial2 only. 2026-09-27 meshopt re-encode via scripts/optimize-glb.mjs of inferior-context.glb and the 14 subcortex GLBs (cortex-L/R keep their Draco encoding), quantization 14 position bits; vertex order preserved.",
+  "modifications": "GLB, tract binary and the per-vertex label binary copied unchanged (Yeo-7, Yeo-17 and HCP-MMP1 blocks with their paired hemisphere tables; vertex order unchanged). Paths shortened. No H01 assets included. 2026-09-14: a fourth per-vertex block (arterial2, Liu 2023 supply territories, four codes per hemisphere) appended after the original 389,904 bytes, which are unchanged; surface.json gained sets.arterial2 only. 2026-09-27 meshopt re-encode via scripts/optimize-glb.mjs of inferior-context.glb and the 14 subcortex GLBs (cortex-L/R keep their Draco encoding), quantization 14 position bits; vertex order preserved. 2026-10-06: template-t1.bin/.json added for the slice-panel underlay via scripts/bake-mni-template.mjs: the MNI152NLin2009aAsym 1 mm T1w (TemplateFlow) masked by its own brain mask, cropped to the mask bounding box plus one voxel, and mapped linearly to uint8 (0 to the 99.5th in-brain percentile); no resampling.",
   "assets": [
     {
       "path": "surface-labels.bin",
@@ -215,6 +215,28 @@
       "source_path": "data/subcortex.json",
       "source_sha256": "06d094f016f18718195ebda587fa2bdd988d36f5ea56b08d8ad7b4a7fe8d1e93",
       "terms": "Melbourne Subcortex Atlas License"
+    },
+    {
+      "path": "template-t1.bin",
+      "sha256": "27ccdc5d0719da263c6982191c4317bfd72a2c32101e275d700d764c61608faf",
+      "bytes": 4219488,
+      "source_path": "templateflow:tpl-MNI152NLin2009aAsym/tpl-MNI152NLin2009aAsym_res-1_T1w.nii.gz",
+      "source_sha256": "a12fa7be3c02762e14ec770e940a46ce57dc6d7e4953c5228e4da646301b9fe1",
+      "terms": "MNI template permission notice",
+      "gzip": {
+        "path": "template-t1.bin.gz",
+        "bytes": 1663012,
+        "sha256": "4080f08c3c1355f7f1db8e32bbd2baef0728aff097ae7e0d43c886101f67f11b",
+        "note": "Static build-time gzip (level 9, mtime 0) of the unchanged template-t1.bin bytes; decoded client-side and re-verified against this asset's own sha256/bytes before use."
+      }
+    },
+    {
+      "path": "template-t1.json",
+      "sha256": "96cc3ab2a80b0a6687b16891614d6258f22b1088ede6f1cf44b04c787d7cacb4",
+      "bytes": 876,
+      "source_path": "templateflow:tpl-MNI152NLin2009aAsym/tpl-MNI152NLin2009aAsym_res-1_desc-brain_mask.nii.gz",
+      "source_sha256": "17afe7c0696e788aeceb656e16bb5e907e8d22cf8871e088e31b31c9a1941b67",
+      "terms": "MNI template permission notice"
     }
   ]
 }

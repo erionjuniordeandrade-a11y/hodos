@@ -34,6 +34,8 @@
 <link rel="modulepreload" data-document-preload href="./atlas_glossary.js">
 <link rel="modulepreload" data-document-preload href="./atlas_networks.js">
 <link rel="modulepreload" data-document-preload href="./atlas_arterial.js">
+<link rel="modulepreload" data-document-preload href="./atlas_slice.js">
+<link rel="modulepreload" data-document-preload href="./atlas_slice_panel.js">
 <link rel="modulepreload" data-document-preload href="./anatomy_lesson_player.js">
 <link rel="modulepreload" data-document-preload href="./anatomy_learning.js">
 <link rel="modulepreload" data-document-preload href="./lesson_briefings.js">
@@ -73,8 +75,17 @@
   <div id="atlasWorkspace">
     <section class="atlas-stage" data-surface="dark" aria-label="Reference anatomy">
       <div class="stage-head"><div><p id="sceneOrientation">Both hemispheres</p><p id="sceneNetwork" class="scene-network" hidden><i aria-hidden="true"></i><span></span></p></div>
-        <div class="stage-tools"><button id="openAnatomySearch" type="button" aria-controls="anatomySearch" aria-expanded="false">Find</button><button id="openAtlasTools" type="button" aria-controls="anatomyDrawer" aria-expanded="false">Layers</button><button type="button" id="atlasFit">Fit</button><details class="atlas-view-menu"><summary>Views</summary><div class="views" role="group" aria-label="Anatomical views"><button type="button" data-view="left">Left</button><button type="button" data-view="right">Right</button><button type="button" data-view="superior">Superior</button><button type="button" data-view="anterior">Anterior</button><button type="button" data-view="posterior">Posterior</button><button type="button" data-view="inferior">Inferior</button><button type="button" data-view="medial">Left medial</button></div></details><button id="expandAnatomy" type="button" aria-pressed="false">Expand</button></div></div>
-      <div id="atlasCanvas"><p id="atlasLoading" role="status"><span class="loading-bar" aria-hidden="true"></span>Loading the reference atlas…</p><div id="atlasHover" role="tooltip" aria-live="polite" hidden></div></div>
+        <div class="stage-tools"><button id="openAnatomySearch" type="button" aria-controls="anatomySearch" aria-expanded="false">Find</button><button id="openAtlasTools" type="button" aria-controls="anatomyDrawer" aria-expanded="false">Layers</button><button type="button" id="atlasFit">Fit</button><details class="atlas-view-menu"><summary>Views</summary><div class="views" role="group" aria-label="Anatomical views and slices"><button type="button" data-view="left">Left</button><button type="button" data-view="right">Right</button><button type="button" data-view="superior">Superior</button><button type="button" data-view="anterior">Anterior</button><button type="button" data-view="posterior">Posterior</button><button type="button" data-view="inferior">Inferior</button><button type="button" data-view="medial">Left medial</button><span class="views-head" id="sliceChoicesLabel">Slice through the brain</span><button type="button" data-slice-open="axial" aria-controls="slicePanel" aria-describedby="sliceChoicesLabel">Axial slice</button><button type="button" data-slice-open="coronal" aria-controls="slicePanel" aria-describedby="sliceChoicesLabel">Coronal slice</button><button type="button" data-slice-open="sagittal" aria-controls="slicePanel" aria-describedby="sliceChoicesLabel">Sagittal slice</button></div></details><button id="expandAnatomy" type="button" aria-pressed="false">Expand</button></div></div>
+      <div id="atlasCanvas"><p id="atlasLoading" role="status"><span class="loading-bar" aria-hidden="true"></span>Loading the reference atlas…</p><div id="atlasHover" role="tooltip" aria-live="polite" hidden></div>
+        <section id="slicePanel" class="slice-panel" aria-label="Slice view" hidden>
+          <div class="slice-head"><div class="slice-axes" role="group" aria-label="Slice plane"><button type="button" data-slice-axis="axial" aria-pressed="true">Axial</button><button type="button" data-slice-axis="coronal" aria-pressed="false">Coronal</button><button type="button" data-slice-axis="sagittal" aria-pressed="false">Sagittal</button></div><button type="button" class="slice-close" data-slice-close aria-label="Close the slice view">×</button></div>
+          <canvas class="slice-canvas" tabindex="0" role="img" aria-label="Slice section"></canvas>
+          <div class="slice-position"><input type="range" data-slice-range step="1"><output data-slice-value></output></div>
+          <div class="slice-options"><label><input type="checkbox" data-slice-template checked> T1 template</label><label><input type="checkbox" data-slice-clip checked> Cut 3D</label><button type="button" data-slice-flip>Keep inferior</button></div>
+          <p class="slice-readout" data-slice-readout aria-live="polite"></p>
+          <p class="slice-status" data-slice-status role="status"></p>
+          <p class="slice-note">Radiological view: the subject's right is on screen left. Surface, pathways and template share MNI coordinates but come from different group constructions; the overlay is illustrative, not registered to any patient.</p>
+        </section></div>
       <div class="scene-readout" aria-live="polite"><span id="pickedClass">Atlas parcel</span>
         <h2 id="pickedName">Choose a relationship</h2><p id="lessonSceneStatus" role="status" hidden></p><p id="explorationStatus" role="status" hidden></p>
         <details class="scene-details"><summary>Scene key & details</summary><div class="scene-details-body"><p id="pickedDescription">Select cortex to inspect its HCP-MMP1 label.</p>
@@ -99,7 +110,7 @@
   </details>
   </div>
   <footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p><p class="foot-role"><span>Neurosurgeon, CRM-RS 41.263, RQE 44841.</span> Skull base and neuro-oncology fellowships at Cleveland Clinic and Emory University. Residency preceptor, Hospital São José, Santa Casa de Porto Alegre.</p></div>
-    <div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP-MMP1 cortical parcels</p><p>HCP1065 sampled tractography</p><p>Melbourne subcortex atlas</p></div>
+    <div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP-MMP1 cortical parcels</p><p>HCP1065 sampled tractography</p><p>Melbourne subcortex atlas</p><p>MNI152 2009a T1 template</p></div>
     <div class="foot-terms"><p class="foot-label">Use</p><p>Reference atlas, not navigation.</p><p>Educational draft, research only.</p><p>No patient registration.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p><p><a href="./atlas-sources.html#privacy">Privacy</a></p><p><a href="./mips.html">MIPS</a></p><p><a href="./labs/lesion-lab.html">Lesion lab</a></p><p><a href="./connections.html">Connections</a></p><p><a href="./lessons">Lessons</a></p><p><a href="https://github.com/erionjuniordeandrade-a11y/hodos/issues/new" target="_blank" rel="noopener">Report an error or suggest a correction</a></p></div></footer>
 </main>
 <noscript><p>JavaScript is required for the atlas. <a href="./atlas-sources.html">Read atlas sources and use terms.</a> <a href="./index.html">Return home.</a></p></noscript>

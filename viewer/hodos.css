@@ -77,7 +77,7 @@ main{max-width:1680px;margin:auto;padding:28px 36px 18px}
 .views{display:flex;gap:5px}
 .views button{font-size:11px;padding:7px 10px;background:var(--legacy-surface-view-button)}
 #atlasCanvas{min-height:0;position:relative;overflow:hidden}
-#atlasCanvas canvas{display:block;width:100%;height:100%;outline:none}
+#atlasCanvas>canvas{display:block;width:100%;height:100%;outline:none}
 #atlasLoading{position:absolute;inset:40% 8% auto;text-align:center;color:var(--muted);font-size:14px;z-index:2}
 #atlasLoading[hidden]{display:none}
 .scene-readout{padding:0 24px 12px;pointer-events:none}
@@ -182,9 +182,9 @@ main{padding:24px 32px;max-width:1920px}
 .stage-head p span{display:inline}
 .views{flex-wrap:wrap;gap:8px;max-width:100%}
 .views button{font-size:13px;min-height:36px;padding:8px 10px}
-#atlasCanvas canvas{cursor:grab;touch-action:none}
-#atlasCanvas canvas:active{cursor:grabbing}
-#atlasCanvas canvas:focus-visible{outline:3px solid var(--gold);outline-offset:-5px}
+#atlasCanvas>canvas{cursor:grab;touch-action:none}
+#atlasCanvas>canvas:active{cursor:grabbing}
+#atlasCanvas>canvas:focus-visible{outline:3px solid var(--gold);outline-offset:-5px}
 #atlasHover{position:absolute;left:16px;top:12px;max-width:calc(100% - 32px);padding:8px 12px;background:var(--legacy-surface-hover-panel);border:1px solid var(--legacy-border-hover-panel);border-radius:var(--radius);color:var(--legacy-text-hover-panel);font-size:14px;pointer-events:none;z-index:3}
 .scene-readout h2{font-size:24px}
 .scene-readout p{font-size:14px;line-height:1.55;max-width:none;overflow-wrap:anywhere}
@@ -575,7 +575,7 @@ button:disabled,.bundle-chip:disabled,#lessonPanel button:disabled{opacity:1;bac
 #lessonPanel .lesson-targets button[aria-pressed=true]:hover{background:var(--accent-strong)}
 .atlas-stage{--gold:var(--accent);--blue:var(--accent)}
 .atlas-stage button:hover{background:var(--control-hover);border-color:var(--accent)}
-.atlas-stage button:focus-visible,#atlasCanvas canvas:focus-visible{outline-color:var(--accent)}
+.atlas-stage button:focus-visible,#atlasCanvas>canvas:focus-visible{outline-color:var(--accent)}
 .atlas-stage button:disabled{background:var(--color-paper-2);color:var(--legacy-text-disabled);border-color:var(--line)}
 #atlasHover{background:var(--panel);color:var(--ink);border-color:var(--accent)}
 .scene-readout,.scene-footer{border-color:var(--line)}
@@ -650,7 +650,7 @@ button{cursor:pointer;white-space:nowrap}
 .bundle-chip:hover{background:var(--color-control);color:var(--color-ink)}}
 button:active{transform:translateY(0)}
 button:disabled,button[aria-disabled=true]{opacity:.55;cursor:not-allowed;transform:none;background:var(--color-control);color:var(--color-muted);border-color:var(--color-rule)}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[role=tab]:focus-visible,[tabindex]:not([tabindex="-1"]):focus-visible,#atlasCanvas canvas:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;transition:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[role=tab]:focus-visible,[tabindex]:not([tabindex="-1"]):focus-visible,#atlasCanvas>canvas:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px;transition:none}
 select{padding-right:var(--space-xl);appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--color-muted) 50%),linear-gradient(135deg,var(--color-muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
 input[type=search]{font-weight:400;background:var(--color-paper);border-color:var(--color-rule-2);outline:2px solid transparent;outline-offset:1px}
 input[type=search]::placeholder{color:var(--color-muted);opacity:1}
@@ -703,7 +703,7 @@ main{padding-top:var(--space-md)}
 .atlas-view-menu>summary{cursor:pointer;list-style:none}
 .atlas-view-menu>summary::-webkit-details-marker{display:none}
 .atlas-view-menu[open]>summary{color:var(--color-ink);border-color:var(--color-rule-2)}
-.atlas-view-menu .views{width:11rem;padding:var(--space-2xs);gap:0;grid-template-columns:1fr;background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:var(--shadow-pop);z-index:var(--z-dropdown);top:calc(100% + var(--space-2xs))}
+.atlas-view-menu .views{width:11rem;max-width:none;padding:var(--space-2xs);gap:0;grid-template-columns:1fr;background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:var(--radius);box-shadow:var(--shadow-pop);z-index:var(--z-dropdown);top:calc(100% + var(--space-2xs))}
 .views button{min-height:2.25rem;padding:0 var(--space-sm);border:0;background:transparent;color:var(--color-ink);font-size:var(--text-sm);font-weight:400;text-align:left;border-radius:var(--radius)}
 #atlasCanvas{min-height:0;height:auto;overflow:hidden}
 #atlasHover{font:400 var(--text-sm)/1.3 var(--font-body);background:var(--color-paper-2);color:var(--color-ink);border:1px solid var(--color-rule-2);border-radius:var(--radius)}
@@ -1049,3 +1049,32 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 }
 h1,h1 span{text-wrap:balance}
 .intro{max-width:none}
+/* Slice view (atlas_slice_panel.js): a docked card over the 3D stage. The section canvas is square. */
+.slice-panel{--slice-bg:var(--color-plate);position:absolute;top:12px;right:12px;z-index:4;width:min(320px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;display:flex;flex-direction:column;gap:var(--space-xs);padding:var(--space-xs);background:var(--color-paper-2);border:1px solid var(--color-rule-2);border-radius:var(--radius);box-shadow:var(--shadow-pop);color:var(--color-ink);font:400 var(--text-xs)/1.35 var(--font-body)}
+.slice-panel[hidden]{display:none}
+.slice-head{display:flex;gap:var(--space-2xs);align-items:center;justify-content:space-between}
+.slice-axes{display:flex;gap:var(--space-3xs)}
+.slice-panel button{min-height:32px;padding:4px 8px;font-size:var(--text-xs);border-radius:var(--radius)}
+.slice-axes button[aria-pressed=true]{background:var(--color-ink);color:var(--color-accent-ink);border-color:var(--color-ink);font-weight:650}
+.slice-close{width:32px;padding:0;font-size:18px;line-height:1}
+.slice-canvas{display:block;width:100%;aspect-ratio:1;background:var(--color-plate);border-radius:var(--radius);cursor:crosshair;touch-action:none}
+.slice-canvas:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+.slice-position{display:flex;gap:var(--space-xs);align-items:center}
+.slice-position input{flex:1;min-width:0;accent-color:var(--color-ink)}
+.slice-position output{font:600 var(--text-xs) var(--font-outlier);min-width:9ch;text-align:right}
+.slice-options{display:flex;flex-wrap:wrap;gap:var(--space-2xs) var(--space-sm);align-items:center}
+.slice-options label{display:inline-flex;gap:var(--space-2xs);align-items:center;cursor:pointer}
+.slice-options button{margin-left:auto}
+.slice-readout{margin:0;font-family:var(--font-outlier);color:var(--color-ink);min-height:2.7em}
+.slice-status{margin:0;color:var(--color-muted)}
+.slice-status:empty{display:none}
+.slice-note{margin:0;color:var(--color-faint)}
+/* Phones: the stage can be 150 px tall in a lesson, so the chosen slice opens as a sheet over the viewport.
+ * The sticky stage is the sheet's stacking context, so it rises above the header and lesson controls while open. */
+@media(max-width:760px){#atlasWorkspace .atlas-stage:has(.slice-panel:not([hidden])){z-index:var(--z-modal)}
+.slice-panel{position:fixed;inset:8px;z-index:var(--z-modal);width:auto;max-height:none;padding:6px;gap:6px}
+.slice-canvas{flex:1 1 auto;width:100%;min-height:0;aspect-ratio:auto}
+.slice-readout{min-height:0}
+.slice-panel button{min-height:36px}}
+@media(forced-colors:active){.slice-axes button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}}
+.atlas-view-menu .views-head{grid-column:1/-1;margin:var(--space-2xs) 0 0;padding:var(--space-2xs) var(--space-xs) 0;border-top:1px solid var(--color-rule);font-size:var(--text-xs);color:var(--color-muted)}

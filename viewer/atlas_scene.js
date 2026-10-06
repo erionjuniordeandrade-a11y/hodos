@@ -15,7 +15,9 @@ import {configContextMaterial} from './scene_materials.js';
 import {createRenderPipeline} from './render_pipeline.js';
 import {createCorridorOverlay} from './corridor_overlay.js';
 import {createTractRangeLoader} from './tract_ranges.js';
-const MANIFEST_SHA256='bf5707b28928159c7f9d5cb0aaeec360c8e99b97f653ed00023fa0c34bcd65ac';
+import {mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
+import {SLICE_AXES,sliceMesh,chainContours,slicePolylines,nearestVertex} from './atlas_slice.js';
+const MANIFEST_SHA256='772efa37e0756552aafc1fb4720565d104a23f38d597977835c77c91a1bf35a3';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 THREE.BufferGeometry.prototype.computeBoundsTree=computeBoundsTree;
 THREE.BufferGeometry.prototype.disposeBoundsTree=disposeBoundsTree;
@@ -90,6 +92,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   let hoveredLine=null,controlsActive=false,frameHold=false;
   let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false;
   let corridorOverlay=null;
+  let slice=null,sliceFrame=null,context=null;const slicePlane=new THREE.Plane(),sceneListeners=new Set();
+  const sceneChanged=()=>{for(const listener of sceneListeners)listener();};
   let annotations=[],annotationStamp='',annotationTime=-Infinity;
   const annotationLayer=document.createElement('div');annotationLayer.className='atlas-annotations';
   annotationLayer.setAttribute('role','list');annotationLayer.setAttribute('aria-label','Labelled atlas structures');
@@ -134,6 +138,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   function updateLineResolutions(){renderer.getDrawingBufferSize(drawSize);
     for(const host of Object.values(hemis))if(host.boundary)host.boundary.material.resolution.copy(drawSize);
     for(const {group} of bundles.values())for(const line of group.children)line.material.resolution.copy(drawSize);
+    if(sliceFrame)for(const line of sliceFrame.children)line.material.resolution.copy(drawSize);
   }
   const bundleIdsBy=ghost=>[...bundles].filter(([,v])=>v.ghost===ghost).map(([id])=>id);
   function draw(now=0){
@@ -394,7 +399,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     [tractMeta]=pathwayData;
     tractRangeLoader=createTractRangeLoader({url:`./atlas/tracts.bin?v=${tractBin.sha256.slice(0,12)}`,bin:tractBin,index:tractIndex,metadata:tractJson,bundleMeta:tractMeta.bundles});
     onStatus('Loading the reference atlas · deep structures…');
-    const context=new THREE.Mesh(contextGeometry,new THREE.MeshStandardMaterial({
+    context=new THREE.Mesh(contextGeometry,new THREE.MeshStandardMaterial({
       color:0x8e8794,roughness:.8,side:THREE.DoubleSide,
       clippingPlanes:[new THREE.Plane(new THREE.Vector3(0,0,-1),0)]}));
     configContextMaterial(context.material,{THREE,opacity:.12});
@@ -461,7 +466,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
         colour.setXYZ(i,tint.r,tint.g,tint.b);
       }
       a.needsUpdate=true;colour.needsUpdate=true;
-    }updateBoundary();requestDraw();
+    }updateBoundary();requestDraw();sceneChanged();
   }
   function rebuildAnnotations(){
     annotationLayer.replaceChildren();leaders.replaceChildren();annotations=[];annotationStamp='';
@@ -587,7 +592,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     visibleHemi=['L','R','both'].includes(h)?h:'both';
     for(const key of ['L','R'])hemis[key].group.visible=visibleHemi==='both'||visibleHemi===key;
     for(const mesh of deep)mesh.visible=deepVisible&&(visibleHemi==='both'||visibleHemi===mesh.userData.hemisphere);
-    rebuildAnnotations();requestDraw();
+    rebuildAnnotations();requestDraw();sceneChanged();
   }
   function setDeep(on){deepVisible=!!on;setHemisphere(visibleHemi);}
   /** Yeo-7 colour: update vertex colours in place, never rebuild atlas geometry. */
@@ -613,12 +618,12 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     deepFocusIds=focus.filter(id=>deepHighlightIds.includes(id));
     for(const mesh of deep)mesh.material.opacity=
       (deepHighlightIds.length&&!deepHighlightIds.includes(mesh.userData.id))?.1:deepFocusIds.length?(deepFocusIds.includes(mesh.userData.id)?.95:.35):.7;
-    rebuildAnnotations();requestDraw();
+    rebuildAnnotations();requestDraw();sceneChanged();
   }
   function clearBundles(){
     clearHover();
     for(const {group} of bundles.values()){scene.remove(group);group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}
-    bundles.clear();traces.length=0;
+    bundles.clear();traces.length=0;sceneChanged();
   }
   const GHOST_TINT=0x818d99;
   /** Show a set of bundles at once. `ghost` ids are rendered dimmer, untinted-by-index and
@@ -660,9 +665,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
           group.add(trace);traces.push(trace);
         }
         for(const line of group.children)line.material.resolution.copy(drawSize);
-        bundles.set(id,{group,ghost:isGhost,alpha,positions,arc,segmentToStreamline:Int32Array.from(segmentOwners),ranges,lineCount:lines.length});scene.add(group);
+        bundles.set(id,{group,ghost:isGhost,alpha,tint,positions,arc,segmentToStreamline:Int32Array.from(segmentOwners),ranges,lineCount:lines.length});scene.add(group);
       }
-      requestDraw();
+      applyClipping();requestDraw();sceneChanged();
     }catch(error){
       if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`);console.error(error);}
     }
@@ -678,7 +683,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     const bundle=bundles.get(id),{first,count}=bundle.ranges[streamline];
     const overlay=fatLine(bundle.positions.slice(first*6,(first+count)*6),
       {arc:bundle.arc.slice(first*2,(first+count)*2),color:0xffedaa,opacity:.95,linewidth:3.5,effect:'feather'});
-    overlay.material.resolution.copy(drawSize);overlay.renderOrder=6;bundle.group.add(overlay);
+    overlay.material.resolution.copy(drawSize);overlay.material.clippingPlanes=slice?[slicePlane]:null;overlay.renderOrder=6;bundle.group.add(overlay);
     hoveredLine={bundle:id,streamline,overlay,group:bundle.group};requestDraw();
   }
   function pickAt(e,includeBundles=false){
@@ -733,6 +738,86 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     }
     requestDraw();
   }
+  // Slice plane (atlas_slice_panel.js): one world-axis plane through the reference scene. It
+  // clips the cortex, deep structures, inferior context and pathways, and sliceAt() returns what
+  // that same plane cuts, so the 2D section and the 3D cut always describe one geometry.
+  const sliceBounds=()=>{const box=new THREE.Box3();for(const geo of frameGeometry){geo.computeBoundingBox();box.union(geo.boundingBox);}return box;};
+  function applyClipping(){
+    const planes=slice?.clip?[slicePlane]:null;
+    for(const host of Object.values(hemis))host.shell.material.clippingPlanes=planes;
+    for(const mesh of deep)mesh.material.clippingPlanes=planes;
+    if(context)context.material.clippingPlanes=[context.material.clippingPlanes[0],...(planes||[])];
+    for(const {group} of bundles.values())for(const line of group.children)line.material.clippingPlanes=planes;
+  }
+  function disposeSliceFrame(){if(!sliceFrame)return;scene.remove(sliceFrame);sliceFrame.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});sliceFrame=null;}
+  /** {axis:'axial'|'coronal'|'sagittal', value (mm), keep:-1|1, clip, crosshair:[x,y,z]} or null to clear. */
+  function setSlice(next){
+    disposeSliceFrame();
+    slice=next&&SLICE_AXES[next.axis]&&Number.isFinite(next.value)?{axis:next.axis,value:next.value,keep:next.keep===1?1:-1,clip:next.clip!==false,
+      crosshair:Array.isArray(next.crosshair)?next.crosshair.slice(0,3):null}:null;
+    if(slice){
+      const n=SLICE_AXES[slice.axis].normal,normal=new THREE.Vector3();normal.setComponent(n,slice.keep);
+      // three keeps fragments where normal·p + constant >= 0: keep -1 keeps world[n] <= value.
+      slicePlane.set(normal,-slice.keep*slice.value);
+      const box=sliceBounds().expandByScalar(6),corners=[],{u,v}=SLICE_AXES[slice.axis];
+      for(const [a,b] of [[0,0],[1,0],[1,1],[0,1]]){const p=new THREE.Vector3();p.setComponent(n,slice.value);
+        p.setComponent(u,a?box.max.getComponent(u):box.min.getComponent(u));p.setComponent(v,b?box.max.getComponent(v):box.min.getComponent(v));corners.push(p);}
+      const outline=[];for(let i=0;i<4;i++)outline.push(...corners[i].toArray(),...corners[(i+1)%4].toArray());
+      sliceFrame=new THREE.Group();sliceFrame.add(fatLine(outline,{color:0xe4e6e3,opacity:.55,linewidth:1.25}));
+      if(slice.crosshair){const c=new THREE.Vector3().fromArray(slice.crosshair);c.setComponent(n,slice.value);const cross=[];
+        for(const axis of [u,v]){const a=c.clone(),b=c.clone();a.setComponent(axis,box.min.getComponent(axis));b.setComponent(axis,box.max.getComponent(axis));cross.push(...a.toArray(),...b.toArray());}
+        sliceFrame.add(fatLine(cross,{color:0xe4e6e3,opacity:.35,linewidth:1,depthTest:false}));}
+      for(const line of sliceFrame.children){line.material.resolution.copy(drawSize);line.renderOrder=7;}
+      scene.add(sliceFrame);
+    }
+    applyClipping();requestDraw();
+  }
+  const sliceIndexCache=new WeakMap();
+  // Contours chain through shared vertex ids; a GLB that stores triangles unshared is welded once.
+  function sliceSource(geo){
+    if(geo.index)return {positions:geo.attributes.position.array,index:geo.index.array};
+    if(!sliceIndexCache.has(geo)){const welded=new THREE.BufferGeometry();welded.setAttribute('position',geo.attributes.position);
+      const merged=mergeVertices(welded,1e-4);sliceIndexCache.set(geo,{positions:merged.attributes.position.array,index:merged.index.array});}
+    return sliceIndexCache.get(geo);
+  }
+  /** Everything the plane world[axis] = value cuts in the visible scene, in world mm. */
+  function sliceAt(axis,value){
+    const n=SLICE_AXES[axis].normal,result={axis,value,cortex:[],deep:[],context:[],bundles:[]};
+    for(const h of ['L','R']){const host=hemis[h];if(!host.group.visible)continue;
+      const cut=sliceMesh(host.geo.attributes.position.array,host.geo.index.array,n,value),colour=host.geo.attributes.color.array,index=host.geo.index.array;
+      const count=cut.triangles.length,colours=new Float32Array(count*3),ids=new Int32Array(count);
+      for(let i=0;i<count;i++){const v=index[cut.triangles[i]*3];colours.set(colour.subarray(v*3,v*3+3),i*3);ids[i]=labels[h][v];}
+      result.cortex.push({hemi:h,segments:cut.segments,colours,ids});}
+    for(const mesh of deep){if(!mesh.visible)continue;const {positions,index}=sliceSource(mesh.geometry);
+      const loops=chainContours(sliceMesh(positions,index,n,value));
+      if(loops.length)result.deep.push({id:mesh.userData.id,name:mesh.userData.name,hemisphere:mesh.userData.hemisphere,
+        colour:`#${mesh.material.color.getHexString()}`,opacity:mesh.material.opacity,loops});}
+    if(context){const {positions,index}=sliceSource(context.geometry);
+      // The 3D context mesh is only drawn below z = 0 (its own clip plane); the section matches.
+      result.context=chainContours(sliceMesh(positions,index,n,value)).map(loop=>loop.filter(p=>p[2]<=0)).filter(loop=>loop.length>1);}
+    for(const [id,bundle] of bundles){const cut=slicePolylines(bundle.positions,n,value);
+      if(cut.points.length)result.bundles.push({id,ghost:bundle.ghost,tint:`#${new THREE.Color(bundle.tint).getHexString()}`,points:cut.points});}
+    return result;
+  }
+  /** The visible HCP-MMP1 parcel nearest a world point (within maxMm), or null. */
+  function parcelNear(point,maxMm=4){
+    let best=null;
+    for(const h of ['L','R']){const host=hemis[h];if(!host.group.visible)continue;
+      const pos=host.geo.attributes.position.array,i=nearestVertex(pos,point,best?best.distance:maxMm);
+      if(i<0)continue;const distance=Math.hypot(pos[i*3]-point[0],pos[i*3+1]-point[1],pos[i*3+2]-point[2]);
+      best={hemi:h,id:labels[h][i],vertex:i,distance};}
+    if(!best||best.id===0)return null;
+    const raw=surfaceMeta.sets.glasser.regions[best.hemi][best.id];
+    return {...best,code:String(raw).replace(/^[LR]_/,'').replace(/_ROI$/,'')};
+  }
+  let templatePromise=null;
+  /** The MNI152NLin2009aAsym T1w underlay, fetched and integrity-checked once, on first use. */
+  function loadSliceTemplate(){
+    templatePromise??=Promise.all([json('template-t1.json'),checkedMaybeGzip('template-t1.bin')]).then(([header,bytes])=>({
+      ...header,origin:header.origin_mm,spacing:header.resolution_mm,data:new Uint8Array(bytes)}));
+    templatePromise.catch(()=>{templatePromise=null;});
+    return templatePromise;
+  }
   function snapshot(){return {selected:selected?{...selected}:null,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,network:{...networkSel},
     bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),deepHighlight:[...deepHighlightIds],
     surface,deepVisible,view,camera:camera.position.toArray(),target:currentTarget().toArray(),up:camera.up.toArray()};}
@@ -761,6 +846,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
     setSurface,setLesion,setCorridors,projectBundleVertex,setFrameInsets,
+    setSlice,sliceAt,parcelNear,loadSliceTemplate,onSceneChange(listener){sceneListeners.add(listener);return ()=>sceneListeners.delete(listener);},
     // For a page that draws its own layer (the lesion lab): the live scene, camera and controls,
     // the on-demand redraw, the interactive size budget, and verified bundle bytes by id.
     get stage(){return {scene,camera,controls,canvas:renderer.domElement,requestDraw,setInteracting:pipeline.setInteracting,
@@ -772,11 +858,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),tractError:bundleError,
       hover:hoveredLine?{bundle:hoveredLine.bundle,streamline:hoveredLine.streamline}:null,
       bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
-      vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
+      vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,slice:slice?{...slice,crosshair:slice.crosshair?[...slice.crosshair]:null}:null,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,
         cameraFrame:frameFocus?'lesson':'whole',target:currentTarget().toArray(),
         labels:annotations.map(a=>({key:a.key,kind:a.kind,x:a.x,y:a.y,visibility:a.visibility,primary:a.primary}))},
       camera:camera.position.toArray(),cameraTransition:cameraTransition?{elapsed:performance.now()-cameraTransition.start,duration:cameraTransition.duration}:null};},
-    dispose(){clearHover();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});disposeBase();},
+    dispose(){clearHover();sceneListeners.clear();disposeSliceFrame();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});disposeBase();},
   };
 }

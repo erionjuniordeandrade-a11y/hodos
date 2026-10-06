@@ -11,13 +11,14 @@ import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
 import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 import {caseReference} from './case_reference.js';
 import {CASE_LESIONS,lesionScene,LESION_NOTE} from './case_lesions.js';
+import {mountSlicePanel} from './atlas_slice_panel.js';
 import {arterialSelection,arterialFromSearch,arterialToSearchValue,arterialLabel,ARTERIAL_NOTE} from './atlas_arterial.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
 // Read `net` before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
 const initialNetwork=networkFromSearch(location.search);
 const bootParams=new URLSearchParams(location.search);
-let scene,player,profile=initial.profile,playing=false,currentStep=null,currentLesson=null,exploration=null,lastResolvedTrace=false;
+let slicePanel=null,scene,player,profile=initial.profile,playing=false,currentStep=null,currentLesson=null,exploration=null,lastResolvedTrace=false;
 // Ordered primary selection (pick order = tint order in the scene) and the ghost set that
 // came with the current lesson step. Manual picks keep the ghosts unless a ghost is promoted.
 let selectedBundles=[],currentGhosts=[];
@@ -256,7 +257,7 @@ function applyPathwayFilter(){
         else if(kind==='Deep structures')showDeep(scene.subMeta.structures.find(d=>d.id===entry.id));
         else togglePathway(entry.id);
         // The result is now on the atlas; the popover must not keep covering it.
-        closeSearch({refocus:false});$('atlasCanvas').querySelector('canvas')?.focus({preventScroll:true});
+        closeSearch({refocus:false});$('atlasCanvas').querySelector(':scope>canvas')?.focus({preventScroll:true});
       });section.append(b);}
     results.append(section);
   }
@@ -482,6 +483,11 @@ try{
   if(scene.hasArterial()){const a=arterialFromSearch(bootParams.toString(),scene.arterialRows);if(a.mode!=='off')applyArterial(a);}
   applyBundles([]);scene.setSurface(.8);setProfile(profile);
   const deepFromUrl=scene.subMeta.structures.find(d=>d.id===bootParams.get('deep'));if(deepFromUrl)showDeep(deepFromUrl);
+  // Slice view: the 3D plane and its 2D section. It opens only from the Views menu, never on load.
+  slicePanel=mountSlicePanel($('slicePanel'),{scene});
+  for(const b of document.querySelectorAll('[data-slice-open]'))b.addEventListener('click',()=>{
+    slicePanel.setAxis(b.dataset.sliceOpen);slicePanel.setOpen(true);b.closest('details').open=false;});
+  $('slicePanel').querySelector('[data-slice-close]').addEventListener('click',()=>{slicePanel.setOpen(false);viewMenu.querySelector('summary').focus();});
   player=mountAnatomyLessons($('lessonPanel'),{
     readOnlyProgress:caseReference,
     onStep:applyStep,onMode:setMode,onInspect:inspectLessonTarget,onCompare:compareLecture,
@@ -510,7 +516,7 @@ try{
     // Test-only: inject a v2 declarative scene directly, bypassing lesson content, so Playwright
     // can exercise SCENE GRAMMAR v2 (bundles/ghost/regions/camera/deepRegions) in isolation.
     applyScene:sceneInput=>applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...sceneInput}},currentHemisphere()),{authored:true}),
-    togglePathway,projectBundleVertex:scene.projectBundleVertex,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
+    togglePathway,projectBundleVertex:scene.projectBundleVertex,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
   window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
 }catch(error){
   $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`;
