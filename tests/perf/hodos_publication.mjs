@@ -12,6 +12,7 @@ const releasePath=process.argv.find(v=>v.startsWith('--release='))?.slice(10)||'
 const expected=JSON.parse(await readFile(releasePath,'utf8'));
 await mkdir(out,{recursive:true});
 const report={url:base,version:CONTENT_VERSION,assets:[],lessons:[],layouts:[],errors:[],failedRequests:[],externalRequests:[],checks:[]};
+const CF_ANALYTICS_BEACON=/<!-- Cloudflare Pages Analytics --><script defer src='https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js' data-cf-beacon='\{"token": "[0-9a-f]+"\}'><\/script><!-- Cloudflare Pages Analytics -->/g;
 const http=await request.newContext({baseURL:base,timeout:30000});
 const browser=await chromium.launch({headless:true});
 try{
@@ -26,12 +27,14 @@ try{
   assert(sitemapLocs.includes('/lessons'));
   assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));
   assert(!sitemapLocs.some(pathname=>pathname.startsWith('/atlas?lesson=')));
-  const assets=expected.files.filter(f=>f.path!=='_headers');
+  const assets=expected.files.filter(f=>f.path!=='_headers'&&f.path!=='_redirects');
   for(let start=0;start<assets.length;start+=6){
     await Promise.all(assets.slice(start,start+6).map(async asset=>{
       const response=await http.get(`/${asset.path}`);
       assert.equal(response.status(),200,asset.path);
-      const bytes=await response.body();
+      // Cloudflare Web Analytics injects its beacon into served HTML; strip exactly that block before comparing.
+      const served=await response.body();
+      const bytes=asset.path.endsWith('.html')?Buffer.from(served.toString('utf8').replace(CF_ANALYTICS_BEACON,''),'utf8'):served;
       assert.equal(bytes.length,asset.bytes,`${asset.path}: byte count`);
       assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,`${asset.path}: SHA-256`);
       report.assets.push(asset.path);
