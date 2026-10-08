@@ -15,7 +15,7 @@ const modules=[
   'lesion_lab.js','lesion_model.js','lesion_evidence.js','lesion_story.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
-  'atlas_networks.js','atlas_arterial.js','atlas_slice.js','atlas_slice_panel.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',
+  'atlas_networks.js','atlas_arterial.js','atlas_deeplink.js','atlas_slice.js','atlas_slice_panel.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',
   'dissection_references.js','landing.js','lesson_previews.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
   'lessons/resident-anatomy.js','lessons/network-lectures.js','lessons/corpus-callosum.js','lessons/internal-capsule.js','lessons/ventral-stream.js','lessons/brainstem-corridors.js','render_pipeline.js','scene_materials.js',

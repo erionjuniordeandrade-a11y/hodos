@@ -12,6 +12,7 @@ import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 import {caseReference} from './case_reference.js';
 import {CASE_LESIONS,lesionScene,LESION_NOTE} from './case_lesions.js';
 import {mountSlicePanel} from './atlas_slice_panel.js';
+import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch} from './atlas_deeplink.js';
 import {arterialSelection,arterialFromSearch,arterialToSearchValue,arterialLabel,ARTERIAL_NOTE} from './atlas_arterial.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
@@ -36,6 +37,9 @@ function syncURL(){const p=new URLSearchParams(location.search);p.set('profile',
   if(currentDeep)p.set('deep',currentDeep.id);else p.delete('deep');
   const nv=scene?networkToSearchValue(scene.state.network):null;if(nv)p.set('net',nv);else p.delete('net');
   const av=scene?arterialToSearchValue(scene.state.arterial,scene.arterialRows):null;if(av)p.set('art',av);else p.delete('art');
+  // Free-explore deep link: ordered primary bundles + camera. Ghosts belong to a lesson step, so they are never written.
+  const tv=tractsToSearchValue(selectedBundles);if(tv)p.set('tracts',tv);else p.delete('tracts');
+  const cv=scene?cameraToSearchValue(scene.snapshot()):null;if(cv)p.set('cam',cv);else p.delete('cam');
   history.replaceState(history.state,'',`${location.pathname}?${p}`);}
 function motionUI(){const canPlay=profile==='teaching'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
   $('tracePlay').disabled=!canPlay;$('tracePlay').textContent=playing&&canPlay?'Pause fibre animation':'Animate fibre paths';
@@ -164,7 +168,7 @@ function applyBundles(ids,ghostIds=[]){
   selectedBundles=[...new Set(ids)].slice(0,MAX_BUNDLES);currentGhosts=[...new Set(ghostIds)].filter(id=>!selectedBundles.includes(id));
   ids=selectedBundles;ghostIds=currentGhosts;
   scene.setBundles(ids,{ghost:ghostIds});
-  syncPicker();
+  syncPicker();syncURL();
   if(!ids.length&&!ghostIds.length){
     $('pathwaySummary').textContent='Cortical reference · no pathway displayed';return;
   }
@@ -375,6 +379,15 @@ $('expandAnatomy').addEventListener('click',()=>{const open=document.body.datase
   $('expandAnatomy').setAttribute('aria-pressed',String(open));$('expandAnatomy').textContent=open?'Back to lesson':'Expand';});
 $('tracePlay').addEventListener('click',()=>{playing=!playing;motionUI();});
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',motionUI);
+// Copy link (in the Views menu, so the default toolbar and its pixel baselines stay unchanged): Clipboard API where allowed, else a hidden input + execCommand; announced in the polite status line.
+$('atlasCopyLink').addEventListener('click',async()=>{
+  const url=location.href;let ok=false;
+  try{await navigator.clipboard.writeText(url);ok=true;}catch{
+    const t=document.createElement('input');t.value=url;t.setAttribute('aria-hidden','true');t.className='sr-only';document.body.append(t);t.select();
+    try{ok=document.execCommand('copy');}catch{}t.remove();}
+  $('linkStatus').textContent=ok?'Link copied':'Could not copy the link. Copy it from the address bar.';
+  setTimeout(()=>{$('linkStatus').textContent='';},4000);
+  const menu=$('atlasCopyLink').closest('details');menu.open=false;menu.querySelector('summary').focus();});
 $('atlasFit').addEventListener('click',()=>{scene?.setView(scene.state.view);});
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.view==='medial'&&$('atlasHemisphere').value==='both'){
@@ -482,7 +495,14 @@ try{
   // Read the boot-time query: applyNetworks above already rewrote location.search without `art`.
   if(scene.hasArterial()){const a=arterialFromSearch(bootParams.toString(),scene.arterialRows);if(a.mode!=='off')applyArterial(a);}
   applyBundles([]);scene.setSurface(.8);setProfile(profile);
+  let camTimer=0;scene.onCameraRest(()=>{clearTimeout(camTimer);camTimer=setTimeout(syncURL,300);}); // never per frame
   const deepFromUrl=scene.subMeta.structures.find(d=>d.id===bootParams.get('deep'));if(deepFromUrl)showDeep(deepFromUrl);
+  // Deep link (Explore only): lesson/case own the scene, so they win. Bad values are ignored silently.
+  if(!bootParams.has('lesson')&&!bootParams.has('case')){
+    const ids=tractsFromSearch(bootParams.get('tracts'),scene.tractMeta.bundles.map(b=>b.id),MAX_BUNDLES);
+    if(ids.length){applyBundles(ids);revealInterior();}
+    const cam=cameraFromSearch(bootParams.get('cam'));if(cam)scene.setCamera(cam);
+  }
   // Slice view: the 3D plane and its 2D section. It opens only from the Views menu, never on load.
   slicePanel=mountSlicePanel($('slicePanel'),{scene});
   for(const b of document.querySelectorAll('[data-slice-open]'))b.addEventListener('click',()=>{
