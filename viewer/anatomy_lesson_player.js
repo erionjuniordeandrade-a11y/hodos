@@ -39,6 +39,13 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     const params=new URLSearchParams();params.set('lesson',id);params.set('step',String(saved?.step||0));params.set('lessonVersion',CONTENT_VERSION);
     controller.restore(`?${params}`);
   }
+  // Phone: stage and nav are sticky, so bring the heading just under the stage.
+  function alignHeadingUnderStage(heading){
+    if(!matchMedia('(max-width:760px)').matches)return;
+    const stageBottom=document.querySelector('.atlas-stage')?.getBoundingClientRect().bottom??0;
+    const delta=heading.getBoundingClientRect().top-stageBottom-16;
+    if(Math.abs(delta)>4)window.scrollBy(0,delta);
+  }
   function goPhase(value){phase=value;focusHeading=true;render(controller.state);sync();}
   function goStep(index,requestedPhase='orient'){phase=requestedPhase;focusHeading=true;controller.move(index-controller.state.step);}
   function library(){phase='orient';focusHeading=true;controller.close();}
@@ -283,16 +290,14 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     if(focusHeading){
       const heading=root.querySelector('#lessonCurrentTitle');
       // Phone: stage and nav are sticky, so bring the new heading just under the stage.
-      if(heading&&matchMedia('(max-width:760px)').matches){
-        const stageBottom=document.querySelector('.atlas-stage')?.getBoundingClientRect().bottom??0;
-        const delta=heading.getBoundingClientRect().top-stageBottom-16;
-        if(Math.abs(delta)>4)window.scrollBy(0,delta);
-      }
+      if(heading)alignHeadingUnderStage(heading);
       heading?.focus({preventScroll:true});focusHeading=false;
     }else if(focusId)root.querySelector(`#${CSS.escape(focusId)}`)?.focus({preventScroll:true});
   }
   controller=createLessonController({search:location.search,onChange:state=>{sync();render(state);}});
   render(controller.state);sync();
+  // A fresh phone entry (landing CTA, lesson link) opens with the step text under the stage, not under the header.
+  if(controller.state.lessonId&&window.scrollY===0){const heading=root.querySelector('#lessonCurrentTitle');if(heading)requestAnimationFrame(()=>alignHeadingUnderStage(heading));}
   return {controller,library,explore,start,
     get phase(){return phase;},
     restore(search){phase=phaseFromSearch(search);controller.restore(search);},

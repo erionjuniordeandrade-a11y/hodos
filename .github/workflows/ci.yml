@@ -28,6 +28,9 @@ jobs:
           node tests/perf/deep_links.mjs --url=http://127.0.0.1:51038 --out=output/ci/deep-links
           node tests/perf/tract_ranges.mjs --url=http://127.0.0.1:51038 --out=output/ci/tract-ranges
           node tests/perf/visual_regression.mjs --url=http://127.0.0.1:51038 --out=output/ci/visual
+          node tests/perf/landing_gate.mjs --url=http://127.0.0.1:51038 --out=output/ci/landing
+          node tests/perf/case_conference.mjs --url=http://127.0.0.1:51038/ --out=output/ci/case-conference
+          node tests/perf/atlas_dissection.mjs --url=http://127.0.0.1:51038 --out=output/ci/dissection
       - uses: actions/upload-artifact@v4
         if: always()
         with:
