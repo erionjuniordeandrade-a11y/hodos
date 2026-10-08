@@ -155,6 +155,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   controls.addEventListener('controlstart',()=>{controlsActive=true;focusFlight=null;clearHover();cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
   controls.addEventListener('control',()=>{autoFrame=false;requestDraw();});
   controls.addEventListener('controlend',()=>{controlsActive=false;pipeline.setInteracting(false);updateLineResolutions();annotationStamp='';requestDraw();});
+  // Camera has come to rest (pointer released, or camera-controls went idle after a smoothed move/view change): URL deep links listen here, debounced by the caller.
+  const restListeners=new Set(),emitRest=()=>{for(const fn of restListeners)fn();};
+  controls.addEventListener('controlend',emitRest);controls.addEventListener('sleep',emitRest);
   reduced.addEventListener('change',requestDraw);
   document.addEventListener('visibilitychange',requestDraw);
   // A lost WebGL context (GPU switch, backgrounded mobile tab) pauses the loop and says so;
@@ -841,6 +844,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     camera.up.fromArray(state.up);controls.updateCameraUp();view=state.view;
     autoFrame=false;frameFocus=false;lookAt(new THREE.Vector3().fromArray(state.camera),new THREE.Vector3().fromArray(state.target));controls.update(0);requestDraw();
   }
+  // Instant camera placement (deep link): the tail of restore() without touching the scene content.
+  function setCamera({camera:position,target,up}){
+    cameraTransition=null;camera.up.fromArray(up);controls.updateCameraUp();autoFrame=false;frameFocus=false;
+    lookAt(new THREE.Vector3().fromArray(position),new THREE.Vector3().fromArray(target));controls.update(0);requestDraw();
+  }
   function projectBundleVertex(id,streamline,vertex){
     const bundle=bundles.get(id),range=bundle?.ranges[streamline];
     if(!range||vertex<0||vertex>range.count)return null;
@@ -850,10 +858,10 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     return {x:rect.left+(point.x+1)*rect.width/2,y:rect.top+(1-point.y)*rect.height/2,z:point.z};
   }
   return {surfaceMeta,tractMeta,subMeta:sub,manifest,select,highlight,setHemisphere,setDeep,setDeepHighlight,
-    setBundles,setView,flyTo,snapshot,restore,setNetworks,networkAt,hasNetworks,parcelNetwork,
+    setBundles,setView,flyTo,snapshot,restore,setCamera,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
     setSurface,setLesion,setCorridors,projectBundleVertex,setFrameInsets,
-    setSlice,sliceAt,parcelNear,loadSliceTemplate,onSceneChange(listener){sceneListeners.add(listener);return ()=>sceneListeners.delete(listener);},
+    setSlice,sliceAt,parcelNear,loadSliceTemplate,onCameraRest(fn){restListeners.add(fn);return ()=>restListeners.delete(fn);},onSceneChange(listener){sceneListeners.add(listener);return ()=>sceneListeners.delete(listener);},
     // For a page that draws its own layer (the lesion lab): the live scene, camera and controls,
     // the on-demand redraw, the interactive size budget, and verified bundle bytes by id.
     get stage(){return {scene,camera,controls,canvas:renderer.domElement,requestDraw,setInteracting:pipeline.setInteracting,
