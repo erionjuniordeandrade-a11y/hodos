@@ -475,7 +475,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     function addLabel({key,hemi,id,primary=false,indices,centroid,geo,kind='parcel',name,tint,mesh}){
       const node=document.createElement('div');node.className='atlas-parcel-label';node.setAttribute('role','listitem');
       node.dataset.primary=String(primary);node.dataset.structure=key;node.dataset.kind=kind;
-      const text=document.createElement('span');text.textContent=`${hemi} · ${name}`;
+      const text=document.createElement('span');text.textContent=`${hemi}\u00a0·\u00a0${name}`;
       const status=document.createElement('small');node.append(text,status);annotationLayer.append(node);
       const line=document.createElementNS(svgNS,'line');line.dataset.primary=String(primary);leaders.append(line);
       annotations.push({key,hemi,id,primary,indices,centroid,geo,kind,tint,mesh,node,status,line,x:0,y:0,visibility:'covered'});
@@ -513,7 +513,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     leaders.setAttribute('viewBox',`0 0 ${w} ${h}`);
     const p=new THREE.Vector3(),n=new THREE.Vector3(),toward=new THREE.Vector3();
     const candidates=Object.values(hemis).filter(host=>host.group.visible).map(host=>host.shell);
-    const columns=[[],[]],labelWidth=Math.min(128,w*.30),gap=6;
+    const columns=[[],[]],labelWidth=Math.min(150,Math.max(120,w*.40)),gap=6;
     for(const a of annotations){const pos=a.geo.attributes.position,normal=a.geo.attributes.normal;
       const occluders=a.kind==='deep'?[a.mesh,...candidates.filter(m=>m.material.opacity>=1)]:candidates;
       const ranked=[];let anchor=new THREE.Vector3(),front=false;
@@ -537,7 +537,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       a.status.textContent=a.visibility==='visible'?'':a.visibility;
       a.node.dataset.visibility=a.visibility;a.line.dataset.visibility=a.visibility;
       a.line.style.display=inFrame?'':'none';
-      a.node.style.width=`${labelWidth}px`;a.height=a.node.offsetHeight;
+      // Each label is as wide as its name, up to labelWidth, so short codes cover less anatomy.
+      a.node.style.cssText=`max-width:${labelWidth}px`;a.width=Math.ceil(a.node.getBoundingClientRect().width);a.height=a.node.offsetHeight;
       columns[a.x<w/2?0:1].push(a);
     }
     // Wrapped deep-structure names need their real height, not a fixed row gap.
@@ -554,10 +555,10 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       for(const [i,a] of list.entries()){
         const top=Math.min(h-8-remaining,Math.max(8,a.y-a.height/2,previous+gap));
         previous=top+a.height;remaining-=a.height+gap;
-        const left=side?w-labelWidth-8:8;
-        a.node.style.cssText=`left:${left}px;top:${top}px;width:${labelWidth}px`;
+        const left=side?w-a.width-8:8;
+        a.node.style.cssText=`left:${left}px;top:${top}px;width:${a.width}px`;
         if(a.tint){a.node.style.setProperty('--label-color',a.tint);a.line.style.stroke=a.tint;}
-        a.line.setAttribute('x1',String(side?left:left+labelWidth));a.line.setAttribute('y1',String(top+a.height/2));
+        a.line.setAttribute('x1',String(side?left:left+a.width));a.line.setAttribute('y1',String(top+a.height/2));
         a.line.setAttribute('x2',String(a.x));a.line.setAttribute('y2',String(a.y));
       }
     }
