@@ -513,7 +513,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     leaders.setAttribute('viewBox',`0 0 ${w} ${h}`);
     const p=new THREE.Vector3(),n=new THREE.Vector3(),toward=new THREE.Vector3();
     const candidates=Object.values(hemis).filter(host=>host.group.visible).map(host=>host.shell);
-    const columns=[[],[]],labelWidth=Math.min(150,Math.max(120,w*.40)),gap=6;
+    const columns=[[],[]],fitLabels=w*.30<128,labelWidth=Math.min(150,Math.max(120,w*.40)),gap=6;
     for(const a of annotations){const pos=a.geo.attributes.position,normal=a.geo.attributes.normal;
       const occluders=a.kind==='deep'?[a.mesh,...candidates.filter(m=>m.material.opacity>=1)]:candidates;
       const ranked=[];let anchor=new THREE.Vector3(),front=false;
@@ -537,8 +537,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       a.status.textContent=a.visibility==='visible'?'':a.visibility;
       a.node.dataset.visibility=a.visibility;a.line.dataset.visibility=a.visibility;
       a.line.style.display=inFrame?'':'none';
-      // Each label is as wide as its name, up to labelWidth, so short codes cover less anatomy.
-      a.node.style.cssText=`max-width:${labelWidth}px`;a.width=Math.ceil(a.node.getBoundingClientRect().width);a.height=a.node.offsetHeight;
+      // A label grows to fit its name (up to labelWidth) so the hemisphere prefix stays with it. Narrow frames
+      // also shrink short codes to their name; wide frames keep at least the 128 px column.
+      a.node.style.cssText=`max-width:${labelWidth}px`;
+      a.width=Math.ceil(a.node.getBoundingClientRect().width);if(!fitLabels)a.width=Math.max(128,a.width);
+      a.node.style.width=`${a.width}px`;a.height=a.node.offsetHeight;
       columns[a.x<w/2?0:1].push(a);
     }
     // Wrapped deep-structure names need their real height, not a fixed row gap.
