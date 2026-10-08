@@ -90,7 +90,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   let playing=false,profile='teaching',frame=0,last=0,time=0,disposed=false,view='left';
   let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
   let hoveredLine=null,controlsActive=false,frameHold=false;
-  let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false;
+  let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false,focusFlight=null;
   let corridorOverlay=null;
   let slice=null,sliceFrame=null,context=null;const slicePlane=new THREE.Plane(),sceneListeners=new Set();
   const sceneChanged=()=>{for(const listener of sceneListeners)listener();};
@@ -152,7 +152,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(moving||changed)requestDraw();
   }
   function requestDraw(){if(!frame&&!disposed&&!contextLost)frame=requestAnimationFrame(draw);}
-  controls.addEventListener('controlstart',()=>{controlsActive=true;clearHover();cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
+  controls.addEventListener('controlstart',()=>{controlsActive=true;focusFlight=null;clearHover();cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
   controls.addEventListener('control',()=>{autoFrame=false;requestDraw();});
   controls.addEventListener('controlend',()=>{controlsActive=false;pipeline.setInteracting(false);updateLineResolutions();annotationStamp='';requestDraw();});
   reduced.addEventListener('change',requestDraw);
@@ -252,13 +252,13 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     return {view:resolved,centre:targetCentre,position:targetCentre.clone().addScaledVector(direction,distance)};
   }
   function setView(key='left') {
-    cameraTransition=null;frameFocus=false;
+    cameraTransition=null;frameFocus=false;focusFlight=null;
     const target=computeViewTarget(key,1);
     view=target.view;autoFrame=true;lookAt(target.position,target.centre);controls.update(0);requestDraw();
   }
   /** Animate the camera to a named view; prefers-reduced-motion jumps instantly. */
   function flyTo({view:key='left',zoom=1,tweenMs=900,focus=false}={}) {
-    frameFocus=focus;
+    frameFocus=focus;focusFlight=focus?{view:key,zoom,tweenMs}:null;
     const target=computeViewTarget(key,zoom,focus);
     view=target.view;autoFrame=zoom<=1;
     const transition=!reduced.matches&&tweenMs>0;
@@ -669,6 +669,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
         bundles.set(id,{group,ghost:isGhost,alpha,tint,positions,arc,segmentToStreamline:Int32Array.from(segmentOwners),ranges,lineCount:lines.length});scene.add(group);
       }
       applyClipping();requestDraw();sceneChanged();
+      // A lesson flight fits its focus before the pathways arrive by range request; refit once they are in,
+      // unless the learner has taken the camera since.
+      if(focusFlight&&frameFocus&&entries.some(item=>!item.isGhost))flyTo(focusFlight);
     }catch(error){
       if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`);console.error(error);}
     }
