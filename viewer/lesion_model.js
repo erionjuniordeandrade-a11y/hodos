@@ -87,6 +87,82 @@ export function classify(pack,{centre,radius,margin=0},state){
   return changed;
 }
 
+// ---- Corridors: a straight cylinder from a cortical entry to the lesion's near surface ----------
+
+export const CORRIDOR_IDS=Object.freeze(['A','B']);
+/** Corridor diameter in millimetres (the radius tested is half of it). */
+export const CORRIDOR_MM=Object.freeze({min:4,max:20,step:1,initial:8});
+
+/** Squared distance between segments p1q1 and p2q2 (Ericson, Real-Time Collision Detection, 5.1.9). */
+export function segmentSegmentDistance2(p1x,p1y,p1z,q1x,q1y,q1z,p2x,p2y,p2z,q2x,q2y,q2z){
+  const d1x=q1x-p1x,d1y=q1y-p1y,d1z=q1z-p1z,d2x=q2x-p2x,d2y=q2y-p2y,d2z=q2z-p2z,rx=p1x-p2x,ry=p1y-p2y,rz=p1z-p2z;
+  const a=d1x*d1x+d1y*d1y+d1z*d1z,e=d2x*d2x+d2y*d2y+d2z*d2z,f=d2x*rx+d2y*ry+d2z*rz,eps=1e-12;
+  const clamp=v=>v<0?0:v>1?1:v;
+  let s=0,t=0;
+  if(a<=eps&&e<=eps)return rx*rx+ry*ry+rz*rz;
+  if(a<=eps)t=clamp(f/e);
+  else{
+    const c=d1x*rx+d1y*ry+d1z*rz;
+    if(e<=eps)s=clamp(-c/a);
+    else{
+      const b=d1x*d2x+d1y*d2y+d1z*d2z,denom=a*e-b*b;
+      s=denom>eps?clamp((b*f-c*e)/denom):0;
+      t=(b*s+f)/e;
+      if(t<0){t=0;s=clamp(-c/a);}else if(t>1){t=1;s=clamp((b-c)/a);}
+    }
+  }
+  const x=p1x+d1x*s-p2x-d2x*t,y=p1y+d1y*s-p2y-d2y*t,z=p1z+d1z*s-p2z-d2z*t;
+  return x*x+y*y+z*z;
+}
+
+/**
+ * The corridor's axis: from the entry to the point where the line from the entry to the centre meets
+ * the sphere. Null when the entry lies inside the sphere (no corridor to draw).
+ */
+export function corridorAxis(entry,centre,radius){
+  const dx=centre[0]-entry[0],dy=centre[1]-entry[1],dz=centre[2]-entry[2],d=Math.hypot(dx,dy,dz);
+  if(!(d>radius))return null;
+  const k=(d-radius)/d,end=[entry[0]+dx*k,entry[1]+dy*k,entry[2]+dz*k];
+  return {start:[...entry],end,lengthMm:d-radius};
+}
+
+/**
+ * Marks each streamline 1 when any of its segments comes within `radius` of the corridor's axis
+ * (a capsule test), else 0. Writes into `hits` (a Uint8Array of pack.count) and returns the hit count.
+ */
+export function classifyCorridor(pack,{start,end,radius},hits){
+  const [ax,ay,az]=start,[bx,by,bz]=end,r2=radius*radius;
+  const lo=[Math.min(ax,bx)-radius,Math.min(ay,by)-radius,Math.min(az,bz)-radius];
+  const hi=[Math.max(ax,bx)+radius,Math.max(ay,by)+radius,Math.max(az,bz)+radius];
+  const {points,start:first,bounds,count}=pack;
+  let total=0;
+  for(let s=0;s<count;s++){
+    const b=s*6;
+    let hit=0;
+    // The capsule's bounding box against the streamline's: most of the sample is rejected here.
+    if(bounds[b]<=hi[0]&&bounds[b+3]>=lo[0]&&bounds[b+1]<=hi[1]&&bounds[b+4]>=lo[1]&&bounds[b+2]<=hi[2]&&bounds[b+5]>=lo[2]){
+      for(let p=first[s],stop=first[s+1]-1;p<stop;p++){
+        const i=p*3;
+        if(segmentSegmentDistance2(points[i],points[i+1],points[i+2],points[i+3],points[i+4],points[i+5],ax,ay,az,bx,by,bz)<=r2){hit=1;break;}
+      }
+    }
+    hits[s]=hit;total+=hit;
+  }
+  return total;
+}
+
+/**
+ * Per bundle: how many sampled streamlines the corridor cuts that the lesion sphere does not already
+ * cut, and how many it crosses in all.
+ */
+export function summarizeCorridor(pack,hits,lesionState){
+  return pack.bundles.map(bundle=>{
+    let cut=0,crossed=0;
+    for(let s=bundle.first,end=bundle.first+bundle.count;s<end;s++)if(hits[s]){crossed++;if(lesionState[s]!==CUT)cut++;}
+    return {id:bundle.id,group:bundle.group,total:bundle.count,cut,crossed,margin:0};
+  });
+}
+
 /** Per bundle: how many of its sampled streamlines are cut and how many more lie within the margin. */
 export function summarize(pack,state){
   return pack.bundles.map(bundle=>{
@@ -125,7 +201,17 @@ export function clampCentre(centre,hemi,extent){
 
 const numeric=value=>value!==null&&value.trim()!==''&&Number.isFinite(Number(value));
 const clampStep=(value,{min,max},fallback)=>numeric(value)?Math.min(max,Math.max(min,Math.round(Number(value)))):fallback;
-/** Reads ?hemi=L&x=&y=&z=&r=&margin= ; anything missing or malformed falls back to the defaults. */
+const MAX_ENTRY_MM=250;
+const parseEntry=value=>{
+  const parts=(value??'').split(',');
+  if(parts.length!==3||!parts.every(numeric))return null;
+  const point=parts.map(Number);
+  return point.every(v=>Math.abs(v)<=MAX_ENTRY_MM)?point:null;
+};
+/**
+ * Reads ?hemi=L&x=&y=&z=&r=&margin=&a=x,y,z&b=x,y,z&cd= ; anything missing or malformed falls back
+ * to the defaults (no corridor, an 8 mm diameter).
+ */
 export function parseLabParams(search){
   const params=new URLSearchParams(search);
   const hemi=params.get('hemi')==='R'?'R':'L';
@@ -133,7 +219,9 @@ export function parseLabParams(search){
   const centre=xyz.every(numeric)?xyz.map(Number):null;
   const marginOn=numeric(params.get('margin'));
   return {hemi,centre,radius:clampStep(params.get('r'),RADIUS,RADIUS.initial),marginOn,
-    margin:clampStep(params.get('margin'),MARGIN_MM,MARGIN_MM.initial)};
+    margin:clampStep(params.get('margin'),MARGIN_MM,MARGIN_MM.initial),
+    entries:{A:parseEntry(params.get('a')),B:parseEntry(params.get('b'))},
+    corridor:clampStep(params.get('cd'),CORRIDOR_MM,CORRIDOR_MM.initial)};
 }
 
 // ---- Evidence: the quoted graph joined to its provenance -------------------------------------

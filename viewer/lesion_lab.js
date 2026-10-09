@@ -3,6 +3,7 @@
 // margin or cut), the sphere with its silhouette rings, the drag, and the quoted-evidence panel.
 // The geometric test and the evidence joins live in lesion_model.js; nothing here writes a claim.
 import {labBundles,packStreamlines,classify,summarize,bundleAnchor,clampCentre,parseLabParams,evidenceFor,namedDeficits,
+  corridorAxis,classifyCorridor,summarizeCorridor,CORRIDOR_IDS,CORRIDOR_MM,
   CLAIMS,CLAIMS_WITH_PMID,UNPLACED_CLAIMS,SPARED,MARGIN,CUT} from './lesion_model.js';
 import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
@@ -16,15 +17,23 @@ const GROUPS=['Association','Projection','Commissural'];
 // tokens.css --color-dec-association, -projection, -commissural; the ghost is atlas_scene.js GHOST_TINT.
 const DEC=[0x62b97a,0x6a93e8,0xe0605a],GHOST=0x818d99;
 const TEX_WIDTH=128,SLOW_MS=30000,PANEL_MS=100,ANNOUNCE_MS=400;
-const PASSES=[{show:SPARED,alpha:.015,order:1},{show:MARGIN,alpha:.24,order:2},{show:CUT,alpha:.62,order:4}];
+// Display states beyond the lesion's own: cut by corridor A only, by B only, or by both.
+const CORRIDOR_A=3,CORRIDOR_B=4,CORRIDOR_BOTH=5;
+const CORRIDOR_STATE={A:CORRIDOR_A,B:CORRIDOR_B};
+// An amber (A) and a violet (B) that no DEC family or the sphere uses; a line both cut is drawn near-white.
+// tokens.css --color-corridor-a/-b repeat these two.
+const CORRIDOR_COLOR={A:0xd9b45a,B:0xb98cf0},BOTH_COLOR=0xf4f4f0;
+const PASSES=[{show:SPARED,alpha:.015,order:1},{show:MARGIN,alpha:.24,order:2},{show:CUT,alpha:.62,order:4},
+  {show:CORRIDOR_A,alpha:.7,order:5},{show:CORRIDOR_B,alpha:.7,order:5},{show:CORRIDOR_BOTH,alpha:.75,order:5}];
 const HEMI_NAME={L:'left',R:'right'};
 const VIEW_NAMES={oblique:'Oblique view',lateral:'Lateral view',medial:'Medial view',superior:'Superior view',anterior:'Anterior view',
   posterior:'Posterior view',inferior:'Inferior view',free:'Free rotation'};
 
 const lab={hemi:initial.hemi,centre:null,radius:initial.radius,marginOn:initial.marginOn,margin:initial.margin,
-  ready:false,loading:false,slow:false,error:null,rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique'};
+  ready:false,loading:false,slow:false,error:null,rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique',
+  entries:{...initial.entries},corridorMm:initial.corridor,placing:null,corridors:{A:null,B:null}};
 let scene=null,stage=null,THREE=null,decodeAtlasBundle=null,leaving=false;
-let sphere=null,rings=null,ringScreen=null,drag=null,hover=false,focusIndex=-1,openIndex=-1;
+let sphere=null,rings=null,ringScreen=null,drag=null,place=null,hover=false,focusIndex=-1,openIndex=-1;
 let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
 const mount=$('atlasCanvas'),status=$('sceneStatus'),list=$('bundleList'),controls=$('lesionControls');
@@ -87,7 +96,8 @@ function buildLayer(pack){
   const rows=Math.ceil(pack.count/TEX_WIDTH),data=new Uint8Array(TEX_WIDTH*rows*4);
   for(let s=0;s<pack.count;s++){const bundle=pack.bundles[pack.bundleOf[s]];data[s*4+1]=GROUPS.indexOf(bundle.group);data[s*4+2]=pack.bundleOf[s];data[s*4+3]=255;}
   const texture=new THREE.DataTexture(data,TEX_WIDTH,rows,THREE.RGBAFormat,THREE.UnsignedByteType);texture.needsUpdate=true;
-  const shared={uState:{value:texture},uFocus:{value:-1},uTint:{value:DEC.map(hex=>new THREE.Color(hex))},uGhost:{value:new THREE.Color(GHOST)}};
+  const shared={uState:{value:texture},uFocus:{value:-1},uTint:{value:DEC.map(hex=>new THREE.Color(hex))},uGhost:{value:new THREE.Color(GHOST)},
+    uCorridor:{value:[CORRIDOR_COLOR.A,CORRIDOR_COLOR.B,BOTH_COLOR].map(hex=>new THREE.Color(hex))}};
   const objects=PASSES.map(pass=>{
     const material=new THREE.ShaderMaterial({uniforms:{...shared,uShow:{value:pass.show},uAlpha:{value:pass.alpha}},
       vertexShader:`attribute float arc;attribute float sid;uniform highp sampler2D uState;uniform float uShow;uniform float uFocus;
@@ -96,17 +106,19 @@ function buildLayer(pack){
           if(abs(floor(v.r*255.+.5)-uShow)>.5){gl_Position=vec4(2.,2.,2.,1.);return;}
           vArc=arc;vGroup=floor(v.g*255.+.5);vFocus=uFocus>-.5&&abs(floor(v.b*255.+.5)-uFocus)<.5?1.:0.;
           gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader:`uniform vec3 uTint[3];uniform vec3 uGhost;uniform float uShow;uniform float uAlpha;uniform float uFocus;
+      fragmentShader:`uniform vec3 uTint[3];uniform vec3 uGhost;uniform vec3 uCorridor[3];uniform float uShow;uniform float uAlpha;uniform float uFocus;
         varying float vArc;varying float vGroup;varying float vFocus;
         void main(){float feather=smoothstep(0.,.06,min(vArc,1.-vArc));
           vec3 tint=vGroup<.5?uTint[0]:vGroup<1.5?uTint[1]:uTint[2];float alpha=uAlpha;
+          if(uShow>2.5)tint=uShow<3.5?uCorridor[0]:uShow<4.5?uCorridor[1]:uCorridor[2];
           if(uShow<.5){if(vFocus>.5)alpha=.16;else tint=uGhost;}
           else if(uFocus>-.5)alpha*=vFocus>.5?1.6:.35;
           gl_FragColor=vec4(tint,min(alpha,1.)*feather);}`,
       transparent:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false});
     const lines=new THREE.LineSegments(geometry,material);lines.renderOrder=pass.order;lines.userData.kind='lesion-lab';return lines;
   });
-  return {pack,geometry,texture,shared,objects,state:new Uint8Array(pack.count),anchors:new Map()};
+  return {pack,geometry,texture,shared,objects,state:new Uint8Array(pack.count),anchors:new Map(),
+    hits:{A:new Uint8Array(pack.count),B:new Uint8Array(pack.count)}};
 }
 
 function disposeLayer(entry){
@@ -179,6 +191,128 @@ function updateRings(camera){
   ringScreen={x,y,r:Math.max(...inner.map(([px,py])=>Math.hypot(px-x,py-y)))};
 }
 
+// ---- Corridors: a cortical entry, a straight cylinder to the sphere's near surface ----------------
+
+const corridorRadius=()=>lab.corridorMm/2;
+// Recomputes each corridor's axis and the streamlines its cylinder reaches; true when any hit changed.
+function classifyCorridors(entry){
+  let changed=false;
+  for(const id of CORRIDOR_IDS){
+    const point=lab.entries[id],hits=entry.hits[id];
+    const axis=point&&lab.centre?corridorAxis(point,lab.centre,lab.radius):null;
+    const key=axis?`${axis.start}|${axis.end}|${corridorRadius()}`:'';
+    const previous=lab.corridors[id];
+    if(previous&&previous.key===key&&previous.hemi===lab.hemi)continue;
+    if(axis)classifyCorridor(entry.pack,{start:axis.start,end:axis.end,radius:corridorRadius()},hits);
+    else hits.fill(0);
+    lab.corridors[id]=point?{key,hemi:lab.hemi,axis,inside:!axis}:null;
+    changed=true;
+  }
+  if(changed)drawCorridors();
+  return changed;
+}
+function drawCorridors(){
+  if(!scene)return;
+  const specs=CORRIDOR_IDS.filter(id=>lab.corridors[id]?.axis).map(id=>{
+    const {start,end}=lab.corridors[id].axis;
+    return {id,label:`Corridor ${id}`,color:CORRIDOR_COLOR[id],start,end,radiusMm:corridorRadius()};
+  });
+  scene.setCorridors(specs);
+}
+// The cortex shells actually drawn (atlas_scene.js marks them with the atlas-cortex render role).
+function visibleCortex(){
+  const meshes=[],shown=node=>{for(let o=node;o;o=o.parent)if(!o.visible)return false;return true;};
+  stage.scene.traverse(node=>{if(node.isMesh&&node.material?.userData?.renderRole==='atlas-cortex'&&shown(node))meshes.push(node);});
+  return meshes;
+}
+function cortexHit(point){
+  const {Vector2,Raycaster}=THREE,t=dragTmp,{w,h}=rings.size;
+  t.ndc??=new Vector2();t.ray??=new Raycaster();
+  t.ndc.set(point.x/w*2-1,-(point.y/h)*2+1);t.ray.setFromCamera(t.ndc,stage.camera);
+  const hit=t.ray.intersectObjects(visibleCortex(),false)[0];
+  return hit?[hit.point.x,hit.point.y,hit.point.z].map(v=>Math.round(v*10)/10):null;
+}
+function setEntry(id,point){
+  lab.entries[id]=point;lab.corridors[id]=null;
+  applyGeometry();settle();
+}
+function setPlacing(id){
+  lab.placing=id;
+  for(const button of document.querySelectorAll('[data-entry]'))button.setAttribute('aria-pressed',String(button.dataset.entry===id));
+  setCursor(id?'place':hover?'hover':null);
+  $('corridorHint').textContent=id?`Click the cortex where corridor ${id} enters. Drag still rotates the view; Esc cancels.`:
+    'Choose an entry, then click the cortex where the corridor starts. The corridor runs straight to the sphere.';
+}
+
+function corridorRows(entry,id){
+  if(!lab.corridors[id]?.axis)return null;
+  return summarizeCorridor(entry.pack,entry.hits[id],entry.state);
+}
+function renderCorridors(entry){
+  const results={};
+  for(const id of CORRIDOR_IDS){
+    const rows=corridorRows(entry,id),corridor=lab.corridors[id];
+    const cut=rows?rows.filter(r=>r.cut>0):[];
+    results[id]={rows,cut,lines:cut.reduce((n,r)=>n+r.cut,0),lengthMm:corridor?.axis?.lengthMm??null,
+      inside:Boolean(corridor?.inside),placed:Boolean(lab.entries[id])};
+  }
+  lab.corridorResults=results;
+  const items=CORRIDOR_IDS.map(id=>{
+    const r=results[id],swatch=el('span',{className:'lab-corridor-swatch'});swatch.dataset.corridor=id;swatch.setAttribute('aria-hidden','true');
+    let text;
+    if(!r.placed)text='No entry yet.';
+    else if(r.inside)text='The entry lies inside the sphere. Choose a point outside it.';
+    else text=`${Math.round(r.lengthMm)} mm to the sphere · cuts ${plural(r.cut.length,'bundle')}, `+
+      `${count(r.lines)} sampled streamline${r.lines===1?'':'s'} the sphere does not`;
+    const clear=r.placed?el('button',{type:'button',className:'lab-corridor-clear',textContent:'Clear'}):null;
+    clear?.addEventListener('click',()=>{if(lab.placing===id)setPlacing(null);setEntry(id,null);});
+    const item=el('li',{},swatch,el('span',{className:'lab-corridor-name',textContent:`Corridor ${id}`}),el('span',{className:'lab-corridor-text',textContent:text}),clear);
+    item.dataset.corridor=id;
+    return item;
+  });
+  $('corridorList').replaceChildren(...items);
+  const any=CORRIDOR_IDS.some(id=>results[id].rows);
+  $('compareCorridors').hidden=!any;
+  renderCompare(results);
+}
+function renderCompare(results){
+  const section=$('corridorCompare'),drawn=CORRIDOR_IDS.filter(id=>results[id].rows);
+  section.hidden=!drawn.length;
+  if(!drawn.length)return;
+  const ids=new Map();
+  for(const id of drawn)results[id].rows.forEach((row,index)=>{if(row.cut>0)ids.set(index,row);});
+  const order=[...ids.keys()].sort((a,b)=>{
+    const total=index=>drawn.reduce((n,id)=>n+results[id].rows[index].cut/results[id].rows[index].total,0);
+    return total(b)-total(a)||a-b;
+  });
+  const cell=(id,index)=>{
+    const result=results[id];
+    if(!result.rows)return el('td',{textContent:'not placed'});
+    const row=result.rows[index];
+    return el('td',{textContent:row.cut?`${count(row.cut)} (${percent(row.cut,row.total)})`:'0'});
+  };
+  const head=el('tr',{},el('th',{scope:'col',textContent:'Bundle'}),...CORRIDOR_IDS.map(id=>{
+    const th=el('th',{scope:'col',textContent:id});th.dataset.corridor=id;return th;}));
+  const length=el('tr',{className:'lab-compare-total'},el('th',{scope:'row',textContent:'Length to the sphere'}),
+    ...CORRIDOR_IDS.map(id=>el('td',{textContent:results[id].rows?`${Math.round(results[id].lengthMm)} mm`:'not placed'})));
+  const totals=el('tr',{className:'lab-compare-total'},el('th',{scope:'row',textContent:'Bundles · streamlines cut'}),
+    ...CORRIDOR_IDS.map(id=>el('td',{textContent:results[id].rows?`${count(results[id].cut.length)} · ${count(results[id].lines)}`:'not placed'})));
+  const body=order.map(index=>{
+    const row=ids.get(index),name=el('th',{scope:'row'});
+    const swatch=el('span',{className:'lab-swatch'});swatch.dataset.group=row.group;swatch.setAttribute('aria-hidden','true');
+    name.append(swatch,bundleLabel(row.id));
+    return el('tr',{},name,...CORRIDOR_IDS.map(id=>cell(id,index)));
+  });
+  $('compareTable').replaceChildren(el('thead',{},head),el('tbody',{},length,totals,...body));
+  $('compareEmpty').hidden=order.length>0;
+  const named=$('compareNamed');
+  named.replaceChildren(...drawn.map(id=>{
+    const list=namedDeficits(results[id].rows,lab.hemi);
+    const item=el('li',{},el('strong',{textContent:`Corridor ${id}: `}),list.length?list.map(n=>n.object).join('; '):'none named for the bundles it cuts');
+    item.dataset.corridor=id;return item;
+  }));
+}
+
 // ---- State changes ---------------------------------------------------------------------------
 
 let panelTimer=0,panelAt=0,announceTimer=0,urlTimer=0;
@@ -186,9 +320,13 @@ function applyGeometry(){
   const entry=layer();if(!entry||!lab.centre)return;
   const started=performance.now();
   const changed=classify(entry.pack,{centre:lab.centre,radius:lab.radius,margin:lab.marginOn?lab.margin:0},entry.state);
-  if(changed){
-    const data=entry.texture.image.data;
-    for(let s=0;s<entry.pack.count;s++)data[s*4]=entry.state[s];
+  const corridorChanged=classifyCorridors(entry);
+  if(changed||corridorChanged){
+    const data=entry.texture.image.data,{A,B}=entry.hits;
+    for(let s=0;s<entry.pack.count;s++){
+      const own=entry.state[s];
+      data[s*4]=own===CUT?CUT:A[s]&&B[s]?CORRIDOR_BOTH:A[s]?CORRIDOR_A:B[s]?CORRIDOR_B:own;
+    }
     entry.texture.needsUpdate=true;
   }
   lab.classifyMs=performance.now()-started;lab.classifyMax=Math.max(lab.classifyMax,lab.classifyMs);
@@ -223,6 +361,8 @@ function writeURL(){
   if(!lab.centre)return;
   const params=new URLSearchParams({hemi:lab.hemi,x:String(lab.centre[0]),y:String(lab.centre[1]),z:String(lab.centre[2]),r:String(lab.radius)});
   if(lab.marginOn)params.set('margin',String(lab.margin));
+  for(const id of CORRIDOR_IDS)if(lab.entries[id])params.set(id.toLowerCase(),lab.entries[id].join(','));
+  if(CORRIDOR_IDS.some(id=>lab.entries[id])&&lab.corridorMm!==CORRIDOR_MM.initial)params.set('cd',String(lab.corridorMm));
   if(testMode)params.set('test','1');
   history.replaceState(null,'',`${location.pathname}?${params}`);
 }
@@ -230,8 +370,11 @@ function announce(){
   if(!lab.centre)return;
   const cut=lab.reached.filter(r=>r.cut>0);
   const where=`Sphere at x ${fmt(lab.centre[0])}, y ${fmt(lab.centre[1])}, z ${fmt(lab.centre[2])} millimetres, radius ${lab.radius}.`;
-  $('announce').textContent=cut.length?`${where} It cuts ${plural(cut.length,'bundle')}: ${cut.slice(0,5).map(r=>bundleLabel(r.id)).join(', ')}${cut.length>5?', and more':''}.`:
-    `${where} It cuts no sampled streamline.`;
+  const corridors=CORRIDOR_IDS.filter(id=>lab.corridorResults?.[id]?.rows).map(id=>{
+    const r=lab.corridorResults[id];return ` Corridor ${id}, ${Math.round(r.lengthMm)} millimetres, cuts ${plural(r.lines,'more sampled streamline')} in ${plural(r.cut.length,'bundle')}.`;
+  }).join('');
+  $('announce').textContent=(cut.length?`${where} It cuts ${plural(cut.length,'bundle')}: ${cut.slice(0,5).map(r=>bundleLabel(r.id)).join(', ')}${cut.length>5?', and more':''}.`:
+    `${where} It cuts no sampled streamline.`)+corridors;
 }
 
 // ---- Story: the HUD sentence and chips, built only from composeStory's closed templates ------
@@ -413,6 +556,7 @@ function renderPanel(){
   if(current.length!==items.length||current.some((node,i)=>node!==items[i]))list.replaceChildren(...items);
   renderStory(entry,marginLines);
   updateChips(cutRows.length,cutLines,entry.pack.count);
+  renderCorridors(entry);
 }
 
 // ---- Controls ---------------------------------------------------------------------------------
@@ -447,6 +591,8 @@ async function showHemisphere(hemi,{first=false}={}){
       for(const row of rowsByHemi.get(lab.hemi)?.values()??[])row.details.open=false;
     }
     const mirrored=lab.centre&&lab.hemi!==hemi?[-lab.centre[0],lab.centre[1],lab.centre[2]]:lab.centre;
+    if(lab.hemi!==hemi)for(const id of CORRIDOR_IDS)if(lab.entries[id]){const [x,y,z]=lab.entries[id];lab.entries[id]=[-x,y,z];}
+    for(const id of CORRIDOR_IDS)lab.corridors[id]=null;
     lab.hemi=hemi;
     for(const object of entry.objects)if(!object.parent)stage.scene.add(object);
     scene.setHemisphere(hemi);
@@ -482,6 +628,12 @@ function bindControls(){
     input.addEventListener('input',()=>{const next=[...lab.centre];next[axis]=Number(input.value);setCentre(next);});
     input.addEventListener('change',settle);
   }
+  const width=$('corridorWidth');
+  width.addEventListener('input',()=>{lab.corridorMm=Number(width.value);$('corridorWidthValue').textContent=`${lab.corridorMm} mm`;applyGeometry();});
+  width.addEventListener('change',settle);
+  for(const button of document.querySelectorAll('[data-entry]'))button.addEventListener('click',()=>setPlacing(lab.placing===button.dataset.entry?null:button.dataset.entry));
+  addEventListener('keydown',event=>{if(event.key==='Escape'&&lab.placing)setPlacing(null);});
+  $('compareCorridors').addEventListener('click',()=>{openDrawer();$('corridorCompare').scrollIntoView({block:'start'});});
   $('anchor').addEventListener('change',()=>{
     const value=$('anchor').value,entry=layer();if(!value||!entry)return;
     const point=anchorFor(entry,value);if(point){setCentre(point,{source:'anchor'});settle();}
@@ -570,6 +722,8 @@ function bindDrag(){
     if(drag){event.stopPropagation();event.preventDefault();return;}
     if(!lab.ready||lab.loading||event.button!==0)return;
     const rect=mount.getBoundingClientRect(),point=localPoint(event,rect);
+    // Placing an entry: a click (not a drag, which still rotates) on the cortex sets it on pointerup.
+    if(lab.placing&&!onSphere(point,event.pointerType)){place={pointerId:event.pointerId,x:event.clientX,y:event.clientY,rect};return;}
     if(!onSphere(point,event.pointerType))return;
     event.stopPropagation();event.preventDefault();
     const {Vector3,Plane}=THREE,t=dragTmp;
@@ -600,16 +754,26 @@ function bindDrag(){
     if(event.buttons===0&&event.pointerType!=='touch'){
       event.stopPropagation();
       const next=lab.ready&&onSphere(localPoint(event),event.pointerType);
-      if(next!==hover){hover=next;setCursor(hover?'hover':null);}
+      if(next!==hover){hover=next;if(!lab.placing||hover)setCursor(hover?'hover':null);else setCursor('place');}
     }
   },true);
+  mount.addEventListener('pointerup',event=>{
+    if(!place||event.pointerId!==place.pointerId)return;
+    const start=place;place=null;
+    if(Math.hypot(event.clientX-start.x,event.clientY-start.y)>6||!lab.placing)return;
+    const point=cortexHit(localPoint(event,start.rect));
+    if(!point){$('corridorHint').textContent='That click missed the cortex. Click on the brain surface.';return;}
+    event.stopPropagation();
+    const id=lab.placing;setPlacing(null);setEntry(id,point);
+  },true);
+  mount.addEventListener('pointercancel',()=>{place=null;},true);
   const end=event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;
     event.stopPropagation();drag=null;
-    setCursor(hover?'hover':null);stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
+    setCursor(hover?'hover':lab.placing?'place':null);stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
   };
   for(const type of ['pointerup','pointercancel','lostpointercapture'])mount.addEventListener(type,end,true);
-  mount.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=false;setCursor(null);}});
+  mount.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=false;setCursor(lab.placing?'place':null);}});
 }
 
 // ---- Evidence notes and the test hook -----------------------------------------------------------
@@ -665,9 +829,16 @@ if(testMode)Object.defineProperty(window,'__lesionLabTest',{get:()=>{
     scene:scene?(({frames,view,hemisphere,camera,render})=>({frames,view,hemisphere,camera,pipeline:render.pipeline}))(scene.state):null,
     story:lastStory,insets:lastInsets,sheet:SHEET_LAYOUT.matches?(dock.dataset.sheet||'peek'):null,drawer:!drawer.inert,
     frame:lastInsets?{left:sr.left+lastInsets.left,top:sr.top+lastInsets.top,right:sr.right-lastInsets.right,bottom:sr.bottom-lastInsets.bottom}:null,
-    brainRect:computeBrainRect()};
+    brainRect:computeBrainRect(),corridorMm:lab.corridorMm,placing:lab.placing,entries:{A:lab.entries.A&&[...lab.entries.A],B:lab.entries.B&&[...lab.entries.B]},
+    corridors:Object.fromEntries(CORRIDOR_IDS.map(id=>{const r=lab.corridorResults?.[id];
+      return [id,r?.rows?{lengthMm:r.lengthMm,bundles:r.cut.length,lines:r.lines,cut:r.cut.map(({id:b,cut,crossed,total})=>({id:b,cut,crossed,total}))}:null];}))};
 }});
 if(testMode)window.__lesionLabResetStats=()=>{lab.classifyMax=0;};
+// Test-only: place an entry by screen point (as a click would) or by MNI point.
+if(testMode)window.__lesionLabEntry=(id,{x,y,point}={})=>{
+  const at=point??cortexHit(localPoint({clientX:x,clientY:y}));
+  if(at)setEntry(id,at);return at;
+};
 
 addEventListener('pagehide',event=>{
   if(event.persisted)return;
@@ -680,6 +851,7 @@ addEventListener('pagehide',event=>{
 
 fillNotes();
 $('radius').value=String(lab.radius);$('radiusValue').textContent=`${lab.radius} mm`;
+$('corridorWidth').value=String(lab.corridorMm);$('corridorWidthValue').textContent=`${lab.corridorMm} mm`;
 $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin').value=String(lab.margin);$('marginValue').textContent=`${lab.margin} mm`;
 (async()=>{
   const slow=setTimeout(()=>{if(!lab.ready&&!lab.error)fail(new Error('Atlas load exceeded 30 s'),{slow:true});},SLOW_MS);

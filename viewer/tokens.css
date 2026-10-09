@@ -27,6 +27,8 @@
   --color-focus:#E4E6E3;
   --color-dec-commissural:#E0605A;  /* DEC red, left-right */
   --color-dec-association:#62B97A;  /* DEC green, front-back */
+  --color-corridor-a:#D9B45A;       /* lesion lab corridor A, amber */
+  --color-corridor-b:#B98CF0;       /* lesion lab corridor B, violet */
   --color-dec-projection:#6A93E8;   /* DEC blue, up-down */
   /* Scientific display pigments stay as authored: context parcels, hover, neutral cortex. */
   --color-parcel-focus:oklch(86.8% 0.073 213);
