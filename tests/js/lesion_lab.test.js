@@ -10,7 +10,7 @@ import {CONNECTION_ROWS} from '../../viewer/connections_data.js';
 import {CLAIM_PROVENANCE,PMID_RECORDS,GRAPH_TO_ATLAS,UNPLACED_SUBJECTS} from '../../viewer/lesion_evidence.js';
 import {labBundles,packStreamlines,segmentDistance2,classify,summarize,bundleAnchor,clampCentre,parseLabParams,
   claimsFor,evidenceFor,headlines,namedDeficits,familyOf,EVIDENCE_GAPS,CLAIMS,CLAIMS_WITH_PMID,UNPLACED_CLAIMS,
-  SPARED,MARGIN,CUT,RADIUS,MARGIN_MM} from '../../viewer/lesion_model.js';
+  SPARED,MARGIN,CUT,RADIUS,MARGIN_MM,CORRIDOR_MM,segmentSegmentDistance2,corridorAxis,classifyCorridor,summarizeCorridor} from '../../viewer/lesion_model.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const tractMeta=JSON.parse(await readFile(path.join(root,'viewer/atlas/tracts.json'),'utf8'));
@@ -138,11 +138,65 @@ test('bundle anchors are real sample points; centres stay in the chosen hemisphe
 });
 
 test('lab links restore allowed values and discard malformed ones',()=>{
-  assert.deepEqual(parseLabParams('?hemi=R&x=12.5&y=-30&z=20&r=15&margin=8'),{hemi:'R',centre:[12.5,-30,20],radius:15,marginOn:true,margin:8});
-  assert.deepEqual(parseLabParams(''),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial});
-  assert.deepEqual(parseLabParams('?hemi=X&x=1&y=2&r=&margin=abc'),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial});
-  assert.deepEqual(parseLabParams('?x=1&y=2&z=Infinity&r=999&margin=0'),{hemi:'L',centre:null,radius:RADIUS.max,marginOn:true,margin:MARGIN_MM.min});
+  assert.deepEqual(parseLabParams('?hemi=R&x=12.5&y=-30&z=20&r=15&margin=8'),{hemi:'R',centre:[12.5,-30,20],radius:15,marginOn:true,margin:8,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.deepEqual(parseLabParams(''),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.deepEqual(parseLabParams('?hemi=X&x=1&y=2&r=&margin=abc'),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.deepEqual(parseLabParams('?x=1&y=2&z=Infinity&r=999&margin=0'),{hemi:'L',centre:null,radius:RADIUS.max,marginOn:true,margin:MARGIN_MM.min,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
   assert.equal(parseLabParams('?r=2').radius,RADIUS.min);
+  const corridors=parseLabParams('?a=-45,45,24&b=-25,12.5,68&cd=12');
+  assert.deepEqual(corridors.entries,{A:[-45,45,24],B:[-25,12.5,68]});
+  assert.equal(corridors.corridor,12);
+  assert.deepEqual(parseLabParams('?a=1,2&b=1,2,x').entries,{A:null,B:null});
+  assert.deepEqual(parseLabParams('?a=1,2,999&b=,,').entries,{A:null,B:null});
+  assert.equal(parseLabParams('?cd=1').corridor,CORRIDOR_MM.min);
+  assert.equal(parseLabParams('?cd=99').corridor,CORRIDOR_MM.max);
+});
+
+test('segment-to-segment distance handles crossing, parallel, skew and degenerate segments',()=>{
+  const d=(...v)=>Math.sqrt(segmentSegmentDistance2(...v));
+  // Two segments that cross at the origin.
+  assert.equal(d(-1,0,0,1,0,0,0,-1,0,0,1,0),0);
+  // Skew segments 3 mm apart along z.
+  assert(Math.abs(d(-1,0,0,1,0,0,0,-1,3,0,1,3)-3)<1e-9);
+  // Parallel segments 2 mm apart that overlap along x.
+  assert(Math.abs(d(0,0,0,4,0,0,1,2,0,6,2,0)-2)<1e-9);
+  // Collinear segments with a 1 mm gap: the nearest points are the facing ends.
+  assert(Math.abs(d(0,0,0,1,0,0,2,0,0,5,0,0)-1)<1e-9);
+  // A point (degenerate segment) against a segment, and two points.
+  assert(Math.abs(d(0,5,0,0,5,0,-1,0,0,1,0,0)-5)<1e-9);
+  assert(Math.abs(d(0,0,0,0,0,0,3,4,0,3,4,0)-5)<1e-9);
+  // Agrees with the point-to-segment test when one segment is a point.
+  assert(Math.abs(segmentSegmentDistance2(2,3,1,2,3,1,0,0,0,4,0,0)-segmentDistance2(0,0,0,4,0,0,2,3,1))<1e-9);
+});
+
+test('a corridor runs from the entry to the near surface of the sphere and cuts what its cylinder reaches',()=>{
+  const axis=corridorAxis([0,0,50],[0,0,0],10);
+  assert.deepEqual(axis.start,[0,0,50]);
+  assert.deepEqual(axis.end,[0,0,10]);
+  assert.equal(axis.lengthMm,40);
+  assert.equal(corridorAxis([0,0,5],[0,0,0],10),null,'an entry inside the sphere has no corridor');
+  // Bundle P: one line crossing the corridor's axis at z 30, one 6 mm off it, one inside the sphere only.
+  const probe=packStreamlines([
+    {id:'P_L',group:'Association',lines:[
+      [[-20,0,30],[0,0,30],[20,0,30]],
+      [[-20,6,30],[0,6,30],[20,6,30]],
+      [[-5,0,0],[5,0,0]],
+    ]},
+    {id:'Q_L',group:'Projection',lines:[[[0,-20,40],[0,0,40],[0,20,40]],[[40,40,40],[41,41,41]]]},
+  ]);
+  const hits=new Uint8Array(probe.count),lesion=new Uint8Array(probe.count);
+  assert.equal(classifyCorridor(probe,{start:axis.start,end:axis.end,radius:4},hits),2);
+  assert.deepEqual([...hits],[1,0,0,1,0]);
+  assert.equal(classifyCorridor(probe,{start:axis.start,end:axis.end,radius:6},hits),3,'a wider corridor reaches the 6 mm line');
+  // A line crossing the axis beyond its end (inside the sphere, z 0) is the lesion's, not the corridor's.
+  assert.equal(hits[2],0);
+  classify(probe,{centre:[0,0,0],radius:10},lesion);
+  assert.deepEqual([...lesion],[SPARED,SPARED,CUT,SPARED,SPARED]);
+  // A lesion-cut line the corridor also crosses counts as crossed, not as an extra cut.
+  lesion[0]=CUT;
+  const rows=summarizeCorridor(probe,hits,lesion);
+  assert.deepEqual(rows.map(({id,cut,crossed,total})=>({id,cut,crossed,total})),
+    [{id:'P_L',cut:1,crossed:2,total:3},{id:'Q_L',cut:1,crossed:1,total:2}]);
 });
 
 test('the page states its scope, sample sizes that match the atlas, and follows the site CSP',async()=>{
