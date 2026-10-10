@@ -1,20 +1,116 @@
-/** The reading route: VOF, MdLF and SLF III. Wave-3 stub: replaced by the authored module. Original educational
- * draft; scene names reference anatomy and do not supply individual functional
- * localisation or operative limits.
+/** Reading pathways. Population anatomy is kept separate from functional claims.
  */
-import {source,parcel,deep,bundle,cortex,scene,step,lesson} from './resident-anatomy.js';
+import {source,parcel,bundle,cortex,scene,step,lesson} from './resident-anatomy.js';
 
-export const SOURCES={};
-export const REGIONS={};
+export const SOURCES={
+  RR1:source('RR1','Yeatman JD, et al., 2014 · the vertical occipital fasciculus','25404310','reconstruction','In vivo measurements characterise the VOF as an occipito-occipital pathway relating dorsal and ventral visual territories. They do not locate an individual reading function or tissue boundary.'),
+  RR2:source('RR2','Makris N, et al., 2005 · superior longitudinal fascicle subdivisions','15590909','reconstruction','Quantitative in vivo DT-MRI segments the SLF into subcomponents. It supports naming population pathway branches, not an individual functional localisation or surgical corridor.'),
+  RR3:source('RR3','Fernández-Miranda JC, et al., 2015 · arcuate fascicle segmentation','24633827','reconstruction','Human arcuate fascicle research addresses connectivity, segmentation and laterality. It supports a population pathway account, not an individual language map or reading function.'),
+  RR4:source('RR4','Cohen L, et al., 2000 · visual word-form processing','10648437','functional_measurement','Functional and lesion observations characterise the spatial and temporal profile of an initial visual word-form stage. They do not make an atlas parcel an individual localiser or map the entire reading system.'),
+  RR5:source('RR5','Makris N, et al., 2009 · middle longitudinal fascicle delineation','18669591','reconstruction','Quantitative in vivo DT-MRI delineates the MdLF in humans. It supports a pathway description, not a specific reading function or an individual boundary.'),
+};
 
-const l=lesson('reading-route','The reading route: VOF, MdLF and SLF III',10,
-  'Stub summary.',
-  ['Stub goal.'],[
-  step('Stub step','Stub text.','Stub observe.',['Stub fact.'],'Stub surgical.','Stub question?','Stub answer.',['D2'],
-    {side:'L',surface:.3,camera:{view:'left',tweenMs:650}}),
-],{regionCards:['atlasProvenance']});
+export const REGIONS={
+  rrWordForm:Object.freeze({name:'Visual word-form evidence',text:'Cohen et al. studied an initial visual word-form stage in reading. VVC and FFC are HCP-MMP1 anatomical references here; their outlines do not reproduce the functional measurements or identify an individual word-form area.',sources:['RR4','M1'],evidenceClass:'functional_measurement'}),
+  rrVofRoute:Object.freeze({name:'Vertical occipital pathway',text:'The VOF is an occipito-occipital reference pathway described through in vivo measurements and shown here in a population tract atlas. Its lines orient the dorsal-to-ventral occipital relation, not an individual reading circuit.',sources:['RR1','D2'],evidenceClass:'reconstruction'}),
+  rrPosteriorRoutes:Object.freeze({name:'Posterior association pathway references',text:'The cited studies describe separate SLF branches, the arcuate fascicle, MdLF and ILF. Hodos displays population bundle geometry; the lines do not resolve individual tissue planes or assign a cognitive task to each pathway.',sources:['RR2','RR3','RR5','V6','N15','D2'],evidenceClass:'reconstruction'}),
+};
+
+const readingScene=(extra={})=>scene({side:'L',network:'off',surface:.18,camera:{view:'left',tweenMs:650},...extra});
+const l=lesson('reading-route','The reading route: VOF, MdLF and SLF III',15,
+  'Follow visual word-form evidence into occipital and posterior temporal pathway relationships, then compare the SLF branches and arcuate while keeping anatomy separate from function.',
+  ['Orient the ventral occipitotemporal reference and the VOF.','Compare MdLF, posterior temporal pathways and SLF branches by their described courses.','Describe the praxis association in the deck as a claim that needs functional evidence.'],[
+  step('Anchor reading in the ventral visual cortex',
+    'Cohen et al. characterised an initial visual word-form stage in reading, while this scene shows HCP-MMP1 parcels rather than a functional localiser. Use VVC and FFC to orient the ventral occipitotemporal surface before describing the study results.',
+    'Select FFC and VVC in the left lateral view, then rotate to inspect their ventral occipitotemporal position. State which objects are atlas parcels and which claim comes from the reading study.',
+    ['Cohen et al. studied the spatial and temporal profile of an initial visual word-form stage.','FFC and VVC are population cortical labels in HCP-MMP1.','A parcel outline does not reproduce a task response or individual functional localisation.'],
+    'For resident teaching, keep the visible cortical references separate from the reading measurement. The atlas can orient the discussion, but it cannot identify an individual word-form site.',
+    'Can the FFC outline be called the visual word-form area because it lies in ventral cortex?',
+    'No. FFC is an HCP-MMP1 parcel, while Cohen et al. report functional measurements. A local functional claim needs evidence at that level.',
+    ['RR4','M1'],
+    readingScene({regions:cortex(18,163),surface:.82}),
+    {regions:['rrWordForm'],evidenceClass:'functional_measurement',targets:[parcel(18,'FFC, fusiform face complex'),parcel(163,'VVC, ventral visual complex')]}
+  ),
+  step('Trace the vertical occipital bridge',
+    'The vertical occipital fasciculus (VOF) relates dorsal and ventral occipital territories. Yeatman et al. characterised this pathway with in vivo measurements as part of visual anatomy.',
+    'Show VOF with V3A and VVC as orientation references. Rotate between lateral and superior views, then compare its crosswise course with the front-to-back cortical axis.',
+    ['The VOF is a distinct occipito-occipital pathway in the cited in vivo account.','V3A and VVC orient dorsal and ventral occipital cortex in this view.','The installed HCP1065 bundle is population reference geometry.'],
+    'In a resident anatomy discussion, describe the VOF as a route reference within the visual system. Do not treat the rendered course as an individual reading map.',
+    'What relation does the VOF add to a lateral occipital view?',
+    'It adds a pathway connecting dorsal and ventral occipital territories. Its geometry supplies an anatomical comparison, not an individual functional result.',
+    ['RR1','D2','M1'],
+    readingScene({bundles:['VOF'],regions:cortex(13,163),surface:.16}),
+    {regions:['rrVofRoute'],evidenceClass:'reconstruction',targets:[bundle('VOF','VOF, Vertical occipital fasciculus'),parcel(13,'V3A, dorsal occipital'),parcel(163,'VVC, ventral visual complex')]}
+  ),
+  step('Compare vertical and longitudinal occipital routes',
+    'The VOF and inferior longitudinal fasciculus (ILF) represent different occipital pathway courses. Compare the dorsal-to-ventral VOF course with the occipitotemporal ILF trajectory without merging them into one visual route.',
+    'Show VOF, then dim it and show ILF. Rotate between lateral and superior views and follow each course from the occipital references toward the temporal lobe.',
+    ['Yeatman et al. describe the VOF as an occipito-occipital pathway.','Catani and Panesar et al. studied the ILF as a distinct occipitotemporal pathway.','Displayed overlap does not establish shared fibres or assign a reading operation.'],
+    'For residents, name the pathway family before adding a language or reading interpretation. This comparison concerns anatomy and reconstruction method.',
+    'If the VOF and ILF overlap in one view, what has been established?',
+    'Only their displayed spatial relation. The cited studies and atlas do not show that the pathways share fibres or carry the same function.',
+    ['RR1','V6','N15','D2','M1'],
+    readingScene({bundles:['VOF'],ghost:['ILF'],regions:cortex(163,172),surface:.12}),
+    {regions:['rrVofRoute','rrPosteriorRoutes'],evidenceClass:'reconstruction',targets:[bundle('VOF','VOF, Vertical occipital fasciculus'),bundle('ILF','ILF, Inferior longitudinal fasciculus'),parcel(163,'VVC, ventral visual complex'),parcel(172,'TGv, ventral temporal') ]}
+  ),
+  step('Find the middle longitudinal fascicle',
+    'Makris et al. delineated the middle longitudinal fascicle (MdLF) with quantitative in vivo DT-MRI. Treat it here as a posterior temporal association route, not as a named reading or language function.',
+    'Illuminate MdLF while dimming AF and ILF. Rotate between lateral and posterior views and follow its course beside the posterior temporal reference parcels.',
+    ['The cited study delineates the MdLF as a human pathway.','AF and ILF have separate pathway descriptions and source methods.','A tract name alone does not specify a cognitive task.'],
+    'For resident teaching, record the pathway family and the method behind its description. A functional label needs evidence that measured the relevant function.',
+    'What does the name MdLF establish about the task it carries?',
+    'Nothing by itself. The cited study delineates a pathway; it does not assign that trajectory to a reading operation.',
+    ['RR5','D2','M1'],
+    readingScene({bundles:['MdLF'],ghost:['AF','ILF'],regions:cortex(129,133),surface:.12}),
+    {regions:['rrPosteriorRoutes'],evidenceClass:'reconstruction',targets:[bundle('MdLF','MdLF, Middle longitudinal fasciculus'),parcel(129,'STSdp, posterior superior temporal sulcus'),parcel(133,'TE1p, posterior temporal cortex')]}
+  ),
+  step('Map the posterior temporal wall samples',
+    'The wall scheme taught in the lecture places AF at a superior and posterior relation, the sagittal-stratum families and MdLF deeper, and optic-radiation geometry deeper again. Compare that dissection teaching with the separately reconstructed pathway families in Hodos.',
+    'Show AF, then compare ILF, IFOF and MdLF before adding OR. Change the view as you follow each course, then name which relation comes from the wall model taught in the lecture.',
+    ['The cited sources describe separate AF, ILF, IFOF and MdLF pathways.','Kier et al. provide temporal-stem and optic-radiation anatomy; the course families remain distinct.','A lateral overlay does not certify an individual tissue plane.'],
+    'For residents, name the wall and pathway separately, then state which method supports the relationship. The scene is a teaching comparison, not an individual anatomical boundary.',
+    'If two pathway samples overlap at a posterior temporal wall, what can you conclude?',
+    'The display shows their reconstructed spatial relation in a population dataset. It does not establish shared fibres or a tissue plane in an individual.',
+    ['RR3','RR5','V6','N15','V2','R3','D2','M1'],
+    readingScene({bundles:['AF'],ghost:['ILF','IFOF','MdLF','OR'],regions:cortex(129,133),surface:.1}),
+    {regions:['rrPosteriorRoutes'],evidenceClass:'reconstruction',targets:[bundle('AF','AF, Arcuate fasciculus'),bundle('ILF','ILF, Inferior longitudinal fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('MdLF','MdLF, Middle longitudinal fasciculus'),bundle('OR','OR, Optic radiation'),parcel(129,'STSdp, posterior superior temporal sulcus'),parcel(133,'TE1p, posterior temporal cortex')]}
+  ),
+  step('Order the three SLF branches',
+    'Makris et al. segmented the superior longitudinal fascicle (SLF) into three subcomponents using in vivo DT-MRI. In the taught depth order, SLF III is lowest and lateral, SLF II lies above it, and SLF I is highest; this describes anatomy rather than an approach sequence.',
+    'Toggle SLF III, II and I in the left lateral view, then show all three together. Follow their separate frontal-to-parietal courses without assigning a function from the line colour.',
+    ['The cited study distinguishes SLF I, II and III as separate population pathway components.','The lecture relates SLF I to superior frontal and superior parietal regions, SLF II to middle frontal and angular regions, and SLF III to opercular and supramarginal regions.','The displayed endpoints do not localise an individual cortical function.'],
+    'For residents, preserve the branch name and its evidence method when describing a lateral association pathway. Do not infer an individual boundary from the three line families.',
+    'Which branch is lowest in the stated depth ordering, and what does that tell you about function?',
+    'SLF III is the lowest and most lateral branch in that teaching model. The ordering is anatomical and does not, by itself, establish function.',
+    ['RR2','D2','M1'],
+    readingScene({bundles:['SLF1','SLF2','SLF3'],regions:cortex(100,148),surface:.12}),
+    {regions:['rrPosteriorRoutes'],evidenceClass:'reconstruction',targets:[bundle('SLF1','SLF I'),bundle('SLF2','SLF II'),bundle('SLF3','SLF III'),parcel(100,'OP4, frontal operculum'),parcel(148,'PF, supramarginal region')]}
+  ),
+  step('Place arcuate geometry beneath SLF III',
+    'The dissection sequence in the lecture places the arcuate fascicle (AF) deeper than SLF III. The cited AF analysis and SLF segmentation describe separate pathways; their Hodos overlays compare population courses, not the layer order in an individual.',
+    'Show SLF III, then dim it and show AF. Rotate posteriorly to follow the AF around the posterior Sylvian region, and say which relation comes from dissection teaching rather than the tractogram.',
+    ['The cited studies describe AF and SLF branches as distinct pathways.','The deeper-than relation comes from a fibre-dissection model.','The Hodos display represents population bundle geometry.'],
+    'In a resident explanation, keep depth language attached to the dissection model. Do not turn a side-by-side reconstruction into an individual exposure prediction.',
+    'Does this scene prove that AF is deeper than SLF III in an individual brain?',
+    'No. It compares population tract samples; the deeper-than statement belongs to the layer-by-layer dissection model. Individual depth requires individual anatomical evidence.',
+    ['RR2','RR3','D2','M1'],
+    readingScene({bundles:['SLF3'],ghost:['AF'],regions:cortex(100,148),surface:.1,camera:{view:'posterior',tweenMs:650}}),
+    {regions:['rrPosteriorRoutes'],evidenceClass:'reconstruction',targets:[bundle('SLF3','SLF III'),bundle('AF','AF, Arcuate fasciculus'),parcel(100,'OP4, frontal operculum'),parcel(148,'PF, supramarginal region')]}
+  ),
+  step('Separate SLF III anatomy from praxis evidence',
+    'The lecture associates SLF III and parietal anatomy with praxis. Makris et al. provide structural segmentation, not a praxis measurement, so present that association as a teaching hypothesis rather than a result of this atlas.',
+    'Keep SLF III, OP4 and PF visible. Identify which part of the claim is pathway geometry and what evidence would be needed to establish a functional relation; do not turn the scene into a task protocol.',
+    ['SLF III anatomy is distinct from the function attributed to a pathway.','OP4 and PF are HCP-MMP1 reference parcels, not praxis localisers.','The cited studies in this lesson describe pathway anatomy rather than measuring praxis.'],
+    'For residents, separate pathway anatomy from a praxis conclusion and name the missing functional evidence. The scene is an educational reference, not an individual localisation.',
+    'What can this SLF III scene establish about praxis?',
+    'It can orient a population SLF III and parietal reference relationship. It cannot establish praxis localisation or predict performance for one person because the cited evidence here does not measure that function.',
+    ['RR2','D2','M1'],
+    readingScene({bundles:['SLF3'],regions:cortex(100,148),surface:.12}),
+    {regions:['rrPosteriorRoutes'],evidenceClass:'reconstruction',targets:[bundle('SLF3','SLF III'),parcel(100,'OP4, frontal operculum'),parcel(148,'PF, supramarginal region')]}
+  ),
+],{regionCards:['rrPosteriorRoutes']});
 
 export const LESSONS=[l];
 export const GUIDES={
-  'reading-route':{shortTitle:'The reading route',hemisphere:'L',question:'Stub question?',takeaways:[{step:0,text:'Stub takeaway.'}]},
+  'reading-route':{shortTitle:'Reading pathways',hemisphere:'L',question:'How can a resident follow visual and association pathways while keeping an individual reading map separate from population anatomy?',takeaways:[{step:0,text:'Treat VVC and FFC as anatomical references, not an individual word-form localiser.'},{step:4,text:'Compare posterior temporal pathways by their reported courses and evidence methods.'},{step:7,text:'Separate SLF III geometry from the praxis hypothesis in the deck.'}]},
 };
