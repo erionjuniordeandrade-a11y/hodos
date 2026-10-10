@@ -4,22 +4,29 @@
  * A source supports only its stated claim, modality and population.
  */
 import {BUNDLE_FAMILIES,SUBCORTEX_IDS} from './atlas_data.js';
-import {REFERENCE_SOURCES,REGIONS} from './lesson_references.js';
+import {REFERENCE_SOURCES,REGIONS as BASE_REGIONS} from './lesson_references.js';
 import {networkFromScene} from './atlas_networks.js';
-export {REGIONS} from './lesson_references.js';
 import {RESIDENT_LESSONS,RESIDENT_SOURCES} from './lessons/resident-anatomy.js';
 import {NETWORK_LECTURES,NETWORK_SOURCES} from './lessons/network-lectures.js';
 import {CORPUS_CALLOSUM_LESSONS,CORPUS_CALLOSUM_SOURCES} from './lessons/corpus-callosum.js';
 import {internalCapsule,INTERNAL_CAPSULE_SOURCES} from './lessons/internal-capsule.js';
 import {VENTRAL_LESSONS,VENTRAL_SOURCES} from './lessons/ventral-stream.js';
 import {BRAINSTEM_LESSONS,BRAINSTEM_SOURCES} from './lessons/brainstem-corridors.js';
+import * as W3_limen from './lessons/limen-crossroads.js';
+import * as W3_insularFloor from './lessons/insular-floor.js';
+import * as W3_medialSystem from './lessons/medial-system.js';
+import * as W3_motorBeyondM1 from './lessons/motor-beyond-m1.js';
+import * as W3_controlNetwork from './lessons/control-network.js';
+import * as W3_readingRoute from './lessons/reading-route.js';
 import {DISSECTION_PLATES} from './dissection_references.js';
 export const CONTENT_VERSION='2026-10-03.1';
 export const EVIDENCE_CLASSES=Object.freeze(['atlas','reconstruction','association',
   'schematic','recovery_overlay','functional_measurement','model_metric',
   'experimental_anatomy','conceptual_model']);
 
-export const SOURCES=Object.freeze({...REFERENCE_SOURCES,...RESIDENT_SOURCES,...CORPUS_CALLOSUM_SOURCES,...INTERNAL_CAPSULE_SOURCES,...VENTRAL_SOURCES,...BRAINSTEM_SOURCES,...NETWORK_SOURCES});
+export const SOURCES=Object.freeze({...REFERENCE_SOURCES,...RESIDENT_SOURCES,...CORPUS_CALLOSUM_SOURCES,...INTERNAL_CAPSULE_SOURCES,...VENTRAL_SOURCES,...BRAINSTEM_SOURCES,...NETWORK_SOURCES,...W3_limen.SOURCES,...W3_insularFloor.SOURCES,...W3_medialSystem.SOURCES,...W3_motorBeyondM1.SOURCES,...W3_controlNetwork.SOURCES,...W3_readingRoute.SOURCES});
+// Wave-3 modules carry their own region cards; ids must not collide with the base set.
+export const REGIONS=Object.freeze({...BASE_REGIONS,...W3_limen.REGIONS,...W3_insularFloor.REGIONS,...W3_medialSystem.REGIONS,...W3_motorBeyondM1.REGIONS,...W3_controlNetwork.REGIONS,...W3_readingRoute.REGIONS});
 
 // Cards can introduce a source not cited in the main prose. Both routes must be
 // reachable in the player's Sources & limits section.
@@ -41,7 +48,7 @@ export const DEFAULT_SCENE=Object.freeze({side:'follow',bundle:null,region:null,
   bundles:Object.freeze([]),ghost:Object.freeze([]),regions:Object.freeze([]),
   camera:null,durationSec:null,deepRegions:Object.freeze([]),network:null,lesion:null});
 
-export const LESSONS=Object.freeze([...RESIDENT_LESSONS,internalCapsule,...CORPUS_CALLOSUM_LESSONS,...VENTRAL_LESSONS,...BRAINSTEM_LESSONS,...NETWORK_LECTURES].map(l=>({...l,version:CONTENT_VERSION,
+export const LESSONS=Object.freeze([...RESIDENT_LESSONS,internalCapsule,...CORPUS_CALLOSUM_LESSONS,...VENTRAL_LESSONS,...BRAINSTEM_LESSONS,...NETWORK_LECTURES,...W3_limen.LESSONS,...W3_insularFloor.LESSONS,...W3_medialSystem.LESSONS,...W3_motorBeyondM1.LESSONS,...W3_controlNetwork.LESSONS,...W3_readingRoute.LESSONS].map(l=>({...l,version:CONTENT_VERSION,
   steps:l.steps.map(s=>({...s,scene:{...DEFAULT_SCENE,...s.scene}}))})));
 
 const SCENE_SIDES=Object.freeze(['follow','L','R']);
