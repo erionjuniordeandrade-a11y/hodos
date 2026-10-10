@@ -7,7 +7,7 @@ const html=readFileSync(new URL('../../viewer/index.html',import.meta.url),'utf8
 const ctaId='motor-cst';
 
 test('landing duration copy matches lesson metadata and never says "ten minutes"',()=>{
-  assert.equal(LESSONS.length,14);
+  assert.equal(LESSONS.length,20);
   const minutes=LESSONS.map(l=>l.minutes);
   const min=Math.min(...minutes),max=Math.max(...minutes);
   const cta=LESSONS.find(l=>l.id===ctaId);
@@ -26,9 +26,9 @@ test('landing duration copy matches lesson metadata and never says "ten minutes"
 test('every landing lesson link prints that lesson\'s real duration',()=>{
   const lessons=html.slice(html.indexOf('data-lessons'),html.indexOf('</section>',html.indexOf('data-lessons')));
   const items=[...lessons.matchAll(/<li[^>]*>(.*?)<\/li>/gs)].map(m=>m[1]);
-  assert.equal(items.length,14);
+  assert.equal(items.length,20);
   for(const li of items){
-    const id=li.match(/lesson=([a-z-]+)/)[1];
+    const id=li.match(/lesson=([a-z0-9-]+)/)[1];
     const lesson=LESSONS.find(l=>l.id===id);
     assert.ok(lesson,`unknown lesson ${id}`);
     assert.match(li,new RegExp(`class="lesson-min">${lesson.minutes} min<`),`${id} must print ${lesson.minutes} min`);

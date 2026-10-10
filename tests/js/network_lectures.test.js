@@ -38,5 +38,5 @@ test('network teaching uses installed masks without inventing a language or sali
   assert(language.steps.every(s=>s.scene.network==='off'));
   assert(salience.steps.some(s=>s.scene.network==='VAN'));
   assert.match(salience.steps.map(s=>[s.text,...s.anatomy,s.answer].join(' ')).join(' '),/cingulo-opercular/);
-  assert(LESSONS.filter(l=>!requested.includes(l.id)).every(l=>l.steps.every(s=>s.scene.network===null)),'Regional and evidence lessons leave the learner’s network wash alone');
+  assert(LESSONS.filter(l=>!requested.includes(l.id)&&l.category!=='Network lectures').every(l=>l.steps.every(s=>s.scene.network===null)),'Regional and evidence lessons leave the learner’s network wash alone');
 });

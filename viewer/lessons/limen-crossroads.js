@@ -1,8 +1,6 @@
-import {source,parcel,deep,bundle,cortex,scene,step,lesson} from './resident-anatomy.js';
+import {parcel,deep,bundle,cortex,scene,step,lesson} from './resident-anatomy.js';
 
-export const SOURCES={
-  LC1:source('LC1','Ebeling et al., 1988 · temporal-lobe topography of the optic radiation','3407471','experimental_anatomy','An anatomical topography account of the optic radiation in the temporal lobe. It supports regional anatomical relationships, not an individual pathway boundary or operative limit.'),
-};
+export const SOURCES={};
 
 export const REGIONS={
   lcLimenLayers:{
@@ -14,7 +12,7 @@ export const REGIONS={
   lcCommissuralLimbs:{
     name:'Anterior commissure limbs',
     text:'The anterior and posterior limbs of the anterior commissure have different olfactory and temporal relationships. Fibre dissection and the population bundle reference support this route-level account, not an individual limb boundary or functional consequence.',
-    sources:['K5','V4','D2'],
+    sources:['V4','R3','D2'],
     evidenceClass:'experimental_anatomy',
   },
 };
@@ -31,40 +29,40 @@ const l=lesson('limen-crossroads','The limen crossroads',16,
     'Name both pathways and the level and axis of their relationship. The displayed population geometry does not establish shared fibres or an individual boundary.',
     ['R3','Q4','D2'],
     scene({side:'follow',surface:.1,camera:{view:'left',tweenMs:650},bundles:['UF','IFOF','AC','OR'],regions:cortex(111,172,93)}),
-    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('UF','UF, Uncinate fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('AC','AC, Anterior commissure'),bundle('OR','OR, Optic radiation'),parcel(111,'AVI, anterior ventral insula'),parcel(172,'TGv, ventral temporal cortex'),parcel(93,'OFC, orbitofrontal cortex')]}
+    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('UF','UF, Uncinate fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('AC','AC, Anterior commissure'),bundle('OR','OR, Optic radiation'),parcel(111,'L_AVI_ROI, anterior ventral insula'),parcel(172,'L_TGv_ROI, ventral temporal cortex'),parcel(93,'L_OFC_ROI, orbitofrontal cortex')]}
   ),
   step('Set the UF and IFOF at different levels',
-    'At the limen, dissection accounts describe the UF as lower and anterior to the IFOF, which lies higher and posterior in the subinsular corridor. This local relationship shifts as the pathways turn through depth along the temporal stem.',
-    'Show UF and IFOF together, then rotate between lateral and anterior views; describe their anterior and superior positions at each level.',
-    ['The UF and IFOF have different local positions as they pass the limen.','The relationship changes along the temporal stem as the pathways turn through depth.','A lateral projection can hide mediolateral separation.'],
-    'For teaching, identify the anatomical level and axis before describing one structure as above or below another.',
+    'At the limen, dissection accounts describe the UF as anterior and inferior to the IFOF in the subinsular corridor. Their anatomical relationship varies along the course through the temporal stem.',
+    'Show UF and IFOF together, then rotate between lateral and anterior views; first state their relationship at a fixed level, then compare the projected appearance from each camera view.',
+    ['At the limen, the UF is anterior and inferior to the IFOF in the cited dissection account.','Their anatomical relationship varies along the course.','Rotating the camera changes projected appearance, not the anatomical relationship at a fixed level.'],
+    'For teaching, identify the anatomical level and axis before describing one structure as above or below another, and do not treat a projection as a changed anatomical relationship.',
     'Why is "one lies above the other" incomplete when describing these pathways?',
-    'The relative position depends on the level and viewing axis as the pathways turn through three dimensions. State the limen or temporal-stem level and the direction being compared.',
+    'Their anatomical relationship varies along the course. Rotating the camera changes its projected appearance, not the anatomical relationship at a fixed level. State the limen or temporal-stem level and the direction being compared.',
     ['R3','Q4','V2','D2'],
     scene({side:'follow',surface:.08,camera:{view:'anterior',tweenMs:650},bundles:['UF','IFOF'],regions:cortex(111,172)}),
-    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('UF','UF, Uncinate fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),parcel(111,'AVI, anterior ventral insula'),parcel(172,'TGv, ventral temporal cortex')]}
+    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('UF','UF, Uncinate fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),parcel(111,'L_AVI_ROI, anterior ventral insula'),parcel(172,'L_TGv_ROI, ventral temporal cortex')]}
   ),
   step('Distinguish the EMC family from the capsule layer',
-    'The extreme capsule is an anatomical layer, and EMC is a separate displayed population bundle family. Dissection accounts place IFOF in a subinsular extreme-capsule relationship; sampled lines cannot mark capsule boundaries.',
-    'Select IFOF and then EMC; compare the two family courses while naming the capsule layers that the viewer does not draw.',
-    ['The insula, extreme capsule, claustrum and external capsule are separate parts of the subinsular sequence.','The atlas has no claustrum or external-capsule scene targets.','IFOF and EMC are separate display families; neither draws histological capsule borders.'],
-    'Use anatomical terminology for the capsule and the bundle names for the displayed pathway families.',
-    'If IFOF and EMC appear adjacent, what does the scene establish?',
-    'It shows adjacent population bundle references in this view. It does not identify the thin capsule boundary or establish shared fibres.',
-    ['V2','Q4','R2','D2'],
+    'Ribas distinguishes superficial extreme-capsule short association fibres from deeper external-capsule pathways, including UF and IFOF. Other dissection accounts describe passage through both capsules; the displayed EMC family cannot resolve this tissue distinction. The extreme and external capsules are absent from the scene.',
+    'Select IFOF and then EMC to compare the displayed bundle families. Describe the superficial and deeper capsule layers from the cited dissection account, and note that the scene does not segment them.',
+    ['In the Ribas account, superficial extreme-capsule fibres are short association fibres.','The deeper external capsule carries long ventral pathways, including UF and IFOF.','Other dissection accounts describe passage through both capsules.','The extreme and external capsules are absent from the scene; the claustrum is not rendered, and EMC does not resolve those layers.'],
+    'Use anatomical terminology for the capsule layers and bundle names for the displayed pathway families; the scene does not distinguish the tissue layers.',
+    'In the Ribas account, which layer carries the long ventral pathways including UF and IFOF?',
+    'The deeper external capsule carries the long ventral pathways, including UF and IFOF. The superficial extreme capsule contains short association fibres in this account. The EMC display family cannot resolve this tissue distinction.',
+    ['Q4','R3','D2'],
     scene({side:'follow',surface:.08,camera:{view:'left',tweenMs:650},bundles:['IFOF'],ghost:['EMC'],regions:cortex(111,172)}),
-    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('EMC','EMC, Extreme-capsule family'),parcel(111,'AVI, anterior ventral insula'),parcel(172,'TGv, ventral temporal cortex')]}
+    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('EMC','EMC, Extreme-capsule family'),parcel(111,'L_AVI_ROI, anterior ventral insula'),parcel(172,'L_TGv_ROI, ventral temporal cortex')]}
   ),
   step('Read the anterior and posterior commissural limbs',
-    'The anterior commissure is described as two limbs with different directions and neighbours. The anterior limb relates to olfactory structures, while the posterior limb continues into temporal white matter; the scene displays a family reference rather than two isolated limb meshes.',
-    'Use the anterior view and follow the AC family across the midline; predict which limb continues toward the temporal lobe before opening the explanation.',
-    ['The anterior commissure crosses the midline and has anterior and posterior limbs.','The anterior limb has an olfactory relationship.','The posterior limb extends toward temporal white matter and the temporal-stem region.','The atlas family does not define an individual boundary for either limb.'],
-    'A resident account should name the limb and its neighbouring region instead of treating the commissure as a single midline point.',
+    'The anterior commissure is described as two limbs with different directions and neighbours. The anterior limb has olfactory relationships described in anatomical studies; the relevant olfactory structures are not rendered here. OFC provides cortical orientation only. The posterior limb continues into temporal white matter; the scene displays a family reference rather than two isolated limb meshes.',
+    'Use the anterior view and follow the AC family across the midline. Use OFC for cortical orientation only, note that the olfactory structures are absent, then predict which limb continues toward the temporal lobe.',
+    ['The anterior commissure crosses the midline and has anterior and posterior limbs.','The anterior limb has olfactory relationships described in anatomical studies; the relevant olfactory structures are not rendered here.','OFC provides cortical orientation only, while the posterior limb extends toward temporal white matter and the temporal-stem region.','The atlas family does not define an individual boundary for either limb.'],
+    'A resident account should name the limb and its neighbouring region, while separating the unrendered olfactory structures from OFC orientation.',
     'Which limb is relevant when describing the commissural route toward temporal white matter?',
-    'The posterior limb continues toward temporal white matter. The anterior limb has a different, olfactory relationship, and the atlas does not isolate either limb as a separate mesh.',
-    ['K5','V4','R3','D2'],
+    'The posterior limb continues toward temporal white matter. The anterior limb has a different olfactory relationship; its relevant olfactory structures are not rendered, and OFC provides cortical orientation only. The atlas does not isolate either limb as a separate mesh.',
+    ['V4','R3','D2'],
     scene({side:'follow',surface:.06,camera:{view:'anterior',tweenMs:650},bundles:['AC'],regions:cortex(93,172)}),
-    {regions:['lcCommissuralLimbs'],evidenceClass:'experimental_anatomy',targets:[bundle('AC','AC, Anterior commissure'),parcel(93,'OFC, orbitofrontal cortex'),parcel(172,'TGv, ventral temporal cortex')]}
+    {regions:['lcCommissuralLimbs'],evidenceClass:'experimental_anatomy',targets:[bundle('AC','AC, Anterior commissure'),parcel(93,'L_OFC_ROI, orbitofrontal cortex'),parcel(172,'L_TGv_ROI, ventral temporal cortex')]}
   ),
   step('Place the posterior limb beneath the pallidum',
     'The posterior AC limb takes a deep and medial course beneath the pallidum toward the temporal stem. The gross pallidal mesh is an orientation landmark.',
@@ -73,35 +71,35 @@ const l=lesson('limen-crossroads','The limen crossroads',16,
     'When presenting the deep relationship, name both the commissural limb and the neighbouring landmark.',
     'Why pair the posterior commissural limb with a pallidal reference?',
     "The pallidum helps orient the limb's deep relationship on the way toward the temporal stem. Its gross mesh does not delineate the limb or establish an individual boundary.",
-    ['K5','V4','R3','D2','D3'],
+    ['V4','R3','D2','D3'],
     scene({side:'follow',surface:.04,camera:{view:'medial',tweenMs:650},bundles:['AC'],ghost:['IFOF'],deep:true,deepRegions:['GP'],regions:cortex(172)}),
-    {regions:['lcCommissuralLimbs','lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('AC','AC, Anterior commissure'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),deep('GP','Globus pallidus'),parcel(172,'TGv, ventral temporal cortex')]}
+    {regions:['lcCommissuralLimbs','lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('AC','AC, Anterior commissure'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),deep('GP','Globus pallidus'),parcel(172,'L_TGv_ROI, ventral temporal cortex')]}
   ),
   step('Keep the optic radiation at the deep temporal edge',
-    "Meyer's loop is the anterior sweep of the optic-radiation family in relation to the temporal-horn roof. The horn is absent from the scene, which cannot show a sectional boundary for the deep temporal-stem relationship.",
-    'Show OR with IFOF dimmed, rotate to the medial view, and identify the absent temporal-horn surface that anatomical descriptions use as a reference.',
-    ['The optic radiation has a temporal course as well as a posterior visual-cortical relationship.','The temporal horn provides an anatomical reference for the anterior optic-radiation sweep but is absent from this scene.','The rendered OR family is a population reconstruction; the viewer does not separately label the anterior loop.'],
-    'For a resident presentation, relate this anatomy to findings from the individual before proposing a visual implication.',
-    'What does the absent temporal horn contribute to an account of the deep optic-radiation relationship?',
-    "The horn anchors the anatomical description of the loop's course around the temporal lobe. The atlas lacks that surface, so use the cited relationship rather than inferring a boundary from an absent mesh.",
-    ['R3','LC1','D2'],
-    scene({side:'follow',surface:.06,camera:{view:'medial',tweenMs:650},bundles:['OR'],ghost:['IFOF','AC'],deep:true,deepRegions:['AMY','HIP'],regions:cortex(172)}),
-    {regions:['lcLimenLayers'],evidenceClass:'reconstruction',targets:[bundle('OR','OR, Optic radiation'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),deep('AMY','Amygdala (gross)'),deep('HIP','Hippocampus (gross)'),parcel(172,'TGv, ventral temporal cortex')]}
+    'Beneath the posterior inferior limiting insular sulcus, optic radiations occupy a deeper layer than the anterior commissure and external-capsule pathways. Compare OR with the dimmed AC and IFOF references, while distinguishing this dissection-derived order from the unsegmented scene. The external capsule is absent from the scene.',
+    'At the posterior inferior limiting insular sulcus level, compare OR with the dimmed AC and IFOF references in the medial view, then distinguish the cited layer order from the unsegmented scene.',
+    ['At this level, optic radiations are deeper than the anterior commissure and external-capsule pathways in the cited dissection account.','AC and IFOF provide dimmed population references; the scene does not segment the posterior inferior limiting insular sulcus or capsule layers.','The rendered OR family is a population reconstruction and does not itself establish the layer order.'],
+    'For resident teaching, state that this is a level-specific dissection sequence and name the unsegmented layers before applying the scene as an orientation reference.',
+    'Of OR, AC and IFOF, which is deepest beneath the posterior inferior limiting insular sulcus in this account?',
+    'The optic radiation is deepest. The anterior commissure and external-capsule pathways, including IFOF, are more superficial at this level. The scene cannot segment the layer boundaries.',
+    ['Q4','D2'],
+    scene({side:'follow',surface:.06,camera:{view:'medial',tweenMs:650},bundles:['OR'],ghost:['IFOF','AC'],regions:cortex(172)}),
+    {regions:['lcLimenLayers'],evidenceClass:'experimental_anatomy',targets:[bundle('OR','OR, Optic radiation'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('AC','AC, Anterior commissure'),parcel(172,'L_TGv_ROI, ventral temporal cortex')]}
   ),
   step('Integrate the stem without inventing a plane',
-    'The stack changes along the corridor: UF and IFOF have a local anterior-superior relationship at the limen, while the AC posterior limb and optic radiation occupy deeper temporal-stem relationships. Capsule layers, claustrum, external capsule and temporal horn remain absent from the scene.',
-    'Keep UF, IFOF, AC and OR visible, rotate from lateral to medial, and narrate each relationship with its level and axis.',
-    ['UF and IFOF have distinct positions at the limen.','The IFOF and EMC display families do not show capsule tissue boundaries.','The posterior AC limb has a deep pallidal relationship, while the optic radiation is described relative to the absent temporal horn.','Population reference geometry does not establish individual anatomy or surgical safety.'],
-    'A resident should present the named pathway, level and neighbouring structure, then state what the atlas cannot resolve. This supports anatomical discussion without treating a population reference as a clinical tool.',
-    'Why is one direction word insufficient for the limen and temporal-stem stack?',
-    'The pathways turn and change their relative positions along the corridor, so "deep" or "posterior" depends on the level and axis. Name the structures and relationship, then distinguish the population display from individual anatomy.',
-    ['R3','Q4','V2','K5','V4','LC1','D2'],
+    'At the limen, UF lies anterior and inferior to IFOF. In the inferior-limiting-sulcus dissection account, external-capsule pathways are superficial to the anterior commissure, with optic radiations deeper still; this level-specific sequence does not define a universal operative plane. The extreme capsule, claustrum, external capsule and temporal horn remain absent from the scene.',
+    'Keep UF, IFOF, AC and OR visible, rotate from lateral to medial, and narrate the cited sequence at its stated level before comparing its projected appearance from each view.',
+    ['At the limen, UF lies anterior and inferior to IFOF.','In the cited inferior-limiting-sulcus account, external-capsule pathways are superficial to the anterior commissure, with optic radiations deeper still.','The extreme capsule, claustrum, external capsule and temporal horn remain absent from the scene.','Population reference geometry does not establish individual anatomy or surgical safety.'],
+    'A resident should present the named pathway, level and neighbouring structure, then state what the atlas cannot resolve. This level-specific sequence does not define a universal operative plane.',
+    'Why does the cited limen sequence not define a universal operative plane?',
+    'It describes relationships at a particular dissection level: UF is anterior and inferior to IFOF at the limen, external-capsule pathways are superficial to the anterior commissure, and optic radiations are deeper still. The atlas does not render the thin layer boundaries, so the sequence cannot establish an individual plane.',
+    ['R3','Q4','D2'],
     scene({side:'follow',surface:.06,camera:{view:'follow',tweenMs:650},bundles:['UF','IFOF','AC','OR'],ghost:['EMC'],deep:true,deepRegions:['GP','AMY','HIP'],regions:cortex(111,172,93)}),
-    {regions:['lcLimenLayers','lcCommissuralLimbs'],evidenceClass:'schematic',targets:[bundle('UF','UF, Uncinate fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('AC','AC, Anterior commissure'),bundle('OR','OR, Optic radiation'),bundle('EMC','EMC, Extreme-capsule family'),deep('GP','Globus pallidus'),parcel(111,'AVI, anterior ventral insula'),parcel(172,'TGv, ventral temporal cortex'),parcel(93,'OFC, orbitofrontal cortex')]}
+    {regions:['lcLimenLayers','lcCommissuralLimbs'],evidenceClass:'schematic',targets:[bundle('UF','UF, Uncinate fasciculus'),bundle('IFOF','IFOF, Inferior fronto-occipital fasciculus'),bundle('AC','AC, Anterior commissure'),bundle('OR','OR, Optic radiation'),bundle('EMC','EMC, Extreme-capsule family'),deep('GP','Globus pallidus'),parcel(111,'L_AVI_ROI, anterior ventral insula'),parcel(172,'L_TGv_ROI, ventral temporal cortex'),parcel(93,'L_OFC_ROI, orbitofrontal cortex')]}
   ),
 ],{regionCards:['lcLimenLayers','lcCommissuralLimbs']});
 
 export const LESSONS=[l];
 export const GUIDES={
-  'limen-crossroads':{shortTitle:'Limen & temporal-stem stack',hemisphere:'L',question:'How do the UF, IFOF, anterior commissure and optic radiation change their relationships along the limen and temporal stem?',takeaways:[{step:0,text:'Name the level and axis before interpreting a visible crossing.'},{step:3,text:'Distinguish the anterior and posterior commissural limbs by their neighbours.'},{step:6,text:'Integrate the pathways while naming layers and landmarks absent from the scene.'}]},
+  'limen-crossroads':{shortTitle:'Limen & temporal-stem stack',hemisphere:'L',question:'How do the UF, IFOF, anterior commissure and optic radiation change their relationships along the limen and temporal stem?',takeaways:[{step:0,text:'Name the level and axis before interpreting a visible crossing.'},{step:3,text:'Distinguish the anterior and posterior commissural limbs by their neighbours.'},{step:6,text:'State the level-specific layer sequence and what the scene cannot segment.'}]},
 };

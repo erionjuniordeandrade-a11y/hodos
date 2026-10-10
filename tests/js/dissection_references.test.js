@@ -12,7 +12,7 @@ const webpSize=buf=>{
 };
 
 test('five distinct source photographs support existing relationships without adding a lesson',()=>{
-  assert.equal(LESSONS.length,14);assert.equal(LESSONS.reduce((n,l)=>n+l.steps.length,0),85);
+  assert.equal(LESSONS.length,20);assert.equal(LESSONS.reduce((n,l)=>n+l.steps.length,0),126);
   const uses=LESSONS.flatMap(l=>l.steps.filter(s=>s.referencePlate).map(s=>s.referencePlate));
   assert.equal(uses.length,5);assert.equal(new Set(uses).size,5);
   assert.deepEqual(uses.sort(),Object.keys(DISSECTION_PLATES).sort());

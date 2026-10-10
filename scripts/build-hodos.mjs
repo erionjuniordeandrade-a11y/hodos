@@ -221,9 +221,9 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const lastmod=contentVersion.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
   if(!lastmod)throw Error('Content version has no lastmod date');
   const lessonIds=lessonIdsInCurriculum();
-  if(lessonIds.length!==14)throw Error(`Expected exactly 14 lesson ids, found ${lessonIds.length}`);
+  if(lessonIds.length!==20)throw Error(`Expected exactly 20 lesson ids, found ${lessonIds.length}`);
   const landingLessonIds=lessonIdsFromLanding(processedPages.get('index.html'));
-  if(landingLessonIds.length!==14||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
+  if(landingLessonIds.length!==20||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
   const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/labs/lesion-lab`,`${SITE_ORIGIN}/lessons`,
     ...lessonIds.map(id=>`${SITE_ORIGIN}/lessons/${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+

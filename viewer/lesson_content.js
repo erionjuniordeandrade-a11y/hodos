@@ -19,7 +19,7 @@ import * as W3_motorBeyondM1 from './lessons/motor-beyond-m1.js';
 import * as W3_controlNetwork from './lessons/control-network.js';
 import * as W3_readingRoute from './lessons/reading-route.js';
 import {DISSECTION_PLATES} from './dissection_references.js';
-export const CONTENT_VERSION='2026-10-03.1';
+export const CONTENT_VERSION='2026-10-10.1';
 export const EVIDENCE_CLASSES=Object.freeze(['atlas','reconstruction','association',
   'schematic','recovery_overlay','functional_measurement','model_metric',
   'experimental_anatomy','conceptual_model']);
