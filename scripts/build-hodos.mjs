@@ -19,7 +19,7 @@ const modules=[
   'atlas_networks.js','atlas_arterial.js','atlas_deeplink.js','atlas_slice.js','atlas_slice_panel.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',
   'dissection_references.js','landing.js','lesson_previews.js',
   'lesson_scene.js','lesson_content.js','lesson_state.js','lesson_references.js','bundle_picker.js',
-  'lessons/resident-anatomy.js','lessons/network-lectures.js','lessons/corpus-callosum.js','lessons/internal-capsule.js','lessons/ventral-stream.js','lessons/brainstem-corridors.js','render_pipeline.js','scene_materials.js',
+  'lessons/resident-anatomy.js','lessons/network-lectures.js','lessons/corpus-callosum.js','lessons/internal-capsule.js','lessons/ventral-stream.js','lessons/brainstem-corridors.js','lessons/limen-crossroads.js','lessons/insular-floor.js','lessons/medial-system.js','lessons/motor-beyond-m1.js','lessons/control-network.js','lessons/reading-route.js','render_pipeline.js','scene_materials.js',
   'vendor/three.module.js','vendor/three.core.js',
   'vendor/addons/loaders/GLTFLoader.js','vendor/addons/loaders/DRACOLoader.js',
   'vendor/addons/utils/BufferGeometryUtils.js','vendor/addons/utils/SkeletonUtils.js',
@@ -221,9 +221,9 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const lastmod=contentVersion.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
   if(!lastmod)throw Error('Content version has no lastmod date');
   const lessonIds=lessonIdsInCurriculum();
-  if(lessonIds.length!==14)throw Error(`Expected exactly 14 lesson ids, found ${lessonIds.length}`);
+  if(lessonIds.length!==20)throw Error(`Expected exactly 20 lesson ids, found ${lessonIds.length}`);
   const landingLessonIds=lessonIdsFromLanding(processedPages.get('index.html'));
-  if(landingLessonIds.length!==14||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
+  if(landingLessonIds.length!==20||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
   const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/labs/lesion-lab`,`${SITE_ORIGIN}/lessons`,
     ...lessonIds.map(id=>`${SITE_ORIGIN}/lessons/${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
