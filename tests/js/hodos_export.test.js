@@ -19,6 +19,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(home,/data-hero[ >]/);
   assert.doesNotMatch(home,/heroFilm|\sstyle=|<style[ >]/);
   assert.match(home,/<video id="heroLoop"[^>]*muted[^>]*playsinline/);
+  assert.match(home,/<video id="heroLoop"[^>]*poster="\.\/media\/landing\/hero-atlas-poster-1920-20260919\.jpg"[^>]*data-poster-narrow="\.\/media\/landing\/hero-atlas-poster-1200-20260919\.jpg"/);
   const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
   assert.equal(new Set(lessonIds).size,14);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
@@ -27,7 +28,9 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   // Same day: the two 20260919 hero loops left the allowlist and four 20260928 loops (AV1 + H.264) entered (+2).
   assert.equal(landingAssets.length,32);
   assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
+  assert.equal([...home.matchAll(/<video class="family-loop"[^>]*poster="\.\/media\/landing\/(family-[a-z]+-loop-20260926)\.jpg"[^>]*data-src="\.\/media\/landing\/\1\.mp4"/g)].length,4);
   assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
+  assert.match(home,/<video id="demoLoop"[^>]*poster="\.\/media\/landing\/lesson-demo-20260928\.jpg"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-20260928.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-phone-20260928.jpg'));

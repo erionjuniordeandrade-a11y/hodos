@@ -5,10 +5,13 @@
   var video=document.getElementById('heroLoop');
   var toggle=document.getElementById('loopToggle');
   if(!video||!toggle||!('play' in video))return;
+  var narrow=matchMedia('(max-width: 700px)').matches;
+  // The wide poster is the attribute. Phones play the narrow loop, so swap in its still
+  // before that file is requested; the picture underneath already uses the same JPG.
+  if(narrow){var narrowPoster=video.getAttribute('data-poster-narrow');if(narrowPoster)video.poster=narrowPoster;}
   var reduced=matchMedia('(prefers-reduced-motion: reduce)');
   var saveData=Boolean(navigator.connection&&navigator.connection.saveData);
   if(reduced.matches||saveData)return;
-  var narrow=matchMedia('(max-width: 700px)').matches;
   var av1Supported=(function(){
     try{var ct=video.canPlayType('video/mp4; codecs="av01.0.05M.08"');if(ct==='probably'||ct==='maybe')return true;}catch(e){}
     try{if(window.MediaSource&&MediaSource.isTypeSupported('video/mp4; codecs="av01.0.05M.08"'))return true;}catch(e){}
