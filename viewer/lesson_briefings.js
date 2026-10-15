@@ -3,6 +3,12 @@
  * Example sides describe presentation, never individual functional dominance. */
 // A takeaway may carry teach-back terms: point(step,text,{terms:[{id,label,en:[...],pt:[...]}]}).
 // Without them the takeaway keeps its original {step,text} shape.
+import {GUIDES as W3_limen} from './lessons/limen-crossroads.js';
+import {GUIDES as W3_insularFloor} from './lessons/insular-floor.js';
+import {GUIDES as W3_medialSystem} from './lessons/medial-system.js';
+import {GUIDES as W3_motorBeyondM1} from './lessons/motor-beyond-m1.js';
+import {GUIDES as W3_controlNetwork} from './lessons/control-network.js';
+import {GUIDES as W3_readingRoute} from './lessons/reading-route.js';
 const point=(step,text,extra)=>Array.isArray(extra?.terms)&&extra.terms.length?{step,text,terms:extra.terms}:{step,text};
 export const TEACHING_GUIDES={
   'motor-cst':{shortTitle:'Central region & motor pathways',hemisphere:'L',
@@ -51,10 +57,11 @@ export const TEACHING_GUIDES={
   'brainstem-corridors':{shortTitle:'Brainstem & cranial nerve corridors',hemisphere:'L',
     question:'Left whole-face lower motor neuron facial weakness accompanies right limb weakness. How could left pontine facial nucleus or fascicle involvement together with the left CST explain this pattern, and which trigeminal component and modality would refine the localisation?',
     takeaways:[point(0,'Follow the CST from cerebral crus into the basis pontis with the surface nearly transparent.'),point(2,'Compare MCP, SCP, ICP and DRTT without implying that the absent nuclei are rendered.'),point(6,'Localise this crossed facial and limb pattern to the left intra-axial pons, involving the facial nucleus or fascicles and the descending CST.')]},
+  ...W3_limen,...W3_insularFloor,...W3_medialSystem,...W3_motorBeyondM1,...W3_controlNetwork,...W3_readingRoute,
 };
 
 export const CURRICULUM=[
   {title:'Foundations',description:'Read the image and the evidence.',ids:['evidence-classes','sampling-support']},
-  {title:'Regional relationships',description:'Move from cortex into the deep corridors.',ids:['motor-cst','internal-capsule','fat-language','corpus-callosum','optic-radiation','ventral-stream','interoception','brainstem-corridors']},
-  {title:'Networks & behaviour',description:'Connect anatomy with a specific observation.',ids:['attention-networks','language-networks','default-mode-network','salience-network']},
+  {title:'Regional relationships',description:'Move from cortex into the deep corridors.',ids:['motor-cst','internal-capsule','fat-language','corpus-callosum','optic-radiation','ventral-stream','limen-crossroads','interoception','insular-floor','medial-system','motor-beyond-m1','brainstem-corridors']},
+  {title:'Networks & behaviour',description:'Connect anatomy with a specific observation.',ids:['attention-networks','language-networks','default-mode-network','salience-network','control-network','reading-route']},
 ];

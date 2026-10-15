@@ -22,7 +22,7 @@ try{
   const sitemap=await http.get('/sitemap.xml');
   assert.equal(sitemap.status(),200);
   const sitemapLocs=[...await sitemap.text().then(text=>text.matchAll(/<loc>([^<]+)<\/loc>/g))].map(match=>{const url=new URL(match[1]);return url.pathname+url.search;});
-  assert.equal(sitemapLocs.length,22);
+  assert.equal(sitemapLocs.length,28);
   assert(sitemapLocs.includes('/connections'));
   assert(sitemapLocs.includes('/lessons'));
   assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));
@@ -62,11 +62,11 @@ try{
   assert.equal(await page.locator('#open').getAttribute('href'),'./atlas?lesson=motor-cst');
   const lessonLinks=await page.locator('[data-lessons] a').evaluateAll(links=>links.map(a=>new URL(a.href).searchParams.get('lesson')));
   assert.deepEqual([...lessonLinks].sort(),[...LESSONS].map(lesson=>lesson.id).sort(),'Landing links one lesson each; display order is the landing\'s own');
-  assert.equal(new Set(await page.locator('a[href*="?lesson="]').evaluateAll(as=>as.map(a=>new URL(a.href).searchParams.get('lesson')))).size,14);
+  assert.equal(new Set(await page.locator('a[href*="?lesson="]').evaluateAll(as=>as.map(a=>new URL(a.href).searchParams.get('lesson')))).size,20);
   assert.match(await page.locator('.creator-credit').innerText(),/Created by Dr\. Erion de Andrade/);
   const lessonsIndex=await http.get('/lessons');
   assert.equal(lessonsIndex.status(),200);
-  assert.equal(new Set((await lessonsIndex.text()).match(/href="\/lessons\/[a-z0-9-]+"/g)||[]).size,14);
+  assert.equal(new Set((await lessonsIndex.text()).match(/href="\/lessons\/[a-z0-9-]+"/g)||[]).size,20);
   for(const lesson of LESSONS){
     const lessonPage=await http.get(`/lessons/${lesson.id}`);
     assert.equal(lessonPage.status(),200,`Static lesson route: ${lesson.id}`);
@@ -104,7 +104,7 @@ try{
     report.landingLayouts.push(layout);
   }
   await page.setViewportSize({width:1440,height:900});
-  report.checks.push('Landing page at / with a loaded hero plate, fourteen lesson links, loaded lazy frames, desktop/phone screenshots and six overflow/wrap checks');
+  report.checks.push('Landing page at / with a loaded hero plate, twenty lesson links, loaded lazy frames, desktop/phone screenshots and six overflow/wrap checks');
   await page.goto(new URL('/atlas?test=1',base).href);
   await page.waitForFunction(()=>window.__atlasTest?.ready,null,{timeout:45000});
   assert.equal(await page.title(),'Hodos · The atlas and lessons');
@@ -142,7 +142,7 @@ try{
   await page.setViewportSize({width:1440,height:900});
   await page.goto(new URL('/lessons',base).href);
   assert.equal(await page.title(),'Lessons · Hodos');
-  assert.equal(await page.locator('.lessons-index-list>li').count(),14);
+  assert.equal(await page.locator('.lessons-index-list>li').count(),20);
   await page.goto(new URL('/lessons/motor-cst',base).href);
   assert.equal(await page.title(),'Central region & descending motor pathways · Hodos');
   assert.equal(await page.locator('h1').innerText(),'Central region & descending motor pathways');
@@ -166,7 +166,7 @@ try{
     );
   });
   assert.deepEqual(report.externalRequests.filter(value=>!report.analyticsRequests.includes(value)),[],'No unexpected external requests');
-  report.checks.push('Root coursebook, 14 static lesson routes and JSON-LD pages, 14 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
+  report.checks.push('Root coursebook, 20 static lesson routes and JSON-LD pages, 20 lesson openings and phases, creator profile, source attribution, desktop and phone layouts');
   console.log(JSON.stringify({url:base,assets:report.assets.length,lessons:report.lessons.length,layouts:report.layouts.length,errors:report.errors.length}));
 }finally{
   await writeFile(`${out}/report.json`,JSON.stringify(report,null,2)+'\n');

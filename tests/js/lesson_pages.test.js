@@ -26,21 +26,21 @@ function publicPaths(receipt){
   return paths;
 }
 
-test('lesson page build emits 14 pages and an index with complete static teaching content',async t=>{
+test('lesson page build emits 20 pages and an index with complete static teaching content',async t=>{
   const temp=await mkdtemp(path.join(os.tmpdir(),'hodos-lesson-pages-'));
   t.after(()=>rm(temp,{recursive:true,force:true}));
   const out=path.join(temp,'site'),receipt=await buildHodos({root,out});
   const index=await read(out,'lessons.html');
-  assert.equal(LESSONS.length,14);
+  assert.equal(LESSONS.length,20);
   assert.match(index,/<h1>Lessons<\/h1>/);
   assert.match(index,/Lesson text is an educational draft awaiting anatomical review\./);
-  assert.equal((index.match(/<li><p class="lesson-index-number">/g)||[]).length,14);
+  assert.equal((index.match(/<li><p class="lesson-index-number">/g)||[]).length,20);
   const pages=await Promise.all(LESSONS.map(async lesson=>({lesson,html:await read(out,`lessons/${lesson.id}.html`)})));
-  assert.equal(pages.length,14);
+  assert.equal(pages.length,20);
   const titles=pages.map(({html})=>titleOf(html)),descriptions=pages.map(({html})=>metaOf(html,'description')),canonicals=pages.map(({html})=>canonicalOf(html));
-  assert.equal(new Set(titles).size,14);
-  assert.equal(new Set(descriptions).size,14);
-  assert.equal(new Set(canonicals).size,14);
+  assert.equal(new Set(titles).size,20);
+  assert.equal(new Set(descriptions).size,20);
+  assert.equal(new Set(canonicals).size,20);
   for(const {lesson,html} of pages){
     assert.equal(titleOf(html),`${escapeHTML(lesson.title)} · Hodos`);
     assert.equal(canonicalOf(html),`https://hodosatlas.com/lessons/${lesson.id}`);
@@ -61,8 +61,8 @@ test('lesson page build emits 14 pages and an index with complete static teachin
   }
   const indexJSON=jsonLd(index)[0]['@graph'];
   const itemList=indexJSON.find(node=>node['@type']==='ItemList');
-  assert.equal(itemList.numberOfItems,14);
-  assert.equal(itemList.itemListElement.length,14);
+  assert.equal(itemList.numberOfItems,20);
+  assert.equal(itemList.itemListElement.length,20);
   for(const lesson of LESSONS)assert(index.includes(`href="/lessons/${lesson.id}"`));
   const paths=publicPaths(receipt);
   for(const {lesson,html} of [...pages,{lesson:{id:'index'},html:index}]){

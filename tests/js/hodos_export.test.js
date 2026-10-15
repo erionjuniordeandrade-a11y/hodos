@@ -20,7 +20,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.doesNotMatch(home,/heroFilm|\sstyle=|<style[ >]/);
   assert.match(home,/<video id="heroLoop"[^>]*muted[^>]*playsinline/);
   const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
-  assert.equal(new Set(lessonIds).size,14);
+  assert.equal(new Set(lessonIds).size,20);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
   // 2026-09-28: recaptured lesson-demo stills from the current (post-CSS-token) build were added
   // alongside the 2026-09-26 originals (add-only), so the landing asset count grew by 2.
@@ -64,7 +64,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const asset of ['mips.js','mips_content.js','mips.bundle.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
   const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
   const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
-  assert.equal(sitemapLocs.length,22);
+  assert.equal(sitemapLocs.length,28);
   assert(sitemapLocs.includes('https://hodosatlas.com/lessons'));
   assert.deepEqual(sitemapLocs.filter(url=>url.startsWith('https://hodosatlas.com/lessons/')),lessonIdsInCurriculum().map(id=>`https://hodosatlas.com/lessons/${id}`));
   assert(!sitemap.includes('/atlas?lesson='));
