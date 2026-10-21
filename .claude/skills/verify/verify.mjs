@@ -55,7 +55,7 @@ const features={
   async atlas({page,base}){
     await open(page,base,'/atlas?test=1');
     await page.waitForFunction(()=>window.__atlasTest?.ready,null,{timeout:45000});
-    assert(await page.locator('canvas').first().isVisible(),'atlas canvas visible');
+    assert(await page.locator('canvas:not(.slice-canvas)').first().isVisible(),'atlas canvas visible');
     const f0=await page.evaluate(()=>window.__atlasTest.frames);
     await page.evaluate(()=>window.__atlasTest.togglePathway('AF_L'));
     await page.waitForFunction(()=>window.__atlasTest.bundles.includes('AF_L'));
@@ -120,7 +120,7 @@ async function open(page,base,route){
 // WebGL canvases cannot be read back (no preserveDrawingBuffer), so screenshot the element,
 // decode the PNG in a scratch page and count distinct colours: a blank canvas has almost none.
 // (pngjs is a devDependency but is not always installed, so the decode uses the browser.)
-async function canvasHasPixels(page,sel='canvas'){
+async function canvasHasPixels(page,sel='canvas:not(.slice-canvas)'){
   await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   const b64=(await page.locator(sel).first().screenshot({animations:'disabled'})).toString('base64');
   const scratch=await page.context().newPage();
