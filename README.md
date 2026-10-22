@@ -3,7 +3,7 @@
 [Open Hodos](https://hodos-atlas.pages.dev/) — an interactive cortex and white
 matter anatomy coursebook, created by Dr. Erion de Andrade.
 
-Ten lessons connect 58 anatomical relationships through Orient, Compare and
+Fourteen lessons connect 85 anatomical relationships through Orient, Compare and
 Explain phases. Five credited dissection photographs complement selected
 language and optic-radiation relationships. Study and Present modes share a
 reference 3D atlas. Learning progress stays in the browser.

@@ -24,7 +24,7 @@ function assertKeys(value,allowed,excluded,label){
 }
 
 export function validateLessonKeys(lessons=LESSONS){
-  if(!Array.isArray(lessons)||lessons.length!==14)throw Error(`Expected exactly 14 lessons, found ${lessons?.length??'invalid'}`);
+  if(!Array.isArray(lessons)||lessons.length<1)throw Error(`Expected at least one lesson, found ${lessons?.length??'invalid'}`);
   const ids=new Set();
   for(const lesson of lessons){
     assertKeys(lesson,LESSON_KEYS,LESSON_NON_CONTENT_KEYS,'lesson');
@@ -167,7 +167,7 @@ export function generateLessonPages({landingHTML,headerSourceHTML,footerSourceHT
   if(typeof landingHTML!=='string'||typeof headerSourceHTML!=='string'||typeof footerSourceHTML!=='string')throw Error('Lesson page sources are required');
   validateLessonKeys(lessons);
   const ids=lessonIdsInCurriculum(lessons),landingIds=lessonIdsFromLanding(landingHTML);
-  if(landingIds.length!==14||ids.length!==14||landingIds.length!==ids.length||landingIds.some(id=>!ids.includes(id)))throw Error(`Landing lesson links do not match the 14 lesson ids: ${landingIds.join(',')}`);
+  if(landingIds.length!==ids.length||landingIds.some(id=>!ids.includes(id)))throw Error(`Landing lesson links do not match the lesson ids: ${landingIds.join(',')}`);
   const header=rootAbsoluteMarkup(extractSingleElement(headerSourceHTML,'header','atlas-sources header'));
   const footer=rootAbsoluteMarkup(extractSingleElement(footerSourceHTML,'footer','case-conference footer','source-footer'));
   const draft=draftNotice(headerSourceHTML);

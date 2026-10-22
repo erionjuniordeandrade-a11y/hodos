@@ -6,6 +6,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildHodos} from '../../scripts/build-hodos.mjs';
 import {lessonIdsInCurriculum} from '../../scripts/lesson-pages.mjs';
+import {sitemapLocs as absoluteSitemapLocs,sitemapPathsFromExport} from '../../scripts/public-routes.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 
@@ -64,7 +65,11 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   for(const asset of ['mips.js','mips_content.js','mips.bundle.js','mips.css','corridor_geometry.js','corridor_overlay.js'])assert(receipt.files.some(f=>f.path===asset));
   const sitemap=await readFile(path.join(out,'sitemap.xml'),'utf8');
   const sitemapLocs=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match=>match[1]);
-  assert.equal(sitemapLocs.length,22);
+  assert.deepEqual([...sitemapLocs].sort(),[...absoluteSitemapLocs(sitemapPathsFromExport(receipt.files.map(file=>file.path)))].sort());
+  assert.deepEqual(sitemapLocs.slice(0,8),[
+    'https://hodosatlas.com/','https://hodosatlas.com/atlas','https://hodosatlas.com/atlas-sources','https://hodosatlas.com/case-conference',
+    'https://hodosatlas.com/mips','https://hodosatlas.com/connections','https://hodosatlas.com/labs/lesion-lab','https://hodosatlas.com/lessons',
+  ]);
   assert(sitemapLocs.includes('https://hodosatlas.com/lessons'));
   assert.deepEqual(sitemapLocs.filter(url=>url.startsWith('https://hodosatlas.com/lessons/')),lessonIdsInCurriculum().map(id=>`https://hodosatlas.com/lessons/${id}`));
   assert(!sitemap.includes('/atlas?lesson='));

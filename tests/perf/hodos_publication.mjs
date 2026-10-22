@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {chromium,request} from 'playwright';
 import {LESSONS,CONTENT_VERSION} from '../../viewer/lesson_content.js';
 import {lessonIdsInCurriculum} from '../../scripts/lesson-pages.mjs';
+import {sitemapPathsFromExport} from '../../scripts/public-routes.mjs';
 
 const base=process.argv.find(v=>v.startsWith('--url='))?.slice(6);
 assert(base,'Pass --url for the built or published Hodos site');
@@ -22,7 +23,7 @@ try{
   const sitemap=await http.get('/sitemap.xml');
   assert.equal(sitemap.status(),200);
   const sitemapLocs=[...await sitemap.text().then(text=>text.matchAll(/<loc>([^<]+)<\/loc>/g))].map(match=>{const url=new URL(match[1]);return url.pathname+url.search;});
-  assert.equal(sitemapLocs.length,22);
+  assert.deepEqual([...sitemapLocs].sort(),[...sitemapPathsFromExport(expected.files.map(file=>file.path))].sort());
   assert(sitemapLocs.includes('/connections'));
   assert(sitemapLocs.includes('/lessons'));
   assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));

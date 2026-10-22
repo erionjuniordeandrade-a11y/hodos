@@ -5,6 +5,7 @@ import {gunzipSync} from 'node:zlib';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {generateLessonPages,lessonIdsFromLanding,lessonIdsInCurriculum,rootAbsoluteMarkup,extractSingleElement} from './lesson-pages.mjs';
+import {sitemapLocs,sitemapPathsFromExport} from './public-routes.mjs';
 import {resolveDependency,bundleModules} from './bundle-esm.mjs';
 import {transformSync} from 'esbuild';
 
@@ -213,19 +214,20 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   const notFoundHeader=rootAbsoluteMarkup(extractSingleElement(processedPages.get('atlas-sources.html'),'header','atlas-sources header'));
   const notFoundFooter=rootAbsoluteMarkup(extractSingleElement(processedPages.get('case-conference.html'),'footer','case-conference footer','source-footer'));
   add('404.html',`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found · Hodos</title><meta name="theme-color" content="#1E2227"><link rel="icon" href="/brand/hodos-favicon.svg"><link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/hodos.css"></head><body><a class="skip-link" href="#notFoundMain">Skip to content</a>${notFoundHeader}<main id="notFoundMain" class="prose"><h1>Page not found.</h1><p><a href="/">Return to the anatomy coursebook</a></p></main>${notFoundFooter}</body></html>\n`);
-  // Sitemap and robots.txt are generated from the exported files, never hand-maintained: lesson
-  // ids come from the landing page's own lesson links (the same list residents see), and lastmod
-  // comes from the shipped content version.
+  // Sitemap paths are the HTML files already in this export, except 404. Lesson order
+  // follows the curriculum because those pages were added in that order. lastmod comes
+  // from the shipped content version. The landing's lesson links must name the same ids.
   const contentVersion=files.get('lesson_content.js').toString().match(/CONTENT_VERSION\s*=\s*['"]([^'"]+)/)?.[1];
   if(!contentVersion)throw Error('Missing lesson content version');
   const lastmod=contentVersion.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
   if(!lastmod)throw Error('Content version has no lastmod date');
   const lessonIds=lessonIdsInCurriculum();
-  if(lessonIds.length!==14)throw Error(`Expected exactly 14 lesson ids, found ${lessonIds.length}`);
   const landingLessonIds=lessonIdsFromLanding(processedPages.get('index.html'));
-  if(landingLessonIds.length!==14||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
-  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/labs/lesion-lab`,`${SITE_ORIGIN}/lessons`,
-    ...lessonIds.map(id=>`${SITE_ORIGIN}/lessons/${id}`)];
+  if(landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
+  const sitemapPaths=sitemapPathsFromExport(files.keys());
+  const lessonPaths=sitemapPaths.filter(route=>route.startsWith('/lessons/'));
+  if(lessonPaths.length!==lessonIds.length||lessonPaths.some((route,index)=>route!==`/lessons/${lessonIds[index]}`))throw Error(`Sitemap lesson paths do not follow the curriculum: ${lessonPaths.join(',')}`);
+  const sitemapUrls=sitemapLocs(sitemapPaths,SITE_ORIGIN);
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
     sitemapUrls.map(u=>`  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')+`\n</urlset>\n`);
   add('robots.txt',`User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`);
