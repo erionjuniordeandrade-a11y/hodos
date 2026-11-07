@@ -522,15 +522,28 @@ export function createRenderPipeline(renderer, {
         renderer.clear(true,true,true);
         // Match GTAOPass's G-buffer policy: line and point overlays cannot
         // contribute meaningful surface normals or cast atlas AO.
+        // A mesh may name its own normal-pass material in userData.gbufferMaterial
+        // (the Peel's dissolve must cut the G-buffer too), or null to stay out of it.
+        const ownNormals = [];
         scene.traverse(object=>{
-          if ((object.isPoints || object.isLine || object.isLine2) && object.visible) {
+          if (!object.visible) return;
+          if (object.isPoints || object.isLine || object.isLine2 || (object.isMesh && object.userData.gbufferMaterial !== undefined)) {
             object.visible=false;
             hiddenFromNormals.push(object);
+            let shown = true;
+            object.traverseAncestors(parent => { if (!parent.visible) shown = false; });
+            if (shown && object.isMesh && object.userData.gbufferMaterial) ownNormals.push(object);
           }
         });
         scene.overrideMaterial = normalMaterial;
         renderer.render(scene,camera);
         scene.overrideMaterial = previousOverride;
+        for (const object of ownNormals) {
+          const material = object.material;
+          object.visible = true;
+          object.material = object.userData.gbufferMaterial;
+          try { renderer.render(object, camera); } finally { object.material = material; object.visible = false; }
+        }
         for (const object of hiddenFromNormals) object.visible=true;
         hiddenFromNormals.length=0;
         renderer.setClearColor(0xffffff,1);
