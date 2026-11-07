@@ -331,10 +331,13 @@ function compareLecture(comparison,option){
 function setCinematic(on){
   on=!!on;if(!scene||on===cinematic)return;cinematic=on;
   if(on&&slicePanel?.open)slicePanel.setOpen(false);
+  // The Peel owns the cortex here, so the Layers surface level is neither changed nor used until exit.
+  if(on)scene.setPeel(Number($('cinematicPeelRange').value));
   scene.setCinematic(on);
   if(on){const ids=cinematicEntryBundles(selectedBundles,scene.tractMeta.bundles.map(b=>b.id));
-    if(ids!==selectedBundles)applyBundles(ids,currentGhosts);revealInterior();}
+    if(ids!==selectedBundles)applyBundles(ids,currentGhosts);}
   $('atlasCinematic').setAttribute('aria-pressed',String(on));$('cinematicLegend').hidden=!on;
+  $('cinematicPeel').hidden=!on;$('surfaceLevel').disabled=on;
   syncURL();
 }
 function pauseForExploration(){
@@ -402,6 +405,8 @@ $('atlasCopyLink').addEventListener('click',async()=>{
   const menu=$('atlasCopyLink').closest('details');menu.open=false;menu.querySelector('summary').focus();});
 $('atlasFit').addEventListener('click',()=>{scene?.setView(scene.state.view);});
 $('atlasCinematic').addEventListener('click',()=>{setCinematic(!cinematic);$('atlasCinematic').closest('details').open=false;});
+// Peel applies on every input, with no easing, so prefers-reduced-motion needs no separate path. Not written to the URL.
+$('cinematicPeelRange').addEventListener('input',()=>{const v=Number($('cinematicPeelRange').value);$('cinematicPeelValue').textContent=`${v}%`;scene?.setPeel(v);});
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.view==='medial'&&$('atlasHemisphere').value==='both'){
     $('atlasHemisphere').value='L';scene?.setHemisphere('L');if(currentPick)readRegion('L',currentPick.id);syncURL();}
@@ -551,7 +556,7 @@ try{
     // Test-only: inject a v2 declarative scene directly, bypassing lesson content, so Playwright
     // can exercise SCENE GRAMMAR v2 (bundles/ghost/regions/camera/deepRegions) in isolation.
     applyScene:sceneInput=>applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...sceneInput}},currentHemisphere()),{authored:true}),
-    togglePathway,projectBundleVertex:scene.projectBundleVertex,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
+    togglePathway,projectBundleVertex:scene.projectBundleVertex,setGhost:scene.setGhost,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
   window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
 }catch(error){
   $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`;

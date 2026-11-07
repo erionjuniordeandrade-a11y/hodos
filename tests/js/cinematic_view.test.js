@@ -34,3 +34,16 @@ test('Fast tier keeps the original points and rings each one at the stated radiu
   assert.equal(index.length,lines.length*(P-1)*sides*6);
   assert(index.every(i=>i<lines.length*P*sides),'every triangle stays inside the geometry');
 });
+import {clampPeel,clampGhost,peelRange,peelThreshold,PEEL_AMP,PEEL_DIR} from '../../viewer/cortex_peel.js';
+test('Peel: 0 leaves the whole cortex ahead of the sweep, 100 has swept past all of it',()=>{
+  const cortex=new Float32Array([0,0,0, 60,-90,70, -70,70,-40]),range=peelRange([cortex]);
+  const s=i=>cortex[i]*PEEL_DIR[0]+cortex[i+1]*PEEL_DIR[1]+cortex[i+2]*PEEL_DIR[2],proj=[0,3,6].map(s);
+  assert(peelThreshold(0,range)>Math.max(...proj)+PEEL_AMP,'Peel 0: no vertex is reached even by the noise edge');
+  assert(peelThreshold(100,range)<Math.min(...proj)-PEEL_AMP,'Peel 100: every vertex is past the noise edge');
+  let last=Infinity;for(let p=0;p<=100;p+=5){const t=peelThreshold(p,range);assert(t<last,`monotonic at ${p}`);last=t;}
+});
+test('Peel and ghost amounts clamp to their ranges',()=>{
+  assert.deepEqual([-5,0,37,100,140,NaN,'50',undefined].map(clampPeel),[0,0,37,100,100,0,50,0]);
+  assert.deepEqual([-1,0,.2,1,3,NaN].map(clampGhost),[0,0,.2,1,1,0]);
+  assert.throws(()=>peelRange([new Float32Array(0)]));
+});
