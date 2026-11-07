@@ -17,15 +17,15 @@ async function withTempDir(fn) {
   }
 }
 
-test('writes one sheet per lesson and per case (18 total) into the given output dir', async () => {
+test('writes one sheet per lesson and per case (24 total) into the given output dir', async () => {
   await withTempDir(async (dir) => {
     const written = await writeReviewSheets(dir);
-    assert.equal(written.length, 18);
+    assert.equal(written.length, 24);
     const files = (await readdir(dir)).sort();
     const expected = [...LESSONS.map((l) => `${l.id}.md`), ...CASES.map((c) => `${c.id}.md`)].sort();
     assert.deepEqual(files, expected);
-    assert.equal(files.length, 18);
-    assert.equal(LESSONS.length, 14);
+    assert.equal(files.length, 24);
+    assert.equal(LESSONS.length, 20);
     assert.equal(CASES.length, 4);
   });
 });

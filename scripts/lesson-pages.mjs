@@ -24,7 +24,7 @@ function assertKeys(value,allowed,excluded,label){
 }
 
 export function validateLessonKeys(lessons=LESSONS){
-  if(!Array.isArray(lessons)||lessons.length!==14)throw Error(`Expected exactly 14 lessons, found ${lessons?.length??'invalid'}`);
+  if(!Array.isArray(lessons)||lessons.length!==20)throw Error(`Expected exactly 20 lessons, found ${lessons?.length??'invalid'}`);
   const ids=new Set();
   for(const lesson of lessons){
     assertKeys(lesson,LESSON_KEYS,LESSON_NON_CONTENT_KEYS,'lesson');
@@ -149,7 +149,7 @@ function indexJSON(ordered){
 }
 
 function indexBody(ordered,draft,headerHTML,footerHTML){
-  const description='Browse fourteen Hodos lessons in neuroanatomy, from atlas evidence and regional relationships to networks and behaviour.';
+  const description='Browse twenty Hodos lessons in neuroanatomy, from atlas evidence and regional relationships to networks and behaviour.';
   return page({headHTML:head({title:'Lessons',description,url:`${SITE_ORIGIN}/lessons`,jsonLd:indexJSON(ordered),ogType:'website'}),headerHTML,footerHTML,bodyHTML:`<main id="lessonMain" class="prose lessons-index-page"><div>${breadcrumb([{name:'Hodos',url:'/'},{name:'Lessons'}])}</div><p class="lesson-draft-notice">${text(draft)}</p><h1>Lessons</h1><p class="lesson-summary">A curriculum of relationships for neurosurgical residents. Each lesson moves from a reference view to a question you can explain.</p><ol class="lessons-index-list">${ordered.map((lesson,index)=>`<li><p class="lesson-index-number"><span class="lesson-ordinal">${String(index+1).padStart(2,'0')}</span>${text(lesson.category)} · ${lesson.steps.length} relationships, about ${lesson.minutes} minutes</p><h2><a href="/lessons/${text(lesson.id)}">${text(lesson.title)}</a></h2><p>${text(lesson.summary)}</p><p><a href="/lessons/${text(lesson.id)}">Read the lesson</a></p></li>`).join('')}</ol></main>`});
 }
 
@@ -167,7 +167,7 @@ export function generateLessonPages({landingHTML,headerSourceHTML,footerSourceHT
   if(typeof landingHTML!=='string'||typeof headerSourceHTML!=='string'||typeof footerSourceHTML!=='string')throw Error('Lesson page sources are required');
   validateLessonKeys(lessons);
   const ids=lessonIdsInCurriculum(lessons),landingIds=lessonIdsFromLanding(landingHTML);
-  if(landingIds.length!==14||ids.length!==14||landingIds.length!==ids.length||landingIds.some(id=>!ids.includes(id)))throw Error(`Landing lesson links do not match the 14 lesson ids: ${landingIds.join(',')}`);
+  if(landingIds.length!==20||ids.length!==20||landingIds.length!==ids.length||landingIds.some(id=>!ids.includes(id)))throw Error(`Landing lesson links do not match the 20 lesson ids: ${landingIds.join(',')}`);
   const header=rootAbsoluteMarkup(extractSingleElement(headerSourceHTML,'header','atlas-sources header'));
   const footer=rootAbsoluteMarkup(extractSingleElement(footerSourceHTML,'footer','case-conference footer','source-footer'));
   const draft=draftNotice(headerSourceHTML);
