@@ -1069,7 +1069,9 @@ h1,h1 span{text-wrap:balance}
 .slice-options label{display:inline-flex;gap:var(--space-2xs);align-items:center;cursor:pointer}
 .slice-options button{margin-left:auto}
 .slice-readout{margin:0;font-family:var(--font-outlier);color:var(--color-ink);min-height:2.7em}
-.slice-status{margin:0;color:var(--color-muted)}
+/* The status line sits over the section, so loading or error text never adds height to the panel. */
+.slice-frame{position:relative}
+.slice-status{position:absolute;left:var(--space-2xs);right:var(--space-2xs);bottom:var(--space-2xs);margin:0;padding:2px 6px;color:var(--color-muted);background:color-mix(in oklab,var(--color-plate) 85%,transparent);border-radius:var(--radius);pointer-events:none}
 .slice-status:empty{display:none}
 .slice-note{margin:0;color:var(--color-faint)}
 /* Phones: the stage can be 150 px tall in a lesson, so the chosen slice opens as a sheet over the viewport.
