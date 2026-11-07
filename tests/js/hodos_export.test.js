@@ -18,21 +18,27 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const sources=await readFile(path.join(out,'atlas-sources.html'),'utf8');
   assert.match(home,/data-hero[ >]/);
   assert.doesNotMatch(home,/heroFilm|\sstyle=|<style[ >]/);
-  assert.match(home,/<video id="heroLoop"[^>]*muted[^>]*playsinline/);
+  // 2026-11-07: the hero plays the Blender cortex strip once and ends on the Blender still.
+  assert.match(home,/<video id="heroLoop"[^>]*muted[^>]*playsinline[^>]*data-src="\.\/media\/landing\/hero-cortex-strip-1080-20261107\.mp4"/);
+  assert.doesNotMatch(home,/<video id="heroLoop"[^>]*\sloop[\s>]/);
   const lessonIds=[...home.matchAll(/href="(\.\/atlas\?[^\"]+)"/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),'https://hodosatlas.com/').searchParams.get('lesson'));
   assert.equal(new Set(lessonIds).size,20);
   const landingAssets=receipt.files.filter(f=>f.path.startsWith('media/landing/'));
   // 2026-09-28: recaptured lesson-demo stills from the current (post-CSS-token) build were added
   // alongside the 2026-09-26 originals (add-only), so the landing asset count grew by 2.
   // Same day: the two 20260919 hero loops left the allowlist and four 20260928 loops (AV1 + H.264) entered (+2).
-  assert.equal(landingAssets.length,32);
+  // 2026-11-07: four hero loops and two hero posters left; two Blender stills, four cortex-strip videos and two first-frame stills entered (32-6+8).
+  // Visitors who allow motion first see the strip's frame 0, so the video starts without a jump.
+  assert.equal(landingAssets.length,34);
+  assert.match(home,/<source media="\(prefers-reduced-motion: no-preference\)" srcset="\.\/media\/landing\/hero-cortex-strip-start-1080-20261107\.jpg"/);
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-cortex-strip-880-av1-20261107.mp4'));
   assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
   assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-20260928.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-phone-20260928.jpg'));
-  assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1200-20260919.jpg'));
-  assert(landingAssets.some(f=>f.path==='media/landing/hero-atlas-poster-1920-20260919.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-blender-s1-880-20261107.jpg'));
+  assert(landingAssets.some(f=>f.path==='media/landing/hero-blender-s1-1080-20261107.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
   assert(receipt.files.some(f=>f.path==='landing.js'));
   assert(receipt.files.some(f=>f.path==='lesson_previews.js'));
