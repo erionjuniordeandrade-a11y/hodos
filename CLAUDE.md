@@ -19,7 +19,7 @@ Never call the atlas TractLab, and never import TractLab cases, credentials or h
   pass `-- --out=dist/hodos-next`. The exporter enforces a file allowlist and asset hashes.
 - Preview: `python3 -m http.server 51038 --bind 127.0.0.1 --directory dist/hodos`.
 - Clean-URL routes (`/atlas` etc.) collide with the same-named `atlas/` asset directory under plain `http.server`, which 301s to a directory listing instead of `atlas.html`; test those routes locally with `npx wrangler pages dev dist/hodos --port 51038` instead.
-- CI (`.github/workflows/ci.yml`) runs tests, a build and `tests/perf/hodos_publication.mjs` on push to main.
+- CI (`.github/workflows/ci.yml`) runs tests, a build, the publication gate and the browser checks (previews, MIPS, views menu, tract ranges, visual regression, landing, Case Conference, dissection) on push to main and on PRs. `atlas_v1` and `lesion_lab` still run only on the Mac.
 - Deploy is owner-authorized only: `npx wrangler pages deploy <dir> --project-name hodos-atlas --branch main`.
 
 ## Agent skills

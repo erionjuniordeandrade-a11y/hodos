@@ -50,6 +50,15 @@
           <input id="margin" type="range" min="1" max="20" step="1" value="5" aria-label="Margin beyond the sphere, in millimetres" disabled>
           <p class="lab-help">The ring marks a chosen distance beyond the sphere and counts the streamlines that run inside it. It is a geometric band for discussion, not a safe distance.</p>
         </div>
+        <div class="lab-control lab-corridors">
+          <span class="lab-control-label" id="entryLabel">Corridors to the sphere</span>
+          <div class="lab-options" role="group" aria-labelledby="entryLabel"><button type="button" data-entry="A" aria-pressed="false">Place entry A</button><button type="button" data-entry="B" aria-pressed="false">Place entry B</button></div>
+          <p id="corridorHint" class="lab-help" aria-live="polite">Choose an entry, then click the cortex where the corridor starts. The corridor runs straight to the sphere.</p>
+          <label for="corridorWidth">Corridor diameter <output id="corridorWidthValue" for="corridorWidth">8 mm</output></label><input id="corridorWidth" type="range" min="4" max="20" step="1" value="8">
+          <ul id="corridorList" class="lab-corridor-list" aria-label="Corridors"></ul>
+          <button type="button" id="compareCorridors" class="lab-compare-open" hidden>Compare corridors A and B</button>
+          <p class="lab-help">A corridor counts the sampled streamlines that pass within half its diameter of a straight line from the entry to the sphere. It is a geometric line for discussion, not a planned trajectory.</p>
+        </div>
         <details class="lab-precise">
           <summary>Precise position</summary>
           <div class="lab-position">
@@ -77,11 +86,19 @@
     <p id="sceneStatus" class="lab-status" role="status">Loading reference anatomy…</p>
     <button id="retryScene" type="button" hidden>Retry atlas</button>
     <p id="midlineNote" class="lab-stage-note" hidden>The sphere reaches the midline. Bundles of the other hemisphere are not drawn or tested.</p>
-    <span id="canvasHelp" class="sr-only">Drag the sphere to move it across the screen; drag anywhere else to rotate, and pinch or scroll to zoom. Rotate the view, or use the position sliders, to move it along the third axis. With the canvas focused, arrow keys rotate, Shift + arrows pan, + / − zoom and Home resets the view.</span>
+    <span id="canvasHelp" class="sr-only">Drag the sphere to move it across the screen; drag anywhere else to rotate, and pinch or scroll to zoom. After Place entry A or B, click the cortex to set where that corridor starts. Rotate the view, or use the position sliders, to move it along the third axis. With the canvas focused, arrow keys rotate, Shift + arrows pan, + / − zoom and Home resets the view.</span>
   </section>
 
   <aside id="evidenceDrawer" class="lab-drawer" aria-labelledby="drawerTitle" inert>
     <div class="lab-drawer-head"><h2 id="drawerTitle" tabindex="-1">What this position disconnects</h2><button type="button" id="closeEvidence"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button></div>
+    <section id="corridorCompare" class="lab-compare" aria-labelledby="compareTitle" hidden>
+      <h3 id="compareTitle">Corridor A against corridor B</h3>
+      <p class="lab-aside">Sampled streamlines each corridor cuts that the sphere itself does not, per bundle. Same group reference and same test as the sphere.</p>
+      <table id="compareTable" class="lab-compare-table"></table>
+      <p id="compareEmpty" class="lab-aside" hidden>Neither corridor cuts a sampled streamline that the sphere does not already cut.</p>
+      <h4>Named in the notes for the bundles each corridor cuts</h4>
+      <ul id="compareNamed" class="lab-compare-named"></ul>
+    </section>
     <p id="labSummary" class="lab-summary">The bundle list appears when the reference atlas has loaded.</p>
     <div id="namedBlock" class="lab-named-block" hidden><h3>Named in the notes for these bundles</h3><ul id="namedList" class="lab-named"></ul><p class="lab-aside">Statements that need damage on both sides, or that place the injury at one site of a bundle, are listed under that bundle, not here. The share of sampled streamlines is a geometric count, not the probability of a deficit.</p></div>
     <ol id="bundleList" class="lab-bundles" aria-label="Bundles the sphere reaches"></ol>
@@ -90,8 +107,8 @@
 
   <section class="lab-limits" aria-labelledby="limitsTitle">
     <div><p class="lab-eyebrow">How the lab decides</p><h2 id="limitsTitle">A geometric test on group anatomy.</h2>
-      <p>Each bundle is drawn from its HCP1065 sample: at most 220 streamlines of the thousands in the population atlas (34,156 in the left arcuate fasciculus). A streamline counts as cut when any of its segments passes within the sphere's radius of the centre, and as inside the margin when it passes within the radius plus the margin.</p>
-      <p>The test does not model oedema, infiltration, cortical injury, plasticity or where one person's tracts run. Only the chosen hemisphere's association and projection bundles and the commissures are tested; cerebellar pathways and cranial nerves are not.</p>
+      <p>Each bundle is drawn from its HCP1065 sample: at most 220 streamlines of the thousands in the population atlas (34,156 in the left arcuate fasciculus). A streamline counts as cut when any of its segments passes within the sphere's radius of the centre, and as inside the margin when it passes within the radius plus the margin. A corridor is a straight cylinder from the chosen cortical point to the sphere's near surface; a streamline counts as cut by it when any segment passes within half the corridor's diameter of that line, and the corridor's count leaves out what the sphere already cuts.</p>
+      <p>The test does not model oedema, infiltration, cortical injury, plasticity, brain shift, retraction or where one person's tracts run. Only the chosen hemisphere's association and projection bundles and the commissures are tested; cerebellar pathways and cranial nerves are not.</p>
       <p><a href="./atlas-sources.html">Atlas provenance and sampling limits</a></p>
     </div>
     <div><p class="lab-eyebrow">Where the statements come from</p><h2>Quoted, never written here.</h2>

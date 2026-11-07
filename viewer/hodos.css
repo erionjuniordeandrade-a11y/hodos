@@ -1081,3 +1081,9 @@ h1,h1 span{text-wrap:balance}
 .slice-panel button{min-height:36px}}
 @media(forced-colors:active){.slice-axes button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}}
 .atlas-view-menu .views-head{grid-column:1/-1;margin:var(--space-2xs) 0 0;padding:var(--space-2xs) var(--space-xs) 0;border-top:1px solid var(--color-rule);font-size:var(--text-xs);color:var(--color-muted)}
+/* Phone atlas header: one nav row. The projector profile is a desktop control, so it leaves the phone header. */
+@media screen and (max-width:760px){.studio-header nav #lessonProfile{display:none}.studio-header nav[aria-label=Workspace]::after{content:none}}
+@media screen and (max-width:380px){.studio-header nav[aria-label=Workspace] a,.studio-header nav[aria-label=Workspace] button{padding-inline:var(--space-2xs)}}
+/* Labels size to their name; the hemisphere prefix never sits alone on a line. */
+.atlas-parcel-label{width:max-content}.atlas-parcel-label span{overflow-wrap:anywhere}
+@media screen and (max-width:760px){.atlas-parcel-label{font-size:11px}}
