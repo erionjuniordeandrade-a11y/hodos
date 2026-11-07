@@ -24,7 +24,7 @@ void main() {
 `;
 
 // The AO pass intentionally compares only nearby depth samples. It does not
-// infer anatomy, change tube colour, or create a pseudo-measurement.
+// infer anatomy, change streamline colour, or create a pseudo-measurement.
 const AO_FRAGMENT_SHADER = /* glsl */ `
 uniform sampler2D tTractlabDepth;
 uniform vec2 uTractlabDepthResolution;
