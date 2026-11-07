@@ -1,6 +1,7 @@
-// Landing page behaviour: the hero plate's real orbit loop plays over the still only when motion is
-// welcome (no reduced-motion or data-saver preference), only while on screen, and with a visible
-// pause control. The still stays the first paint and the fallback.
+// Landing page behaviour: the hero video plays over the still only when motion is welcome (no
+// reduced-motion or data-saver preference), only while on screen, and with a visible control.
+// A video without the loop attribute plays once and ends on the still; the control then replays it.
+// The still stays the first paint and the fallback.
 (function(){
   var video=document.getElementById('heroLoop');
   var toggle=document.getElementById('loopToggle');
@@ -18,12 +19,13 @@
   var fallbackSrc=video.getAttribute(narrow?'data-src-narrow':'data-src');
   var src=(av1Supported&&av1Src)||fallbackSrc;
   if(!src)return;
-  var userPaused=false, onScreen=true, ready=false;
-  var label=function(){var playing=!video.paused;toggle.textContent=playing?'Pause the walkthrough':'Play the walkthrough';toggle.setAttribute('aria-pressed',String(playing));};
-  var settle=function(){if(!ready)return;if(!userPaused&&onScreen&&!reduced.matches){var p=video.play();if(p&&p.catch)p.catch(function(){});}else video.pause();label();};
+  var userPaused=false, onScreen=true, ready=false, ended=false;
+  var label=function(){var playing=!video.paused;toggle.textContent=ended?'Replay':playing?'Pause the walkthrough':'Play the walkthrough';toggle.setAttribute('aria-pressed',String(playing));};
+  var settle=function(){if(!ready||ended)return;if(!userPaused&&onScreen&&!reduced.matches){var p=video.play();if(p&&p.catch)p.catch(function(){});}else video.pause();label();};
   video.addEventListener('canplay',function(){if(ready)return;ready=true;video.parentNode.classList.add('is-live');toggle.hidden=false;settle();},{once:true});
   video.addEventListener('play',label);video.addEventListener('pause',label);
-  toggle.addEventListener('click',function(){userPaused=!video.paused;settle();});
+  video.addEventListener('ended',function(){ended=true;label();});
+  toggle.addEventListener('click',function(){if(ended){ended=false;userPaused=false;video.currentTime=0;}else userPaused=!video.paused;settle();});
   reduced.addEventListener('change',settle);
   if('IntersectionObserver' in window){new IntersectionObserver(function(entries){onScreen=entries.some(function(e){return e.isIntersecting});settle();},{threshold:0.2}).observe(video);}
   video.src=src;video.load();
