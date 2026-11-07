@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch} from '../../viewer/atlas_deeplink.js';
+import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch,viewToSearchValue,viewFromSearch} from '../../viewer/atlas_deeplink.js';
 const known=['CST_L','CST_R','AF_L','OR_L','UF_R'];
 test('tracts: empty selection writes nothing, picks keep order',()=>{
   assert.equal(tractsToSearchValue([]),null);assert.equal(tractsToSearchValue(undefined),null);
@@ -29,4 +29,18 @@ test('camera: garbage and degenerate values are null',()=>{
   for(const g of [null,undefined,'','1,2,x','1,2,3,4,5,6,7,8','1,2,3,4,5,6,7,8,9,10','1,2,3,4,5,6,7,8,Infinity','1,2,3,4,5,6,,0,1',
     '1,2,3,4,5,6,0,0,0','5,5,5,5,5,5,0,0,1'])assert.equal(cameraFromSearch(g),null,String(g));
   assert.equal(cameraToSearchValue({camera:[NaN,0,0],target:[0,0,0],up:[0,0,1]}),null);assert.equal(cameraToSearchValue(null),null);
+});
+test('view: only Cinematic view is written, and only view=cinematic is read',()=>{
+  assert.equal(viewToSearchValue(true),'cinematic');assert.equal(viewToSearchValue(false),null);
+  assert.equal(viewFromSearch(viewToSearchValue(true)),true);
+  for(const g of [null,undefined,'','Cinematic','cinematic ','slice','peel',42])assert.equal(viewFromSearch(g),false,String(g));
+});
+test('view: a full Cinematic link round-trips with tracts and cam',()=>{
+  const c={camera:[-414,81,118],target:[-8,-14,12],up:[0,0,1]},p=new URLSearchParams();
+  p.set('tracts',tractsToSearchValue(['CC','AF_L']));p.set('cam',cameraToSearchValue(c));p.set('view',viewToSearchValue(true));
+  const q=new URLSearchParams(p.toString());
+  assert.equal(viewFromSearch(q.get('view')),true);
+  assert.deepEqual(tractsFromSearch(q.get('tracts'),['CC','AF_L'],12),['CC','AF_L']);
+  assert.deepEqual(cameraFromSearch(q.get('cam')),c);
+  q.set('view','unknown');assert.equal(viewFromSearch(q.get('view')),false,'an unknown view is ignored');
 });

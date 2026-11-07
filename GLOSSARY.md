@@ -147,6 +147,46 @@ The two Atlas display modes: Study for reading size with animation, Present for 
 _Avoid_: Reading mode, projector mode, presenter mode (the code id `presenter` is internal)
 _Seen in_: `viewer/atlas.html`
 
+**Cinematic view**:
+An Atlas view that draws the selected Bundles as Lit streamlines under a peelable cortex, for looking rather than for teaching. It combines with either Study mode or Present mode and adds no Claims.
+_Avoid_: Cinematic mode, render mode, beauty mode
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Lit streamline**:
+A Streamline drawn as a shaded solid with direction colour, as in Cinematic view.
+_Avoid_: Tube (a Corridor is a tube), fat line, fiber
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Direction colour**:
+The colour convention in which a Streamline segment is red for left-right, green for front-back and blue for up-down travel.
+_Avoid_: DEC (acceptable only in code), RGB colouring, tint (Bundle tints identify Bundles)
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Peel**:
+The amount by which the cortical surface is dissolved in Cinematic view to reveal the Bundles beneath it.
+_Avoid_: Fade, cutaway, transparency
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Shot**:
+A named camera position and Peel amount in Cinematic view. A Shot never changes which Bundles are selected.
+_Avoid_: Preset, Scene (a Lesson Step's saved selection), angle
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Quality tier**:
+One of the two Cinematic view drawing levels: High, with ambient occlusion and depth of field, and Fast, without them.
+_Avoid_: Performance mode, LOD
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Still**:
+A saved image of Cinematic view that carries the draft notice and the data credits.
+_Avoid_: Screenshot, render, figure
+_Seen in_: planned on branch `feat/cinematic-mode`
+
+**Clip**:
+A short video of a turntable, a Peel reveal or a flight through Shots, rendered from Cinematic view, that carries the draft notice and the data credits.
+_Avoid_: Recording, video export, animation
+_Seen in_: planned on branch `feat/cinematic-mode`
+
 **Explore anatomy**:
 The free-navigation entry into the Atlas from a Lesson, after which the learner can restore the Lesson Scene.
 _Avoid_: Free mode, sandbox

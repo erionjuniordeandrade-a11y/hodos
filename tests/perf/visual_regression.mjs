@@ -13,7 +13,11 @@ const update=process.argv.includes('--update');
 // Chromium rasterises text and WebGL differently per OS, so baselines are kept per platform:
 // linux/ is what GitHub Actions renders, darwin/ what a Mac renders. Refresh with --update on that OS.
 const baselineDir=fileURLToPath(new URL(`../fixtures/visual/${process.platform}/`,import.meta.url));
-const scenes=['atlas-default','atlas-parcel','atlas-bundle','mips-default'];
+const allScenes=['atlas-default','atlas-parcel','atlas-bundle','mips-default','atlas-cinematic'];
+// --scene=name limits a run (and an --update) to one scene, so adding a scene never rewrites the others' baselines.
+const only=process.argv.find(arg=>arg.startsWith('--scene='))?.slice(8);
+if(only&&!allScenes.includes(only))throw Error(`Unknown --scene=${only}`);
+const scenes=only?[only]:allScenes;
 const report={url:base,update,viewport:{width:1280,height:800},threshold:.1,maxChangedPercent:.5,scenes:[],errors:[]};
 await mkdir(out,{recursive:true});
 if(update)await mkdir(baselineDir,{recursive:true});
@@ -29,7 +33,8 @@ try{
     try{
       // The parcel scene arrives through the URL the atlas itself writes on pick; the area
       // select lives in a collapsed tools panel and is not a supported test surface.
-      const route=name==='mips-default'?'/mips.html?test=1':name==='atlas-parcel'?'/atlas.html?test=1&area=147&areaHemi=L':'/atlas.html?test=1';
+      const route=name==='mips-default'?'/mips.html?test=1':name==='atlas-parcel'?'/atlas.html?test=1&area=147&areaHemi=L'
+        :name==='atlas-cinematic'?'/atlas.html?test=1&view=cinematic':'/atlas.html?test=1';
       const response=await page.goto(new URL(route,base).href,{waitUntil:'domcontentloaded'});
       assert.equal(response?.status(),200,`${name}: served page`);
       if(name==='mips-default'){
@@ -51,6 +56,12 @@ try{
         // The URL-restored parcel is selected before `ready` fires, so its frame is already counted;
         // only the bundle toggle happens after `ready` and must produce a new frame.
         if(name==='atlas-bundle')await page.waitForFunction(previous=>window.__atlasTest?.frames>previous,frames);
+        // Cinematic view from the URL: the 12 entry Bundles arrive by range request, then draw as Lit streamlines.
+        if(name==='atlas-cinematic'){
+          await page.waitForFunction(()=>window.__atlasTest?.cinematic?.litStreamlines?.length===12);
+          const lit=await page.evaluate(()=>window.__atlasTest.frames);
+          await page.waitForFunction(previous=>{document.dispatchEvent(new Event('visibilitychange'));return window.__atlasTest.frames>previous;},lit,{polling:100});
+        }
       }
       await page.evaluate(async()=>{await document.fonts.ready;window.scrollTo(0,0);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
       assert.deepEqual(report.errors,[],`${name}: no browser errors before capture`);

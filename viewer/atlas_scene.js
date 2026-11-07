@@ -17,6 +17,8 @@ import {createCorridorOverlay} from './corridor_overlay.js';
 import {createTractRangeLoader} from './tract_ranges.js';
 import {mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import {SLICE_AXES,sliceMesh,chainContours,slicePolylines,nearestVertex} from './atlas_slice.js';
+import {litStreamlineGeometry,litStreamlineIndex,LIT_STREAMLINE_FAST} from './lit_streamlines.js';
+import {clampPeel,clampGhost,peelRange,peelThreshold,createPeelUniforms,addPeel} from './cortex_peel.js';
 const MANIFEST_SHA256='772efa37e0756552aafc1fb4720565d104a23f38d597977835c77c91a1bf35a3';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 THREE.BufferGeometry.prototype.computeBoundsTree=computeBoundsTree;
@@ -91,7 +93,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
   let hoveredLine=null,controlsActive=false,frameHold=false;
   let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false,focusFlight=null;
-  let corridorOverlay=null;
+  let corridorOverlay=null,cinematic=false,peel=0,ghost=0,peelLook=null;
   let slice=null,sliceFrame=null,context=null;const slicePlane=new THREE.Plane(),sceneListeners=new Set();
   const sceneChanged=()=>{for(const listener of sceneListeners)listener();};
   let annotations=[],annotationStamp='',annotationTime=-Infinity;
@@ -391,7 +393,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
         roughness:.86,metalness:0,side:THREE.DoubleSide}));
       shell.material.userData.renderRole='atlas-cortex';
       const group=new THREE.Group();group.add(shell);scene.add(group);
-      hemis[h]={geo,shell,group,count};
+      hemis[h]={geo,shell,group,count,material:shell.material,ghost:null};
       frameGeometry.push(geo);
     }
     {const bounds=new THREE.Box3();for(const geo of frameGeometry){geo.computeBoundingBox();bounds.union(geo.boundingBox);}bounds.getCenter(centre);}
@@ -515,7 +517,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
     leaders.setAttribute('viewBox',`0 0 ${w} ${h}`);
     const p=new THREE.Vector3(),n=new THREE.Vector3(),toward=new THREE.Vector3();
-    const candidates=Object.values(hemis).filter(host=>host.group.visible).map(host=>host.shell);
+    const candidates=Object.values(hemis).filter(host=>host.group.visible&&host.shell.visible).map(host=>host.shell);
     const columns=[[],[]],fitLabels=w*.30<128,labelWidth=Math.min(150,Math.max(120,w*.40)),gap=6;
     for(const a of annotations){const pos=a.geo.attributes.position,normal=a.geo.attributes.normal;
       const occluders=a.kind==='deep'?[a.mesh,...candidates.filter(m=>m.material.opacity>=1)]:candidates;
@@ -574,7 +576,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     annotationStamp='';
     const opacity=surface>=.6?1:surface*.85;
     for(const host of Object.values(hemis)){
-      const material=host.shell.material;
+      const material=host.material;
       if(opacity<1)configContextMaterial(material,{THREE,opacity});
       else{material.opacity=1;material.transparent=false;material.depthWrite=true;material.needsUpdate=true;}
       material.userData.renderRole='atlas-cortex';
@@ -598,6 +600,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   function setHemisphere(h){
     visibleHemi=['L','R','both'].includes(h)?h:'both';
     for(const key of ['L','R'])hemis[key].group.visible=visibleHemi==='both'||visibleHemi===key;
+    if(cinematic)shadowsDirty();
     for(const mesh of deep)mesh.visible=deepVisible&&(visibleHemi==='both'||visibleHemi===mesh.userData.hemisphere);
     rebuildAnnotations();requestDraw();sceneChanged();
   }
@@ -629,7 +632,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   }
   function clearBundles(){
     clearHover();
-    for(const {group} of bundles.values()){scene.remove(group);group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}
+    for(const bundle of bundles.values()){const {group}=bundle;scene.remove(group);group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});removeLit(bundle);}
     bundles.clear();traces.length=0;sceneChanged();
   }
   const GHOST_TINT=0x818d99;
@@ -672,7 +675,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
           group.add(trace);traces.push(trace);
         }
         for(const line of group.children)line.material.resolution.copy(drawSize);
-        bundles.set(id,{group,ghost:isGhost,alpha,tint,positions,arc,segmentToStreamline:Int32Array.from(segmentOwners),ranges,lineCount:lines.length});scene.add(group);
+        const bundle={group,lines,ghost:isGhost,alpha,tint,positions,arc,segmentToStreamline:Int32Array.from(segmentOwners),ranges,lineCount:lines.length,lit:null};
+        bundles.set(id,bundle);scene.add(group);if(cinematic)showLit(bundle);
       }
       applyClipping();requestDraw();sceneChanged();
       // A lesson flight fits its focus before the pathways arrive by range request; refit once they are in,
@@ -682,6 +686,74 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`);console.error(error);}
     }
   }
+  // Cinematic view (Fast Quality tier): primary Bundles drawn as Lit streamlines in Direction colour.
+  // Their line drawing stays in the scene, hidden, so hover and picking keep hitting the same centrelines.
+  const litIndices=new Map();let litMaterial=null;
+  function showLit(bundle){
+    if(bundle.ghost||bundle.lit)return; // a ghost Bundle keeps its dim line drawing
+    const [main,trace]=bundle.group.children;main.visible=false;if(trace)trace.visible=false;
+    const {position,normal,color,P}=litStreamlineGeometry(bundle.lines,LIT_STREAMLINE_FAST),key=`${bundle.lineCount}:${P}:${LIT_STREAMLINE_FAST.sides}`;
+    if(!litIndices.has(key))litIndices.set(key,new THREE.BufferAttribute(litStreamlineIndex(bundle.lineCount,P,LIT_STREAMLINE_FAST.sides),1));
+    litMaterial??=new THREE.MeshPhysicalMaterial({vertexColors:true,roughness:.38,metalness:0,specularIntensity:.9});
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(position,3));geo.setAttribute('normal',new THREE.BufferAttribute(normal,3,true));
+    geo.setAttribute('color',new THREE.BufferAttribute(color,3,true));geo.setIndex(litIndices.get(key));geo.computeBoundingSphere();
+    bundle.lit=new THREE.Mesh(geo,litMaterial);bundle.lit.userData.kind='lit-streamline';bundle.lit.raycast=()=>{};bundle.lit.castShadow=bundle.lit.receiveShadow=true;scene.add(bundle.lit);shadowsDirty();
+  }
+  function removeLit(bundle){
+    if(!bundle.lit)return;scene.remove(bundle.lit);bundle.lit.geometry.dispose();bundle.lit=null;shadowsDirty();
+  }
+  // Peel: in Cinematic view the cortex draws with its own opaque material, whose dissolve the shadow
+  // map (customDepthMaterial) and the AO normal pass (gbufferMaterial) share. Leaving puts the Study
+  // material back untouched, so the default view is restored exactly.
+  function shadowsDirty(){renderer.shadowMap.needsUpdate=true;}
+  renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=THREE.PCFShadowMap;
+  Object.assign(light.shadow.camera,{left:-120,right:120,top:120,bottom:-120,near:100,far:650});
+  light.shadow.mapSize.set(2048,2048);light.shadow.bias=-.0004;light.shadow.normalBias=.25;light.shadow.radius=2;
+  function ensurePeelLook(){
+    if(peelLook)return peelLook;
+    const uniforms=createPeelUniforms(),side=THREE.DoubleSide;
+    peelLook={uniforms,range:peelRange(Object.values(hemis).map(host=>host.geo.attributes.position.array)),
+      colour:addPeel(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.86,metalness:0,side}),uniforms,'colour'),
+      depth:addPeel(new THREE.MeshDepthMaterial({side}),uniforms,'depth'),
+      normal:addPeel(new THREE.MeshNormalMaterial({side}),uniforms,'normal'),
+      ghost:new THREE.MeshStandardMaterial({vertexColors:true,roughness:.86,metalness:0,side,transparent:true,opacity:0,depthWrite:false})};
+    peelLook.colour.userData.renderRole='atlas-cortex';
+    for(const host of Object.values(hemis)){
+      host.ghost=new THREE.Mesh(host.geo,peelLook.ghost);host.ghost.renderOrder=2;host.ghost.visible=false;
+      host.ghost.raycast=()=>{};host.ghost.userData.gbufferMaterial=null;host.group.add(host.ghost);
+    }
+    return peelLook;
+  }
+  function applyPeel(){
+    if(!cinematic)return;
+    const look=ensurePeelLook();
+    look.uniforms.uPeelThr.value=peelThreshold(peel,look.range);
+    look.uniforms.uPeelActive.value=peel>0&&peel<100?1:0;
+    look.ghost.opacity=ghost;
+    for(const host of Object.values(hemis)){host.shell.visible=peel<100;host.ghost.visible=ghost>.001;}
+    annotationStamp='';shadowsDirty();requestDraw();sceneChanged();
+  }
+  function setCinematic(on){
+    if(cinematic===!!on)return;cinematic=!!on;clearBundleHover();
+    for(const bundle of bundles.values()){
+      if(cinematic)showLit(bundle);
+      else{removeLit(bundle);const [main,trace]=bundle.group.children;main.visible=true;if(trace)trace.visible=profile==='teaching';}
+    }
+    const look=cinematic?ensurePeelLook():null;
+    for(const host of Object.values(hemis)){const shell=host.shell;
+      shell.material=look?look.colour:host.material;shell.customDepthMaterial=look?.depth;
+      shell.castShadow=shell.receiveShadow=cinematic;shell.visible=true;
+      if(look)shell.userData.gbufferMaterial=look.normal;else delete shell.userData.gbufferMaterial;
+      if(host.ghost)host.ghost.visible=false;
+    }
+    light.castShadow=cinematic;renderer.shadowMap.enabled=cinematic;shadowsDirty();
+    annotationStamp='';applyClipping();applyPeel();requestDraw();sceneChanged();
+  }
+  /** Peel 0..100: how far the cortex is dissolved in Cinematic view. Applied at once, never animated. */
+  function setPeel(value){peel=clampPeel(value);applyPeel();}
+  /** Ghost cortex 0..1: a faint whole cortex drawn over the Peel, for Shots. */
+  function setGhost(value){ghost=clampGhost(value);applyPeel();}
   const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();ray.firstHitOnly=true;ray.params.Line2={threshold:2};let down,hoverFrame=0;
   function clearBundleHover(){
     if(!hoveredLine)return;
@@ -692,25 +764,27 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     clearBundleHover();
     const bundle=bundles.get(id),{first,count}=bundle.ranges[streamline];
     const overlay=fatLine(bundle.positions.slice(first*6,(first+count)*6),
-      {arc:bundle.arc.slice(first*2,(first+count)*2),color:0xffedaa,opacity:.95,linewidth:3.5,effect:'feather'});
+      {arc:bundle.arc.slice(first*2,(first+count)*2),color:0xffedaa,opacity:.95,linewidth:3.5,effect:'feather',depthTest:!cinematic});
     overlay.material.resolution.copy(drawSize);overlay.material.clippingPlanes=slice?[slicePlane]:null;overlay.renderOrder=6;bundle.group.add(overlay);
     hoveredLine={bundle:id,streamline,overlay,group:bundle.group};requestDraw();
   }
   function pickAt(e,includeBundles=false){
     const rect=renderer.domElement.getBoundingClientRect();ndc.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);
     ray.setFromCamera(ndc,camera);
-    const candidates=Object.values(hemis).filter(h=>h.group.visible).map(h=>h.shell);
+    const candidates=Object.values(hemis).filter(h=>h.group.visible&&h.shell.visible).map(h=>h.shell);
+    // In Cinematic view the Peel owns the cortex: whole (Peel 0) it occludes like an opaque surface.
+    const opaque=cinematic?peel===0:surface>=.6;
     const deepHit=ray.intersectObjects(deep.filter(x=>x.visible),false)[0],cortexHit=ray.intersectObjects(candidates,false)[0];
     if(includeBundles){
       const lines=[...bundles.values()].map(bundle=>bundle.group.children[0]);
       const lineHit=ray.intersectObjects(lines,false)[0];
-      if(lineHit&&(!cortexHit||surface<.6||lineHit.distance<=cortexHit.distance)){
+      if(lineHit&&(!cortexHit||!opaque||lineHit.distance<=cortexHit.distance)){
         const [id,bundle]=[...bundles].find(([,value])=>value.group.children[0]===lineHit.object);
         return {bundle:id,streamline:bundle.segmentToStreamline[lineHit.faceIndex],total:bundle.lineCount};
       }
     }
     // An opaque surface occludes deep picking; a transparent reference shell does not.
-    const hit=surface>=.6?(cortexHit&&(!deepHit||cortexHit.distance<deepHit.distance)?cortexHit:deepHit):(deepHit||cortexHit);
+    const hit=opaque?(cortexHit&&(!deepHit||cortexHit.distance<deepHit.distance)?cortexHit:deepHit):(deepHit||cortexHit);
     if(!hit)return null;
     if(hit.object.userData.kind==='deep')return {deep:hit.object.userData};
     const h=Object.keys(hemis).find(k=>hemis[k].shell===hit.object),pos=hemis[h].geo.attributes.position;
@@ -754,10 +828,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const sliceBounds=()=>{const box=new THREE.Box3();for(const geo of frameGeometry){geo.computeBoundingBox();box.union(geo.boundingBox);}return box;};
   function applyClipping(){
     const planes=slice?.clip?[slicePlane]:null;
-    for(const host of Object.values(hemis))host.shell.material.clippingPlanes=planes;
+    for(const host of Object.values(hemis))host.material.clippingPlanes=planes;
     for(const mesh of deep)mesh.material.clippingPlanes=planes;
     if(context)context.material.clippingPlanes=[context.material.clippingPlanes[0],...(planes||[])];
     for(const {group} of bundles.values())for(const line of group.children)line.material.clippingPlanes=planes;
+    if(litMaterial)litMaterial.clippingPlanes=planes;
   }
   function disposeSliceFrame(){if(!sliceFrame)return;scene.remove(sliceFrame);sliceFrame.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});sliceFrame=null;}
   /** {axis:'axial'|'coronal'|'sagittal', value (mm), keep:-1|1, clip, crosshair:[x,y,z]} or null to clear. */
@@ -861,16 +936,17 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     setBundles,setView,flyTo,snapshot,restore,setCamera,setNetworks,networkAt,hasNetworks,parcelNetwork,
     setArterial,arterialAt,hasArterial,get arterialRows(){return arterialRows;},
     setSurface,setLesion,setCorridors,projectBundleVertex,setFrameInsets,
-    setSlice,sliceAt,parcelNear,loadSliceTemplate,onCameraRest(fn){restListeners.add(fn);return ()=>restListeners.delete(fn);},onSceneChange(listener){sceneListeners.add(listener);return ()=>sceneListeners.delete(listener);},
+    setSlice,sliceAt,parcelNear,loadSliceTemplate,setCinematic,setPeel,setGhost,onCameraRest(fn){restListeners.add(fn);return ()=>restListeners.delete(fn);},onSceneChange(listener){sceneListeners.add(listener);return ()=>sceneListeners.delete(listener);},
     // For a page that draws its own layer (the lesion lab): the live scene, camera and controls,
     // the on-demand redraw, the interactive size budget, and verified bundle bytes by id.
     get stage(){return {scene,camera,controls,canvas:renderer.domElement,requestDraw,setInteracting:pipeline.setInteracting,
       setFrameHold(v){frameHold=!!v;},loadBundleBytes:ids=>tractRangeLoader.load(ids)};},
-    setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching';requestDraw();},
+    setProfile(value){profile=value==='presenter'?'presenter':'teaching';for(const t of traces)t.visible=profile==='teaching'&&!cinematic;requestDraw();},
     setPlaying(value){playing=!!value;last=0;requestDraw();},
     get state(){return {ready:true,profile,playing:playing&&profile==='teaching'&&!reduced.matches,
       reducedMotion:reduced.matches,time,frames,selected,highlighted:highlighted.map(r=>({...r})),hemisphere:visibleHemi,
       bundles:bundleIdsBy(false),ghostBundles:bundleIdsBy(true),tractError:bundleError,
+      cinematic:{on:cinematic,tier:'fast',peel,ghost,shadows:renderer.shadowMap.enabled&&light.castShadow,litStreamlines:[...bundles].filter(([,b])=>b.lit).map(([id])=>id)},
       hover:hoveredLine?{bundle:hoveredLine.bundle,streamline:hoveredLine.streamline}:null,
       bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
       vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,slice:slice?{...slice,crosshair:slice.crosshair?[...slice.crosshair]:null}:null,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
@@ -878,6 +954,6 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
         cameraFrame:frameFocus?'lesson':'whole',target:currentTarget().toArray(),
         labels:annotations.map(a=>({key:a.key,kind:a.kind,x:a.x,y:a.y,visibility:a.visibility,primary:a.primary}))},
       camera:camera.position.toArray(),cameraTransition:cameraTransition?{elapsed:performance.now()-cameraTransition.start,duration:cameraTransition.duration}:null};},
-    dispose(){clearHover();sceneListeners.clear();disposeSliceFrame();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});disposeBase();},
+    dispose(){clearHover();sceneListeners.clear();disposeSliceFrame();for(const host of Object.values(hemis))host.material.dispose();if(peelLook)for(const m of [peelLook.colour,peelLook.depth,peelLook.normal])m.dispose();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});disposeBase();},
   };
 }
