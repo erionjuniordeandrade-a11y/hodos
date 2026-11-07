@@ -33,7 +33,9 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(home,/<source media="\(prefers-reduced-motion: no-preference\)" srcset="\.\/media\/landing\/hero-cortex-strip-start-1080-20261107\.jpg"/);
   assert(landingAssets.some(f=>f.path==='media/landing/hero-cortex-strip-880-av1-20261107.mp4'));
   assert.equal([...home.matchAll(/<video class="family-loop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/family-[a-z]+-loop-20260926\.mp4"/g)].length,4);
+  assert.equal([...home.matchAll(/<video class="family-loop"[^>]*poster="\.\/media\/landing\/(family-[a-z]+-loop-20260926)\.jpg"[^>]*data-src="\.\/media\/landing\/\1\.mp4"/g)].length,4);
   assert.match(home,/<video id="demoLoop"[^>]*muted[^>]*playsinline[^>]*preload="none"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
+  assert.match(home,/<video id="demoLoop"[^>]*poster="\.\/media\/landing\/lesson-demo-20260928\.jpg"[^>]*data-src="\.\/media\/landing\/lesson-demo-loop-20260926\.mp4"/);
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-loop-20260926.mp4'));
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-20260928.jpg'));
   assert(landingAssets.some(f=>f.path==='media/landing/lesson-demo-phone-20260928.jpg'));
