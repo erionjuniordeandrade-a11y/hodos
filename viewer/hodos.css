@@ -1069,7 +1069,9 @@ h1,h1 span{text-wrap:balance}
 .slice-options label{display:inline-flex;gap:var(--space-2xs);align-items:center;cursor:pointer}
 .slice-options button{margin-left:auto}
 .slice-readout{margin:0;font-family:var(--font-outlier);color:var(--color-ink);min-height:2.7em}
-.slice-status{margin:0;color:var(--color-muted)}
+/* The status line sits over the section, so loading or error text never adds height to the panel. */
+.slice-frame{position:relative}
+.slice-status{position:absolute;left:var(--space-2xs);right:var(--space-2xs);bottom:var(--space-2xs);margin:0;padding:2px 6px;color:var(--color-muted);background:color-mix(in oklab,var(--color-plate) 85%,transparent);border-radius:var(--radius);pointer-events:none}
 .slice-status:empty{display:none}
 .slice-note{margin:0;color:var(--color-faint)}
 /* Phones: the stage can be 150 px tall in a lesson, so the chosen slice opens as a sheet over the viewport.
@@ -1087,3 +1089,20 @@ h1,h1 span{text-wrap:balance}
 /* Labels size to their name; the hemisphere prefix never sits alone on a line. */
 .atlas-parcel-label{width:max-content}.atlas-parcel-label span{overflow-wrap:anywhere}
 @media screen and (max-width:760px){.atlas-parcel-label{font-size:11px}}
+/* Cinematic view: Direction colour legend; the DEC tokens equal DIRECTION_COLOUR_HEX in viewer/lit_streamlines.js. */
+.cinematic-legend{position:absolute;right:12px;top:12px;z-index:3;padding:8px 10px;border:1px solid var(--stage-line);border-radius:var(--radius);background:var(--stage);color:var(--stage-ink);font-size:12px;line-height:1.4;pointer-events:none;max-width:calc(100% - 24px)}
+.cinematic-legend[hidden]{display:none}
+.cinematic-legend p{margin:0 0 4px;font-weight:600}
+.cinematic-legend ul{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.cinematic-legend li{display:flex;align-items:center;gap:6px}
+.cinematic-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
+.cinematic-legend .dir-x{background:var(--color-dec-commissural)}.cinematic-legend .dir-y{background:var(--color-dec-association)}.cinematic-legend .dir-z{background:var(--color-dec-projection)}
+@media screen and (max-width:760px){.cinematic-legend{right:8px;top:8px;padding:6px 8px;font-size:11px}}
+#atlasCinematic[aria-pressed=true]{border-color:var(--accent);color:var(--accent-strong);font-weight:650}
+/* Cinematic view: the Peel slider sits bottom-left over the canvas, above the orientation axes (80px, bottom centre). */
+.cinematic-peel{position:absolute;left:12px;bottom:96px;z-index:3;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--stage-line);border-radius:var(--radius);background:var(--stage);color:var(--stage-ink);font-size:12px;max-width:calc(100% - 24px)}
+.cinematic-peel[hidden]{display:none}
+.cinematic-peel label{font-weight:600}
+.cinematic-peel input{width:160px;min-width:0;accent-color:var(--accent)}
+.cinematic-peel output{min-width:4ch;text-align:right;font-variant-numeric:tabular-nums}
+@media screen and (max-width:760px){.cinematic-peel{left:8px;bottom:92px;padding:4px 8px;font-size:11px}.cinematic-peel input{width:120px}}
