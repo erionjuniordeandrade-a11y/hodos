@@ -28,9 +28,12 @@ try{
   assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));
   assert(!sitemapLocs.some(pathname=>pathname.startsWith('/atlas?lesson=')));
   const assets=expected.files.filter(f=>f.path!=='_headers'&&f.path!=='_redirects');
+  // A per-run query key misses the CDN cache: bare paths of unhashed-in-path files (landing.css) can
+  // stay stale at the edge for max-age after a deploy while the page's ?v= URLs already serve the new bytes.
+  const cacheKey=`gate=${Date.now().toString(36)}`;
   for(let start=0;start<assets.length;start+=6){
     await Promise.all(assets.slice(start,start+6).map(async asset=>{
-      const response=await http.get(`/${asset.path}`);
+      const response=await http.get(`/${asset.path}?${cacheKey}`);
       assert.equal(response.status(),200,asset.path);
       // Cloudflare Web Analytics injects its beacon into served HTML; strip exactly that block before comparing.
       const served=await response.body();
