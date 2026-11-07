@@ -1,4 +1,4 @@
-// Pure URL grammar for the free-explore view (`tracts`, `cam`). No DOM, no three: unit-testable in node.
+// Pure URL grammar for the free-explore view (`tracts`, `cam`, `view`). No DOM, no three: unit-testable in node.
 // Number() drops trailing zeros and `|| 0` turns -0 into 0, so the URL stays short and never shows "-0".
 const num=(v,step)=>String(Number((Math.round(v/step)*step).toFixed(step<.01?3:1))||0);
 /** Selected bundle ids in pick order (= tint order), or null when none. */
@@ -20,3 +20,7 @@ export function cameraFromSearch(value){
   if(Math.hypot(...up)<1e-3)return null;
   if(Math.hypot(camera[0]-target[0],camera[1]-target[1],camera[2]-target[2])<1e-3)return null;
   return {camera,target,up};}
+/** `view=cinematic` while Cinematic view is on, else nothing. */
+export function viewToSearchValue(cinematic){return cinematic?'cinematic':null;}
+/** True only for `view=cinematic`; any other value is ignored. */
+export function viewFromSearch(value){return value==='cinematic';}

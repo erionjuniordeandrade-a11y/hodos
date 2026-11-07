@@ -5,14 +5,14 @@ import {resolveTeachingScene,focusTeachingTarget} from './anatomy_learning.js';
 import {TEACHING_GUIDES} from './lesson_briefings.js';
 import {resolveScene} from './lesson_scene.js';
 import {DEFAULT_SCENE} from './lesson_content.js';
-import {toggleBundle,MAX_BUNDLES,tintForIndex,tintCss,filterBundles,selectionCaption} from './bundle_picker.js';
+import {toggleBundle,MAX_BUNDLES,tintForIndex,tintCss,filterBundles,selectionCaption,cinematicEntryBundles} from './bundle_picker.js';
 import {YEO7,networkLabel,networkFromSearch,networkToSearchValue,networkSelection,rgbCss} from './atlas_networks.js';
 import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
 import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 import {caseReference} from './case_reference.js';
 import {CASE_LESIONS,lesionScene,LESION_NOTE} from './case_lesions.js';
 import {mountSlicePanel} from './atlas_slice_panel.js';
-import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch} from './atlas_deeplink.js';
+import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch,viewToSearchValue,viewFromSearch} from './atlas_deeplink.js';
 import {arterialSelection,arterialFromSearch,arterialToSearchValue,arterialLabel,ARTERIAL_NOTE} from './atlas_arterial.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
@@ -26,9 +26,10 @@ let selectedBundles=[],currentGhosts=[];
 // CONTEXT.md: never invent L or R. 'both' (or anything else) is null, not L.
 const currentHemisphere=()=>{const v=$('atlasHemisphere').value;return v==='L'||v==='R'?v:null;};
 let currentPick=null; // {hemi:'L'|'R'|'both',id} once a parcel has actually been picked
-let currentDeep=null,catalog=[],exploring=false;
+let currentDeep=null,catalog=[],exploring=false,cinematic=false;
 const option=(value,text)=>{const n=document.createElement('option');n.value=value;n.textContent=text;return n;};
 function syncURL(){const p=new URLSearchParams(location.search);p.set('profile',profile);
+  const view=viewToSearchValue(cinematic);if(view)p.set('view',view);else p.delete('view');
   // During a lesson these keys retain Explore's settings. The lesson/step/phase
   // keys own the teaching view, so reload cannot mix two different scenes.
   if(currentLesson){history.replaceState(history.state,'',`${location.pathname}?${p}`);return;}
@@ -270,6 +271,7 @@ function applyPathwayFilter(){
 /** Apply a resolved scene (from resolveScene) to the live atlas: bundles+ghost, the region
  * set (first = focus, rest = secondary highlight), deep structures, surface and camera. */
 function applySceneEffects(resolved,{authored=false,keepCamera=false}={}){
+  setCinematic(false); // a Lesson Scene owns its teaching look
   applyBundles(resolved.bundleIds,resolved.ghostIds);
   if(resolved.regions.length){
     readRegion(resolved.regions[0].hemi,resolved.regions[0].id);
@@ -324,6 +326,16 @@ function compareLecture(comparison,option){
   applySceneEffects(resolved,{authored:true});
   $('pickedClass').textContent='Lecture comparison';$('pickedName').textContent=option.label;$('pickedDescription').textContent=comparison.note;
   $('explorationStatus').hidden=true;$('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent=`Lecture comparison · ${option.label}. Restore returns to this relationship.`;
+}
+/** Cinematic view: Lit streamlines in Direction colour. Entry with nothing selected selects the entry set; the camera stays. */
+function setCinematic(on){
+  on=!!on;if(!scene||on===cinematic)return;cinematic=on;
+  if(on&&slicePanel?.open)slicePanel.setOpen(false);
+  scene.setCinematic(on);
+  if(on){const ids=cinematicEntryBundles(selectedBundles,scene.tractMeta.bundles.map(b=>b.id));
+    if(ids!==selectedBundles)applyBundles(ids,currentGhosts);revealInterior();}
+  $('atlasCinematic').setAttribute('aria-pressed',String(on));$('cinematicLegend').hidden=!on;
+  syncURL();
 }
 function pauseForExploration(){
   if(player?.controller.state.status==='playing')player.controller.pause();
@@ -389,6 +401,7 @@ $('atlasCopyLink').addEventListener('click',async()=>{
   setTimeout(()=>{$('linkStatus').textContent='';},4000);
   const menu=$('atlasCopyLink').closest('details');menu.open=false;menu.querySelector('summary').focus();});
 $('atlasFit').addEventListener('click',()=>{scene?.setView(scene.state.view);});
+$('atlasCinematic').addEventListener('click',()=>{setCinematic(!cinematic);$('atlasCinematic').closest('details').open=false;});
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
   if(b.dataset.view==='medial'&&$('atlasHemisphere').value==='both'){
     $('atlasHemisphere').value='L';scene?.setHemisphere('L');if(currentPick)readRegion('L',currentPick.id);syncURL();}
@@ -506,7 +519,7 @@ try{
   // Slice view: the 3D plane and its 2D section. It opens only from the Views menu, never on load.
   slicePanel=mountSlicePanel($('slicePanel'),{scene});
   for(const b of document.querySelectorAll('[data-slice-open]'))b.addEventListener('click',()=>{
-    slicePanel.setAxis(b.dataset.sliceOpen);slicePanel.setOpen(true);b.closest('details').open=false;});
+    setCinematic(false);slicePanel.setAxis(b.dataset.sliceOpen);slicePanel.setOpen(true);b.closest('details').open=false;});
   $('slicePanel').querySelector('[data-slice-close]').addEventListener('click',()=>{slicePanel.setOpen(false);viewMenu.querySelector('summary').focus();});
   player=mountAnatomyLessons($('lessonPanel'),{
     readOnlyProgress:caseReference,
@@ -514,6 +527,8 @@ try{
     onRestore:()=>applyStep(currentLesson,currentStep),onExplore:restoreExploration,
   });
   scene.setProfile(profile);motionUI();
+  // Deep link: like tracts/cam, `view=cinematic` applies in Explore only; any other value is ignored.
+  if(!bootParams.has('lesson')&&!bootParams.has('case')&&viewFromSearch(bootParams.get('view')))setCinematic(true);
   // Case Conference reference: `?case=<id>` places that case's fictional lesion marker and its
   // authored focus set. Nothing is persisted; the marker is illustrative (case_lesions.js).
   const caseLesion=CASE_LESIONS[bootParams.get('case')];

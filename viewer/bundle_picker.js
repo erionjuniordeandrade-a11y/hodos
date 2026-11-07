@@ -32,3 +32,13 @@ export function selectionCaption(count,max=MAX_BUNDLES){
   if(!count)return `none · up to ${max}`;
   return count>=max?`${count} / ${max} · limit reached`:`${count} / ${max}`;
 }
+
+/** Cinematic view's entry set: the prototype's 15 Bundles less C_FP_L, C_FP_R and FAT_R, to fit MAX_BUNDLES. */
+export const CINEMATIC_BUNDLES=Object.freeze(['CC','CST_L','CST_R','AF_L','AF_R','IFOF_L','IFOF_R','ILF_L','ILF_R','UF_L','UF_R','FAT_L']);
+
+/** Selection on entering Cinematic view: an existing selection stays untouched; an empty one gets the known entry set. */
+export function cinematicEntryBundles(selected,knownIds){
+  if(selected.length)return selected;
+  const known=new Set(knownIds);
+  return CINEMATIC_BUNDLES.filter(id=>known.has(id)).slice(0,MAX_BUNDLES);
+}
