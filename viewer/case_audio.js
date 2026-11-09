@@ -1,4 +1,7 @@
-const ACTIVE_STATUSES = new Set(['requesting', 'recording', 'stopping']);
+// Every status the recorder reports. After dispose() it stays 'idle' and start() throws.
+export const AUDIO_STATUSES = Object.freeze(['idle', 'requesting', 'recording', 'stopping', 'ready', 'error']);
+// A recording is in progress: leaving the stage would discard it.
+export const ACTIVE_STATUSES = Object.freeze(['requesting', 'recording', 'stopping']);
 const START_ERROR = 'Audio recording could not be started. Check microphone permissions and try again.';
 
 function stopTracks(stream) {
@@ -98,7 +101,7 @@ export function createCaseAudio({ getUserMedia, Recorder, onChange = () => {} } 
 
   async function start() {
     if (disposed) throw thrown('Audio recorder has been disposed. Create a new recorder to try again.');
-    if (ACTIVE_STATUSES.has(state.status))
+    if (ACTIVE_STATUSES.includes(state.status))
       throw thrown('A recording is already in progress. Stop or discard it before starting again.');
     const id = ++generation;
     chunks = [];

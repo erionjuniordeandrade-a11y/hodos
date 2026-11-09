@@ -1,7 +1,7 @@
 import {LESSONS,CONTENT_VERSION,SOURCES,REGIONS,sourceIdsForStep} from './lesson_content.js';
-import {createLessonController,lessonSearch} from './lesson_state.js';
-import {createLearningProgress,createPostopReplay,learningPhase,LEARNING_PHASES,POSTOP_REPLAY_MAX} from './anatomy_learning.js';
-import {matchTeachback,teachbackTerms} from './teachback.js';
+import {createLessonController,lessonSearch,nextLabel} from './lesson_state.js';
+import {createLearningProgress,createPostopReplay,LEARNING_PHASES,POSTOP_REPLAY_MAX} from './anatomy_learning.js';
+import {matchTeachback,teachbackTerms,micTransition,MIC_IDLE} from './teachback.js';
 import {CURRICULUM,TEACHING_GUIDES} from './lesson_briefings.js';
 // Home page order is the teaching order: module numbers and the dropdown follow it.
 const ORDERED_IDS=CURRICULUM.flatMap(group=>group.ids);
@@ -15,29 +15,23 @@ function el(tag,attrs={},text=''){
 }
 const button=(text,id,action)=>{const node=el('button',{type:'button',id},text);node.addEventListener('click',action);return node;};
 const list=items=>{const node=el('ul');for(const text of items)node.append(el('li',{},text));return node;};
-const phaseFromSearch=search=>{const value=new URLSearchParams(search).get('phase');return ['brief','recap'].includes(value)?value:learningPhase(value);};
 
 /** Anatomy's resident teaching experience is independent of the case viewer's
  * legacy lesson player. Callbacks expose only local reference display actions. */
 export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onRestore=()=>{},onExplore=()=>{},onMode=()=>{},onCompare=()=>{},readOnlyProgress=false}={}){
   let storage;if(!readOnlyProgress)try{storage=localStorage;}catch{/* Session-only progress still works. */}
   const progress=createLearningProgress(storage),postop=createPostopReplay(storage),revealed=new Set();
-  let phase=phaseFromSearch(location.search),controller,lastScene='',lastReading='',focusHeading=false,noticeFor=null;
+  let controller,lastScene='',lastReading='',focusHeading=false;
   // Teach-back UI state is in memory only; the transcript lives in the textarea and is never kept.
-  let explainOpen=false,recognition=null;
-  function stopListening(){if(!recognition)return;const active=recognition;recognition=null;try{active.abort();}catch{/* already stopped */}}
-  const lessonNow=()=>LESSONS.find(l=>l.id===controller.state.lessonId);
-  function sync(){
-    const params=new URLSearchParams(lessonSearch(location.search,controller.state));
-    if(controller.state.lessonId)params.set('phase',phase);else params.delete('phase');
-    history.replaceState(history.state,'',`${location.pathname}${params.size?'?'+params:''}${location.hash}`);
-  }
+  // `mic` is the microphone state; showMic projects it onto whichever panel is mounted.
+  let explainOpen=false,recognition=null,mic=MIC_IDLE,showMic=()=>{};
+  function micEvent(event){mic=micTransition(mic,event);showMic();}
+  function stopListening(){if(!recognition)return;const active=recognition;recognition=null;try{active.abort();}catch{/* already stopped */}micEvent({type:'stop'});}
+  function sync(){history.replaceState(history.state,'',`${location.pathname}${lessonSearch(location.search,controller.state)}${location.hash}`);}
   function start(id,{resume=false}={}){
     const saved=resume?progress.get(id):null;
-    phase=saved?.phase||'brief';focusHeading=true;explainOpen=false;
-    // Restore emits once, so a resumed lesson never renders/saves step zero first.
-    const params=new URLSearchParams();params.set('lesson',id);params.set('step',String(saved?.step||0));params.set('lessonVersion',CONTENT_VERSION);
-    controller.restore(`?${params}`);
+    focusHeading=true;explainOpen=false;
+    controller.select(id,{step:saved?.step||0,phase:saved?.phase||'brief'});
   }
   // Phone: stage and nav are sticky, so bring the heading just under the stage.
   function alignHeadingUnderStage(heading){
@@ -46,22 +40,13 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     const delta=heading.getBoundingClientRect().top-stageBottom-16;
     if(Math.abs(delta)>4)window.scrollBy(0,delta);
   }
-  function goPhase(value){phase=value;focusHeading=true;render(controller.state);sync();}
-  function goStep(index,requestedPhase='orient'){phase=requestedPhase;focusHeading=true;controller.move(index-controller.state.step);}
-  function library(){phase='orient';focusHeading=true;controller.close();}
+  // Every Reading change is a controller transition (lesson_state.js); the heading takes focus after each.
+  function goStep(step,phase='orient'){focusHeading=true;controller.go({step,phase});}
+  const goPhase=phase=>goStep(controller.state.step,phase);
+  function library(){focusHeading=true;controller.close();}
   function explore(){library();onExplore();onMode('explore');}
-  function next(){const lesson=lessonNow(),state=controller.state;
-    if(phase==='brief'){goPhase('orient');return;}
-    const index=LEARNING_PHASES.indexOf(phase);
-    if(index<2){goPhase(LEARNING_PHASES[index+1]);return;}
-    if(state.step<lesson.steps.length-1)goStep(state.step+1);else goPhase('recap');
-  }
-  function previous(){
-    const index=LEARNING_PHASES.indexOf(phase);
-    if(phase==='recap')goPhase('explain');
-    else if(index>0)goPhase(LEARNING_PHASES[index-1]);
-    else if(controller.state.step>0)goStep(controller.state.step-1,'explain');else goPhase('brief');
-  }
+  function next(){focusHeading=true;controller.next();}
+  function previous(){focusHeading=true;controller.previous();}
   function progressNote(){return el('p',{class:'learning-save-note'},readOnlyProgress?'Case reference: lesson progress is session-only; your saved lessons are unchanged.':progress.persistent?'Progress saved on this device · no account needed.':'Progress is available for this session; device storage is unavailable.');}
   function renderLibrary(state){
     onMode('library');lastScene='';onStep(null,null);
@@ -112,31 +97,35 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     lang.append(el('option',{value:'en-US'},'English'),el('option',{value:'pt-BR'},'Português (Brasil)'));
     const controls=el('div',{class:'teachback-controls'});controls.append(lang);
     const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-    const note=el('p',{class:'learning-save-note',id:'teachbackMicStatus'});
+    const note=el('p',{class:'learning-save-note',id:'teachbackMicStatus',role:'status'});
+    let micButton=null;
+    showMic=()=>{note.textContent=mic.note;if(!micButton)return;
+      micButton.textContent=mic.status==='listening'?'Stop':'Speak';micButton.setAttribute('aria-pressed',String(mic.status==='listening'));};
     if(Recognition){
-      const mic=button('Speak','teachbackMic',()=>{
-        if(recognition){stopListening();mic.textContent='Speak';mic.setAttribute('aria-pressed','false');return;}
+      micButton=button('Speak','teachbackMic',()=>{
+        if(recognition){stopListening();return;}
         let active;
-        try{active=new Recognition();}catch{note.textContent='Speech recognition is unavailable here; type your explanation instead.';return;}
+        try{active=new Recognition();}catch{micEvent({type:'unavailable'});return;}
         active.lang=lang.value;active.continuous=true;active.interimResults=false;
         active.onresult=event=>{if(recognition!==active)return;
           let heard='';for(let i=event.resultIndex;i<event.results.length;i++)if(event.results[i].isFinal)heard+=event.results[i][0].transcript;
           if(heard.trim())text.value=`${text.value}${text.value&&!/\s$/.test(text.value)?' ':''}${heard.trim()}`;};
-        active.onerror=event=>{if(recognition!==active)return;note.textContent=event.error==='not-allowed'?'Microphone permission was declined; type your explanation instead.':'Speech recognition stopped; you can keep typing.';};
-        active.onend=()=>{if(recognition===active){recognition=null;mic.textContent='Speak';mic.setAttribute('aria-pressed','false');}};
-        recognition=active;mic.textContent='Stop';mic.setAttribute('aria-pressed','true');note.textContent='Listening…';
-        try{active.start();}catch{recognition=null;mic.textContent='Speak';mic.setAttribute('aria-pressed','false');note.textContent='Speech recognition could not start; type your explanation instead.';}
-      });mic.setAttribute('aria-pressed','false');controls.append(mic);
+        active.onerror=event=>{if(recognition===active)micEvent({type:'error',error:event.error});};
+        active.onend=()=>{if(recognition===active){recognition=null;micEvent({type:'end'});}};
+        recognition=active;micEvent({type:'start'});
+        try{active.start();}catch{recognition=null;micEvent({type:'failed'});}
+      });controls.append(micButton);
       panel.append(text,controls,el('p',{class:'learning-save-note teachback-disclosure'},'Chrome may send audio to Google for recognition; typing keeps everything on this device.'),note);
-    }else panel.append(text,controls);
+    }else panel.append(text,controls,note);
+    showMic();
     const submit=el('button',{type:'submit',id:'teachbackCheck'},'Show what is missing');panel.append(submit);
     const result=teachbackResult(lesson,guide,progress.get(lesson.id));
     panel.addEventListener('submit',event=>{event.preventDefault();stopListening();
-      if(!text.value.trim()){note.textContent='Write or speak an explanation first.';return;}
+      if(!text.value.trim()){micEvent({type:'empty'});return;}
       const {missing}=matchTeachback(text.value,guide.takeaways);
       if(!progress.get(lesson.id))progress.visit(lesson.id,state.step,'explain');
       progress.teachback(lesson.id,missing.map(m=>m.termId));
-      text.value='';note.textContent='';
+      text.value='';micEvent({type:'stop'});
       result.replaceWith(teachbackResult(lesson,guide,progress.get(lesson.id)));
     });
     section.append(panel,result);body.append(section);
@@ -194,13 +183,16 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
     }compare.append(controls);body.append(compare);
   }
   function render(state){
-    stopListening();
+    stopListening();mic=MIC_IDLE;showMic=()=>{};
+    const {phase}=state;
     const focusId=root.contains(document.activeElement)?document.activeElement.id:null;
     const readingId=`${state.lessonId}:${state.step}:${phase}`;
     const scrollTop=readingId===lastReading?root.querySelector('.lesson-scroll')?.scrollTop||0:0;
     root.replaceChildren();root.scrollLeft=0;
     const lesson=LESSONS.find(l=>l.id===state.lessonId);
-    root.dataset.activeLesson=String(!!lesson);root.dataset.phase=phase;
+    // data-phase and data-step expose the Reading to agents and CSS; both are absent in the library.
+    root.dataset.activeLesson=String(!!lesson);
+    if(lesson){root.dataset.phase=phase;root.dataset.step=String(state.step);}else{delete root.dataset.phase;delete root.dataset.step;}
     if(!lesson){renderLibrary(state);}
     else{
       const guide=TEACHING_GUIDES[lesson.id],step=lesson.steps[state.step];
@@ -225,8 +217,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
       }
       const body=el('div',{class:'lesson-scroll'});root.append(body);
       const title=phase==='brief'?guide.shortTitle:phase==='recap'?'Explain the relationship.':step.title;
-      // A stale-link notice belongs to the reading it opened on; any step or phase change retires it.
-      if(state.notice){if(noticeFor===null)noticeFor=readingId;if(noticeFor===readingId)body.append(el('p',{class:'lesson-notice',role:'status'},state.notice));}
+      if(state.notice)body.append(el('p',{class:'lesson-notice',role:'status'},state.notice));
       const kicker=phase==='brief'?`${lesson.category}, about ${lesson.minutes} minutes`:phase==='recap'?'Take it into your next discussion':'';
       if(kicker)body.append(el('p',{class:'lesson-kicker'},kicker));
       body.append(el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},title));
@@ -274,13 +265,13 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
       if(phase==='recap'){
         // With a next lesson, the pinned primary continues to it; #lessonNext still closes the lesson.
         const nextId=ORDERED_IDS[ORDERED_IDS.indexOf(lesson.id)+1],nextGuide=TEACHING_GUIDES[nextId];
-        if(nextGuide)nav.append(button('All lessons','lessonNext',library),button(`Continue: ${nextGuide.shortTitle}`,'lessonContinueTopic',()=>start(nextId)));
-        else nav.append(button('Final relationship','lessonPrev',previous),button('All lessons','lessonNext',library));
+        const finish=button(nextLabel(state,lesson.steps.length),'lessonNext',next);
+        if(nextGuide)nav.append(finish,button(`Continue: ${nextGuide.shortTitle}`,'lessonContinueTopic',()=>start(nextId)));
+        else nav.append(button('Final relationship','lessonPrev',previous),finish);
       }
       else{
         const prev=button('Previous','lessonPrev',previous);prev.hidden=phase==='brief';
-        const nextLabel=phase==='brief'?'Begin lesson':phase==='orient'?'Compare':phase==='compare'?'Explain':state.step===lesson.steps.length-1?'Lesson recap':'Next relationship';
-        nav.append(prev,button(nextLabel,'lessonNext',next));
+        nav.append(prev,button(nextLabel(state,lesson.steps.length),'lessonNext',next));
       }footer.append(nav);
       const tools=el('div',{class:'lesson-tools'});tools.append(button('Restore scene','lessonRestore',()=>{
         onRestore();for(const b of root.querySelectorAll('.lesson-targets button'))b.setAttribute('aria-pressed','false');
@@ -299,8 +290,8 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
   // A fresh phone entry (landing CTA, lesson link) opens with the step text under the stage, not under the header.
   if(controller.state.lessonId&&window.scrollY===0){const heading=root.querySelector('#lessonCurrentTitle');if(heading)requestAnimationFrame(()=>alignHeadingUnderStage(heading));}
   return {controller,library,explore,start,
-    get phase(){return phase;},
-    restore(search){phase=phaseFromSearch(search);controller.restore(search);},
+    get phase(){return controller.state.phase;},
+    restore(search){controller.restore(search);},
     refresh({restoreView=false}={}){if(restoreView)lastScene='';render(controller.state);},dispose(){},
   };
 }

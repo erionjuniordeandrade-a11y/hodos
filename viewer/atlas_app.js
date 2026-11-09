@@ -1,23 +1,24 @@
 import {createAtlasScene} from './atlas_scene.js';
 import {atlasSelectionFromSearch,regionIdentity,resolveBundleId} from './atlas_data.js';
 import {mountAnatomyLessons} from './anatomy_lesson_player.js';
+import {lessonStateFromSearch} from './lesson_state.js';
 import {resolveTeachingScene,focusTeachingTarget} from './anatomy_learning.js';
 import {TEACHING_GUIDES} from './lesson_briefings.js';
 import {resolveScene} from './lesson_scene.js';
 import {DEFAULT_SCENE} from './lesson_content.js';
 import {toggleBundle,MAX_BUNDLES,tintForIndex,tintCss,filterBundles,selectionCaption,cinematicEntryBundles} from './bundle_picker.js';
-import {YEO7,networkLabel,networkFromSearch,networkToSearchValue,networkSelection,rgbCss} from './atlas_networks.js';
+import {YEO7,networkLabel,networkToSearchValue,networkSelection,rgbCss} from './atlas_networks.js';
 import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
 import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 import {caseReference} from './case_reference.js';
 import {CASE_LESIONS,lesionScene,LESION_NOTE} from './case_lesions.js';
 import {mountSlicePanel} from './atlas_slice_panel.js';
 import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch,viewToSearchValue,viewFromSearch} from './atlas_deeplink.js';
-import {arterialSelection,arterialFromSearch,arterialToSearchValue,arterialLabel,ARTERIAL_NOTE} from './atlas_arterial.js';
+import {arterialSelection,arterialToSearchValue,arterialLabel} from './atlas_arterial.js';
+import {networkWash,arterialWash,washOf,washLayers,washFromSearch,washReadout} from './cortex_wash.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
-// Read `net` before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
-const initialNetwork=networkFromSearch(location.search);
+// Read the boot query before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
 const bootParams=new URLSearchParams(location.search);
 let slicePanel=null,scene,player,profile=initial.profile,playing=false,currentStep=null,currentLesson=null,exploration=null,lastResolvedTrace=false;
 // Ordered primary selection (pick order = tint order in the scene) and the ghost set that
@@ -26,7 +27,7 @@ let selectedBundles=[],currentGhosts=[];
 // CONTEXT.md: never invent L or R. 'both' (or anything else) is null, not L.
 const currentHemisphere=()=>{const v=$('atlasHemisphere').value;return v==='L'||v==='R'?v:null;};
 let currentPick=null; // {hemi:'L'|'R'|'both',id} once a parcel has actually been picked
-let currentDeep=null,catalog=[],exploring=false,cinematic=false;
+let currentDeep=null,catalog=[],cinematic=false;
 const option=(value,text)=>{const n=document.createElement('option');n.value=value;n.textContent=text;return n;};
 function syncURL(){const p=new URLSearchParams(location.search);p.set('profile',profile);
   const view=viewToSearchValue(cinematic);if(view)p.set('view',view);else p.delete('view');
@@ -91,58 +92,28 @@ function parcelNetworkNote(hemi,id){
   const summary=scene.parcelNetwork?.(hemi,id);if(!summary||!summary.id)return '';
   return ` Mostly ${networkLabel(summary.id).replace(' · ',', ')} in the Yeo-7 group atlas (${Math.round(summary.share*100)}% of its vertices).`;
 }
-/** Arterial-territory wash: select + legend + URL key. Exclusive with the Yeo-7 wash so one
- * colour on the cortex always means one thing. */
-function applyArterial(sel){
-  const rows=scene.arterialRows,s=arterialSelection(sel?.mode,sel?.focus,rows);
-  if(s.mode!=='off'&&scene.state.network.mode!=='off')applyNetworks(networkSelection('off'));
-  scene.setArterial(s);
-  const live=scene.state.arterial,sel_=$('atlasArterial'),legend=$('arterialLegend');
-  sel_.value=live.mode==='off'?'off':live.mode==='all'?'all':String(live.focus);
-  legend.hidden=live.mode==='off';
-  for(const li of legend.children)li.classList.toggle('dim',live.mode==='focus'&&Number(li.dataset.id)!==live.focus);
-  if(live.mode!=='off'){
-    const readout=$('sceneNetwork');readout.hidden=false;
-    readout.querySelector('span').textContent=live.mode==='all'?'Arterial territories · Liu 2023 group template':`${arterialLabel(rows,live.focus)} territory · Liu 2023 group template`;
-    readout.querySelector('i').style.background=live.mode==='focus'?rgbCss(rows.find(r=>r.id===live.focus).rgb):`linear-gradient(90deg,${rows.map(r=>rgbCss(r.rgb)).join(',')})`;
-    if(!currentPick&&!currentDeep){
-      $('pickedClass').textContent='Vascular context, arterial atlas';
-      $('pickedName').textContent=live.mode==='all'?'Four supply territories':`${arterialLabel(rows,live.focus)} territory`;
-      $('pickedDescription').textContent=ARTERIAL_NOTE;
-    }
-  }else if(scene.state.network.mode==='off'){$('sceneNetwork').hidden=true;}
-  syncURL();
-}
-/** Yeo-7 wash control: select + legend + URL key, one entry point (also used by lesson steps). */
-function applyNetworks(sel){
-  const s=networkSelection(sel?.mode,sel?.focus);
-  if(s.mode!=='off'&&scene.state.arterial?.mode!=='off'){scene.setArterial(arterialSelection('off'));$('atlasArterial').value='off';$('arterialLegend').hidden=true;}
-  scene.setNetworks(s);
-  const live=scene.state.network;
-  $('atlasNetworks').value=live.mode==='off'?'off':live.mode==='all'?'all':String(live.focus);
-  const legend=$('networkLegend');legend.hidden=live.mode==='off';
-  for(const li of legend.children)li.classList.toggle('dim',live.mode==='focus'&&Number(li.dataset.id)!==live.focus);
-  const networkReadout=$('sceneNetwork');networkReadout.hidden=live.mode==='off';
-  networkReadout.querySelector('span').textContent=live.mode==='all'?'Yeo-7 · all group networks':`${networkLabel(live.focus).replace(' · ',', ')} · Yeo-7 group`;
-  networkReadout.querySelector('i').style.background=live.mode==='focus'?rgbCss(YEO7.find(n=>n.id===live.focus).rgb)
-    :`linear-gradient(90deg,${YEO7.map(n=>rgbCss(n.rgb)).join(',')})`;
-  if(!currentPick&&!currentDeep&&live.mode!=='off'){
-    $('pickedClass').textContent='Network context, Yeo-7';
-    $('pickedName').textContent=live.mode==='all'?'Seven cortical networks':networkLabel(live.focus);
-    $('pickedDescription').textContent='Population cortical grouping. Select cortex to compare its HCP parcel identity; network colour does not show task activation.';
-  }else if(!currentPick&&!currentDeep){
-    $('pickedClass').textContent='Atlas parcel';$('pickedName').textContent='No parcel selected';
-    $('pickedDescription').textContent='Select cortex to inspect its HCP-MMP1 label.';
+/** The one entry point for the Wash (cortex_wash.js): scene layers, both selects and legends, the
+ * scene chip, an empty picked panel and the URL. Choosing a Network turns the arterial wash off, and back. */
+function applyWash(next){
+  const rows=scene.arterialRows,layers=washLayers(next,rows);
+  scene.setNetworks(layers.network);scene.setArterial(layers.arterial);
+  const wash=washOf(scene.state),view=washReadout(wash,rows);
+  for(const [kind,select,legend] of [['network',$('atlasNetworks'),$('networkLegend')],['arterial',$('atlasArterial'),$('arterialLegend')]]){
+    const on=wash.kind===kind;select.value=!on?'off':wash.mode==='all'?'all':String(wash.focus);legend.hidden=!on;
+    for(const li of legend.children)li.classList.toggle('dim',on&&wash.mode==='focus'&&Number(li.dataset.id)!==wash.focus);
   }
+  const chip=$('sceneNetwork');chip.hidden=!view.chip;
+  if(view.chip){chip.querySelector('span').textContent=view.chip;chip.querySelector('i').style.background=view.swatch;}
+  if(!currentPick&&!currentDeep)[$('pickedClass').textContent,$('pickedName').textContent,$('pickedDescription').textContent]=view.picked;
+  document.body.dataset.wash=wash.kind;
   syncURL();
 }
 /** No parcel asserted (S-5): nothing is lit and the readout does not name a side. */
 function clearPick(){
   currentPick=null;currentDeep=null;scene.select(null);scene.setDeepHighlight([]);$('deepRegion').value='';
   document.querySelector('.parcel-legend').hidden=true;
-  $('pickedClass').textContent='Atlas parcel';
-  $('pickedName').textContent='No parcel selected';
-  $('pickedDescription').textContent='Select cortex to inspect its HCP-MMP1 label.';
+  // An empty picked panel always describes the current Wash.
+  [$('pickedClass').textContent,$('pickedName').textContent,$('pickedDescription').textContent]=washReadout(washOf(scene.state),scene.arterialRows).picked;
   $('pickedNetwork').textContent='';
   $('atlasArea').value='';syncURL();
 }
@@ -282,7 +253,8 @@ function applySceneEffects(resolved,{authored=false,keepCamera=false}={}){
   scene.setDeep(resolved.deep);$('deepStructures').checked=resolved.deep;
   scene.setDeepHighlight(resolved.deepRegionIds,{focus:resolved.deepFocusIds||[]});
   if(resolved.surface!=null){scene.setSurface(resolved.surface);$('surfaceLevel').value=String(Math.round(resolved.surface*100));}
-  if(resolved.network)applyNetworks(resolved.network);
+  // A Lesson Scene owns its teaching look: its network is the whole Wash, so an arterial wash turns off.
+  if(resolved.network)applyWash(networkWash(resolved.network));
   if(resolved.lesion)scene.setLesion(resolved.lesion);
   if(!keepCamera){
     if(resolved.camera)scene.flyTo(authored?resolved.camera:{...resolved.camera,zoom:1,focus:true});
@@ -290,9 +262,9 @@ function applySceneEffects(resolved,{authored=false,keepCamera=false}={}){
   }
 }
 function applyStep(lesson,step,{authored=false}={}){
-  if(lesson&&!currentLesson&&!exploration)exploration=scene.snapshot();
+  if(lesson&&!currentLesson&&!exploration)exploration=exploreSnapshot();
   currentStep=step;currentLesson=lesson;if(!step){lastResolvedTrace=false;$('lessonSceneStatus').hidden=true;restoreExploration({retain:true});return;}
-  exploring=false;$('explorationStatus').hidden=true;
+  $('explorationStatus').hidden=true;
   const resolved=resolveTeachingScene(lesson,step);
   const hemisphere=resolved.side??'both';$('atlasHemisphere').value=hemisphere;scene.setHemisphere(hemisphere);syncMedialLabel();
   applySceneEffects(resolved,{authored});
@@ -307,7 +279,7 @@ function inspectLessonTarget(target){
   if(!currentLesson||!currentStep)return;
   const authored=resolveTeachingScene(currentLesson,currentStep);
   const focused=focusTeachingTarget(authored,target);
-  exploring=false;$('explorationStatus').hidden=true;
+  $('explorationStatus').hidden=true;
   scene.setHemisphere(authored.side??'both');$('atlasHemisphere').value=authored.side??'both';syncMedialLabel();
   applySceneEffects(focused,{keepCamera:true});
   if(target.kind==='deep'||target.kind==='bundle'){
@@ -340,10 +312,11 @@ function setCinematic(on){
   $('cinematicPeel').hidden=!on;$('surfaceLevel').disabled=on;
   syncURL();
 }
+/** Explore's scene, kept while a Lesson owns the atlas. The scene snapshot has no arterial layer, so the Wash rides along. */
+const exploreSnapshot=()=>({...scene.snapshot(),wash:washOf(scene.state)});
 function pauseForExploration(){
-  if(player?.controller.state.status==='playing')player.controller.pause();
   playing=false;motionUI();
-  exploring=true;$('explorationStatus').hidden=!currentLesson;
+  $('explorationStatus').hidden=!currentLesson;
   $('lessonSceneStatus').hidden=true;
   $('explorationStatus').textContent='Free inspection. Restore scene returns to the authored relationship.';
 }
@@ -355,13 +328,13 @@ function restoreExploration({retain=false}={}){
     const d=scene.subMeta.structures.find(d=>d.id===exploration.deepHighlight[0]);if(d)showDeep(d,{reveal:false});
   }
   scene.highlight(exploration.highlighted||[]);scene.setDeepHighlight(exploration.deepHighlight||[]);scene.setDeep(exploration.deepVisible);
-  applyNetworks(exploration.network);
+  applyWash(exploration.wash);
   applyBundles(exploration.bundles||[],exploration.ghostBundles||[]);playing=false;motionUI();if(!retain)exploration=null;
-  exploring=false;$('explorationStatus').hidden=true;syncMedialLabel();
+  $('explorationStatus').hidden=true;syncMedialLabel();
 }
 function setMode(mode){
   // Capture before the library changes the canvas aspect ratio and auto-framing.
-  if(mode==='library'&&document.body.dataset.mode==='explore'&&!exploration&&scene)exploration=scene.snapshot();
+  if(mode==='library'&&document.body.dataset.mode==='explore'&&!exploration&&scene)exploration=exploreSnapshot();
   const wasExplore=document.body.dataset.mode==='explore';
   document.body.dataset.mode=mode;document.body.dataset.expanded='false';$('expandAnatomy').setAttribute('aria-pressed','false');$('expandAnatomy').textContent='Expand';
   if(mode==='explore')$('anatomyDrawer').open=true;else if(wasExplore)$('anatomyDrawer').open=false;
@@ -382,7 +355,8 @@ $('openAnatomySearch').addEventListener('click',()=>{const open=$('anatomySearch
   else closeSearch();});
 $('openAtlasTools').addEventListener('click',()=>{const docked=document.body.dataset.mode==='explore';$('anatomyDrawer').open=docked?true:!$('anatomyDrawer').open;if(docked)$('atlasArea').focus({preventScroll:false});});
 $('anatomyDrawer').addEventListener('toggle',()=>{$('openAtlasTools').setAttribute('aria-expanded',String($('anatomyDrawer').open));});
-document.querySelector('.skip-link').addEventListener('click',()=>{$('anatomyDrawer').open=true;$('atlasControls').focus();});
+// The skip link moves focus itself; following its fragment would add a history entry and fire popstate.
+document.querySelector('.skip-link').addEventListener('click',event=>{event.preventDefault();$('anatomyDrawer').open=true;$('atlasControls').focus();});
 const viewMenu=document.querySelector('.atlas-view-menu');
 document.addEventListener('pointerdown',event=>{if(viewMenu.open&&!viewMenu.contains(event.target))viewMenu.open=false;});
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;
@@ -448,7 +422,7 @@ try{
       const sw=document.createElement('i');sw.style.background=rgbCss(n.rgb);li.append(sw,document.createTextNode(networkLabel(n.id)));legend.append(li);}
     netSel.disabled=false;
     netSel.addEventListener('change',()=>{pauseForExploration();
-      const v=netSel.value;applyNetworks(v==='off'?networkSelection('off'):v==='all'?networkSelection('all'):networkSelection('focus',Number(v)));});
+      const v=netSel.value;applyWash(networkWash(v==='off'?networkSelection('off'):v==='all'?networkSelection('all'):networkSelection('focus',Number(v))));});
   }
   // Arterial territories: options + legend from the installed table; disabled when the set is absent.
   const artSel=$('atlasArterial'),artLegend=$('arterialLegend');
@@ -459,7 +433,7 @@ try{
       const sw=document.createElement('i');sw.style.background=rgbCss(r.rgb);li.append(sw,document.createTextNode(arterialLabel(scene.arterialRows,r.id)));artLegend.append(li);}
     artSel.disabled=false;
     artSel.addEventListener('change',()=>{pauseForExploration();
-      const v=artSel.value;applyArterial(v==='off'?arterialSelection('off'):v==='all'?arterialSelection('all'):arterialSelection('focus',Number(v),scene.arterialRows));});
+      const v=artSel.value;applyWash(arterialWash(v==='off'?arterialSelection('off'):v==='all'?arterialSelection('all'):arterialSelection('focus',Number(v),scene.arterialRows)));});
   }
   $('atlasHemisphere').value=initial.hemi;scene.setHemisphere(initial.hemi);syncMedialLabel();
   $('atlasHemisphere').addEventListener('change',()=>{
@@ -509,9 +483,7 @@ try{
   if(new URLSearchParams(location.search).has('area')){
     readRegion(['L','R','both'].includes(requestedH)?requestedH:initial.hemi,initial.area);
   }else clearPick();
-  applyNetworks(initialNetwork);
-  // Read the boot-time query: applyNetworks above already rewrote location.search without `art`.
-  if(scene.hasArterial()){const a=arterialFromSearch(bootParams.toString(),scene.arterialRows);if(a.mode!=='off')applyArterial(a);}
+  applyWash(washFromSearch(bootParams.toString(),scene.arterialRows));
   applyBundles([]);scene.setSurface(.8);setProfile(profile);
   let camTimer=0;scene.onCameraRest(()=>{clearTimeout(camTimer);camTimer=setTimeout(syncURL,300);}); // never per frame
   const deepFromUrl=scene.subMeta.structures.find(d=>d.id===bootParams.get('deep'));if(deepFromUrl)showDeep(deepFromUrl);
@@ -542,16 +514,22 @@ try{
     applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...lesionScene(caseLesion)}},caseLesion.side),{authored:true});
     $('lessonSceneStatus').hidden=false;$('lessonSceneStatus').textContent=`Fictional lesion marker · ${caseLesion.label}. ${LESION_NOTE}`;
   }
-  window.addEventListener('popstate',()=>{const s=atlasSelectionFromSearch(location.search),netFromUrl=networkFromSearch(location.search);
-    const search=location.search,q=new URLSearchParams(search),ah=q.get('areaHemi');
-    profile=s.profile;document.body.dataset.profile=profile;scene.setProfile(profile);$('atlasHemisphere').value=s.hemi;scene.setHemisphere(s.hemi);
+  window.addEventListener('popstate',()=>{const search=location.search,s=atlasSelectionFromSearch(search),q=new URLSearchParams(search),ah=q.get('areaHemi');
+    const now=player.controller.state,then=lessonStateFromSearch(search);
+    const readingChanged=now.lessonId!==then.lessonId||now.step!==then.step||now.phase!==then.phase;
+    profile=s.profile;document.body.dataset.profile=profile;$('lessonProfile').value=profile;scene.setProfile(profile);
+    // Same Reading in a Lesson (a fragment-only entry): the URL's Explore keys describe the kept Explore, not the scene.
+    if(!readingChanged&&now.lessonId){motionUI();return;}
+    $('atlasHemisphere').value=s.hemi;scene.setHemisphere(s.hemi);
     // Clear the current lesson before rebuilding the Explore snapshot from the URL.
     currentLesson=null;currentStep=null;exploration=null;
     if(q.has('area')&&['L','R','both'].includes(ah)){
       readRegion(ah,s.area);
     }else clearPick();
     const d=scene.subMeta.structures.find(d=>d.id===q.get('deep'));if(d)showDeep(d);
-    applyNetworks(netFromUrl);player.restore(search);player.refresh({restoreView:true});syncMedialLabel();motionUI();});
+    applyWash(washFromSearch(search,scene.arterialRows));
+    if(readingChanged){player.restore(search);player.refresh({restoreView:true});}
+    syncMedialLabel();motionUI();});
   if(new URLSearchParams(location.search).has('test'))Object.defineProperty(window,'__atlasTest',{get:()=>({...scene.state,lesson:player.controller.state,
     // Test-only: inject a v2 declarative scene directly, bypassing lesson content, so Playwright
     // can exercise SCENE GRAMMAR v2 (bundles/ghost/regions/camera/deepRegions) in isolation.

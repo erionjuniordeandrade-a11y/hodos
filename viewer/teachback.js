@@ -49,3 +49,27 @@ export function matchTeachback(transcript,takeaways){
   }
   return {named,missing};
 }
+
+/** Teach-back microphone: idle or listening, plus the one status line under it. Every
+ * recognition event goes through this transition, so the button label, aria-pressed and the
+ * status line can never disagree with whether the browser is still listening. */
+export const MIC_IDLE=Object.freeze({status:'idle',note:''});
+const LISTENING='Listening…';
+const MIC_NOTES={
+  'not-allowed':'Microphone permission was declined; type your explanation instead.',
+  error:'Speech recognition stopped; you can keep typing.',
+  unavailable:'Speech recognition is unavailable here; type your explanation instead.',
+  failed:'Speech recognition could not start; type your explanation instead.',
+  empty:'Write or speak an explanation first.',
+};
+export function micTransition(mic,event){
+  switch(event.type){
+    case 'start':return {status:'listening',note:LISTENING};
+    case 'stop':return MIC_IDLE;
+    // An error leaves recognition running until the browser sends 'end'; keep its message.
+    case 'error':return {status:mic.status,note:MIC_NOTES[event.error==='not-allowed'?'not-allowed':'error']};
+    case 'end':return {status:'idle',note:mic.note===LISTENING?'':mic.note};
+    case 'unavailable':case 'failed':case 'empty':return {status:'idle',note:MIC_NOTES[event.type]};
+    default:throw new Error(`Unknown microphone event ${event.type}`);
+  }
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeTranscript,matchTeachback,teachbackTerms} from '../../viewer/teachback.js';
+import {normalizeTranscript,matchTeachback,teachbackTerms,micTransition,MIC_IDLE} from '../../viewer/teachback.js';
 import {TERMS,T} from './fixtures/teachback-motor.js';
 import {TEACHING_GUIDES} from '../../viewer/lesson_briefings.js';
 
@@ -73,4 +73,20 @@ test('only motor-cst carries teach-back terms, equal to the reviewed fixture; ot
   assert.equal(teachbackTerms(TEACHING_GUIDES['motor-cst'].takeaways).length,10);
   assert.deepEqual(matchTeachback('anything at all',TEACHING_GUIDES['motor-cst'].takeaways).named,[]);
   assert.equal(teachbackTerms(TERMS).length,10);
+});
+
+test('the microphone never shows Stop or Listening… once recognition has stopped, whatever stopped it',()=>{
+  const run=events=>events.reduce((mic,type)=>micTransition(mic,typeof type==='string'?{type}:type),MIC_IDLE);
+  assert.deepEqual(run(['start']),{status:'listening',note:'Listening…'});
+  // A user stop, a submit, closing the panel and the browser ending recognition all leave it idle and quiet.
+  assert.deepEqual(run(['start','stop']),MIC_IDLE);
+  assert.deepEqual(run(['start','end']),MIC_IDLE);
+  // An error keeps its message after the browser's end event.
+  const denied=run(['start',{type:'error',error:'not-allowed'},'end']);
+  assert.equal(denied.status,'idle');assert.match(denied.note,/permission was declined/);
+  assert.match(run(['start',{type:'error',error:'network'}]).note,/stopped; you can keep typing/);
+  assert.equal(run(['start',{type:'error',error:'network'}]).status,'listening','recognition runs until the browser sends end');
+  assert.match(run(['failed']).note,/could not start/);assert.match(run(['unavailable']).note,/unavailable here/);
+  assert.match(run(['start','stop','empty']).note,/explanation first/);
+  assert.throws(()=>micTransition(MIC_IDLE,{type:'bogus'}),/Unknown microphone event/);
 });

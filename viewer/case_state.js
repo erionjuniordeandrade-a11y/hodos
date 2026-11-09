@@ -1,6 +1,6 @@
 import {CASES,CASE_VERSION} from './case_content.js';
 export const CASE_KEY='hodos.caseConference.v1';
-export const BASE_STAGES=['Case','Interpret','Explore','Reconsider','Respond','Debrief'];
+export const BASE_STAGES=Object.freeze(['Case','Interpret','Explore','Reconsider','Respond','Debrief']);
 const DECIDE_AT=BASE_STAGES.indexOf('Respond');
 // Cases with a decision gain a 'Decide' stage between Reconsider and Respond; others keep the six stages.
 export function stagesFor(c){return c?.decision?[...BASE_STAGES.slice(0,DECIDE_AT),'Decide',...BASE_STAGES.slice(DECIDE_AT)]:[...BASE_STAGES];}
@@ -11,6 +11,22 @@ function remapStage(i,from,to){
  if(from===to)return i;
  if(to>from)return i>=DECIDE_AT?i+1:i;          // 6 -> 7: Respond/Debrief move one right
  return i>DECIDE_AT?i-1:i===DECIDE_AT?DECIDE_AT-1:i; // 7 -> 6: Decide falls back to Reconsider
+}
+// The one position rule for a case; part is a hash segment. 'review' shows the last Stage and never raises
+// maxStage. A Stage number is clamped to maxStage unless reach (the learner pressed Continue or a Stage button).
+// Anything else resumes at maxStage.
+export function caseRoute(record,stages,part,{reach=false}={}){
+ const last=stages.length-1,n=Number(part),valid=Number.isInteger(n)&&n>=0&&n<=last;
+ if(part==='review')return {stage:last,maxStage:record.maxStage,reviewOnly:true};
+ const maxStage=reach&&valid?Math.max(n,record.maxStage):record.maxStage;
+ return {stage:valid?Math.min(n,maxStage):maxStage,maxStage,reviewOnly:false};
+}
+// One history navigation is one decision. The entry index is history.state.at; a fragment entry the browser just
+// pushed has none and sits after the shown one. 'shown' (a paired hashchange, or history.go returning) and
+// 'refused' (the paired event of a cancelled navigation) need nothing; 'new' needs a route decision.
+export function historyEntry(shown,refused,hash,state){
+ const entry={hash,at:Number.isInteger(state?.at)?state.at:shown.at+1};
+ return {entry,kind:hash===shown.hash&&entry.at===shown.at?'shown':refused&&hash===refused.hash&&entry.at===refused.at?'refused':'new'};
 }
 const blank=n=>({stage:0,maxStage:0,stages:n,initial:'',revision:'',response:'',mode:'written',spokenDone:false,reviewOnly:false,ratings:{},decision:null});
 function cleaner(c){
@@ -47,10 +63,13 @@ export function createCaseStore(storage,{cases=CASES}={}){
    saveOK=true;return true;
   }catch{saveOK=false;notice='Could not save on this device. Your current text remains in this session; download it before leaving.';return false;}
  }
+ function write(id,input){records.set(id,cleaners.get(id)(input));if(remembered.has(id))save();return get(id);}
  return {
   get,get notice(){return notice;},
   stages(id){check(id);return stagesFor(byId.get(id));},
-  update(id,patch){records.set(id,cleaners.get(id)({...get(id),...patch}));if(remembered.has(id))save();return get(id);},
+  // Position (stage, maxStage, reviewOnly) changes only through move(); update drops it, so leaving review cannot unlock Stages.
+  update(id,{stage,maxStage,reviewOnly,...fields}){return write(id,{...get(id),...fields});},
+  move(id,part,options){const r=get(id);return write(id,{...r,...caseRoute(r,stagesFor(byId.get(id)),part,options)});},
   // A committed decision is locked for the attempt; only clear(id) (Reset this case) removes it.
   decide(id,optionId,at=new Date().toISOString()){if(get(id).decision)return get(id);return this.update(id,{decision:{optionId,at}});},
   remember(id,enabled){check(id);if(enabled){if(blocked)return false;remembered.add(id);}else remembered.delete(id);return save();},

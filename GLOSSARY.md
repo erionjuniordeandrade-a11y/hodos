@@ -38,6 +38,16 @@ One of the few points a learner should leave a Lesson with, each pinned to the S
 _Avoid_: Learning objective, key point
 _Seen in_: `viewer/lesson_briefings.js`
 
+**Reading**:
+Where a learner stands in a Lesson: one Step seen through one Lesson phase. Every Next, Previous and jump is a Reading transition in one module.
+_Avoid_: Position, slide, page
+_Seen in_: `viewer/lesson_state.js`
+
+**Lesson phase**:
+One of five views of a Reading: brief opens the Lesson, orient, compare and explain repeat for every Step, and recap closes it. Written `phase` in code, URLs and `data-phase`.
+_Avoid_: Phase (MIPS), Stage (Case Conference)
+_Seen in_: `viewer/lesson_state.js`
+
 **Teach-back**:
 The "Explain it" exercise in which the learner writes or speaks an explanation that is matched against the Lesson's Takeaways.
 _Avoid_: Self-explanation, quiz, recitation
@@ -131,6 +141,11 @@ _Seen in_: `viewer/atlas/subcortex.json`
 One of the seven Yeo cortical networks (VIS, SMN, DAN, VAN, LIM, FPN, DMN), shown as a coloured wash over Parcels.
 _Avoid_: Circuit, system, functional area
 _Seen in_: `viewer/atlas_networks.js`
+
+**Wash**:
+The one colour layer over the cortex: none, a Network, or an arterial territory. Only one Wash shows at a time, so one colour always means one thing; `body[data-wash]` names it.
+_Avoid_: Overlay, layer, tint (tint is a Bundle's pick colour)
+_Seen in_: `viewer/cortex_wash.js`
 
 **Slice**:
 A 2D cut through the Atlas along an axial, coronal or sagittal plane.
@@ -293,7 +308,7 @@ _Seen in_: `scripts/build-hodos.mjs`
 ## Open questions
 
 1. **Bundle vs tract.** Code and ids say "bundle" while the owner's prose, the review sheets and the file names (`tract_ranges.js`, `tracts.bin`) say "tract". Which is canonical?
-2. **Phase vs Stage vs Step.** The MIPS exercise uses Phase, Case Conference uses Stage, Lessons use Step, and all three are ordered screens. Should one word cover them?
+2. **Phase vs Stage vs Step.** The MIPS exercise uses Phase, Case Conference uses Stage, Lessons use Step, and all three are ordered screens. Should one word cover them? Lessons also have a Lesson phase inside each Step (`viewer/lesson_state.js`).
 3. **Relationship counts and "lesson" counts.** `README.md` says 10 lessons and 58 relationships; `CLAUDE.md` says 14 lessons and 85 relationships. Which count is current, and does a Relationship mean a graph row or a lesson-cited pair?
 4. **Teach-back vs "Explain it".** The code and tests say teachback; the interface says "Explain it", and the MIPS Phase called "explain" is a different thing. What is the canonical name for the learner-explains exercise?
 5. **Lesion vs Target vs Case lesion.** Three illustrative spheres share one shape but have three names across the Lesion lab, MIPS and Case Conference. Are they one concept?

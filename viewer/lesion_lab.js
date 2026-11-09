@@ -3,7 +3,7 @@
 // margin or cut), the sphere with its silhouette rings, the drag, and the quoted-evidence panel.
 // The geometric test and the evidence joins live in lesion_model.js; nothing here writes a claim.
 import {labBundles,packStreamlines,classify,summarize,bundleAnchor,clampCentre,parseLabParams,evidenceFor,namedDeficits,
-  corridorAxis,classifyCorridor,summarizeCorridor,CORRIDOR_IDS,CORRIDOR_MM,
+  classifyCorridors,summarizeCorridor,CORRIDOR_IDS,CORRIDOR_MM,loadStep,loadFlags,
   CLAIMS,CLAIMS_WITH_PMID,UNPLACED_CLAIMS,SPARED,MARGIN,CUT} from './lesion_model.js';
 import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
@@ -30,9 +30,9 @@ const VIEW_NAMES={oblique:'Oblique view',lateral:'Lateral view',medial:'Medial v
   posterior:'Posterior view',inferior:'Inferior view',free:'Free rotation'};
 
 const lab={hemi:initial.hemi,centre:null,radius:initial.radius,marginOn:initial.marginOn,margin:initial.margin,
-  ready:false,loading:false,slow:false,error:null,rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique',
+  load:{status:'booting',error:null},rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique',
   entries:{...initial.entries},corridorMm:initial.corridor,placing:null,corridors:{A:null,B:null}};
-let scene=null,stage=null,THREE=null,decodeAtlasBundle=null,leaving=false;
+let scene=null,stage=null,THREE=null,decodeAtlasBundle=null;
 let sphere=null,rings=null,ringScreen=null,drag=null,place=null,hover=false,focusIndex=-1,openIndex=-1;
 let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
@@ -52,15 +52,24 @@ const percent=(part,total)=>{const value=part/total*100;return part>0&&value<.5?
 const el=(tag,props={},...children)=>{const node=Object.assign(document.createElement(tag),props);node.append(...children.filter(c=>c!==null&&c!==undefined&&c!==false));return node;};
 const layer=()=>layers.get(lab.hemi);
 const radiusOuter=()=>lab.radius+(lab.marginOn?lab.margin:0);
+const flags=()=>loadFlags(lab.load),tornDown=()=>lab.load.status==='torn-down';
 
 function showStatus(message){status.textContent=message;status.hidden=!message;}
-function fail(error,{slow=false}={}){
-  if(slow){lab.slow=true;console.warn(error.message);}
-  else{lab.error=error.message||String(error);console.error(error);}
-  showStatus(slow?'The 3D atlas is taking longer than expected. Retry it, or read the method and sources below.':
-    'The 3D atlas could not load. Retry it, or read the method and sources below.');
-  $('retryScene').hidden=false;
-  if(!lab.ready){$('labSummary').textContent='The bundle list needs the 3D atlas. Retry it above; the method, sources and limits below remain available.';$('labSummary').dataset.empty='true';}
+const FAILED_TEXT='The 3D atlas could not load. Retry it, or read the method and sources below.';
+const LOAD_TEXT={slow:'The 3D atlas is taking longer than expected. Retry it, or read the method and sources below.',failed:FAILED_TEXT,'switch-failed':FAILED_TEXT};
+// Every load event goes through loadStep (lesion_model.js); false when the move does not apply.
+function sendLoad(event,error){
+  const next=loadStep(lab.load,event,error);
+  if(event==='error')console.error(error);else if(event==='slow'&&next!==lab.load)console.warn(error.message);
+  if(next===lab.load)return false;
+  lab.load=next;renderLoad();return true;
+}
+function renderLoad(){
+  const {status}=lab.load,{ready,loading}=flags(),text=LOAD_TEXT[status];
+  if(status==='torn-down')return;
+  if(text)showStatus(text);else if(status==='ready')showStatus('');
+  $('retryScene').hidden=!text;controls.disabled=!ready||loading;
+  if(text&&!ready){$('labSummary').textContent='The bundle list needs the 3D atlas. Retry it above; the method, sources and limits below remain available.';$('labSummary').dataset.empty='true';}
 }
 $('retryScene').addEventListener('click',()=>location.reload());
 $('skipLink').addEventListener('click',event=>{event.preventDefault();$('labMain').focus();});
@@ -129,7 +138,7 @@ function disposeLayer(entry){
 async function loadLayer(hemi){
   if(layers.has(hemi))return layers.get(hemi);
   const bundles=labBundles(scene.tractMeta,hemi);
-  if(!lab.slow)showStatus(`Loading ${bundles.length} sampled bundles…`);
+  if(lab.load.status!=='slow')showStatus(`Loading ${bundles.length} sampled bundles…`);
   const bytes=await stage.loadBundleBytes(bundles.map(b=>b.id));
   const entries=bundles.map(meta=>({id:meta.id,group:meta.group,lines:decodeAtlasBundle({...meta,offset:0},bytes.get(meta.id))}));
   const entry=buildLayer(packStreamlines(entries));
@@ -194,23 +203,6 @@ function updateRings(camera){
 // ---- Corridors: a cortical entry, a straight cylinder to the sphere's near surface ----------------
 
 const corridorRadius=()=>lab.corridorMm/2;
-// Recomputes each corridor's axis and the streamlines its cylinder reaches; true when any hit changed.
-function classifyCorridors(entry){
-  let changed=false;
-  for(const id of CORRIDOR_IDS){
-    const point=lab.entries[id],hits=entry.hits[id];
-    const axis=point&&lab.centre?corridorAxis(point,lab.centre,lab.radius):null;
-    const key=axis?`${axis.start}|${axis.end}|${corridorRadius()}`:'';
-    const previous=lab.corridors[id];
-    if(previous&&previous.key===key&&previous.hemi===lab.hemi)continue;
-    if(axis)classifyCorridor(entry.pack,{start:axis.start,end:axis.end,radius:corridorRadius()},hits);
-    else hits.fill(0);
-    lab.corridors[id]=point?{key,hemi:lab.hemi,axis,inside:!axis}:null;
-    changed=true;
-  }
-  if(changed)drawCorridors();
-  return changed;
-}
 function drawCorridors(){
   if(!scene)return;
   const specs=CORRIDOR_IDS.filter(id=>lab.corridors[id]?.axis).map(id=>{
@@ -254,7 +246,7 @@ function renderCorridors(entry){
     const rows=corridorRows(entry,id),corridor=lab.corridors[id];
     const cut=rows?rows.filter(r=>r.cut>0):[];
     results[id]={rows,cut,lines:cut.reduce((n,r)=>n+r.cut,0),lengthMm:corridor?.axis?.lengthMm??null,
-      inside:Boolean(corridor?.inside),placed:Boolean(lab.entries[id])};
+      inside:corridor?.state==='inside',placed:Boolean(lab.entries[id])};
   }
   lab.corridorResults=results;
   const items=CORRIDOR_IDS.map(id=>{
@@ -320,7 +312,8 @@ function applyGeometry(){
   const entry=layer();if(!entry||!lab.centre)return;
   const started=performance.now();
   const changed=classify(entry.pack,{centre:lab.centre,radius:lab.radius,margin:lab.marginOn?lab.margin:0},entry.state);
-  const corridorChanged=classifyCorridors(entry);
+  const corridorChanged=classifyCorridors(entry.pack,{entries:lab.entries,centre:lab.centre,radius:lab.radius,corridorMm:lab.corridorMm,hemi:lab.hemi},lab.corridors,entry.hits);
+  if(corridorChanged)drawCorridors();
   if(changed||corridorChanged){
     const data=entry.texture.image.data,{A,B}=entry.hits;
     for(let s=0;s<entry.pack.count;s++){
@@ -580,39 +573,39 @@ function anchorFor(entry,id){
 function setPressed(selector,value,attribute){for(const button of document.querySelectorAll(selector))button.setAttribute('aria-pressed',String(button.dataset[attribute]===value));}
 
 async function showHemisphere(hemi,{first=false}={}){
-  if(lab.loading)return;
-  lab.loading=true;controls.disabled=true;
-  try{
-    const entry=await loadLayer(hemi);
-    if(leaving)return;
-    const previous=layer();
-    if(previous&&previous!==entry){
-      for(const object of previous.objects)stage.scene.remove(object);
-      for(const row of rowsByHemi.get(lab.hemi)?.values()??[])row.details.open=false;
-    }
-    const mirrored=lab.centre&&lab.hemi!==hemi?[-lab.centre[0],lab.centre[1],lab.centre[2]]:lab.centre;
-    if(lab.hemi!==hemi)for(const id of CORRIDOR_IDS)if(lab.entries[id]){const [x,y,z]=lab.entries[id];lab.entries[id]=[-x,y,z];}
-    for(const id of CORRIDOR_IDS)lab.corridors[id]=null;
-    lab.hemi=hemi;
-    for(const object of entry.objects)if(!object.parent)stage.scene.add(object);
-    scene.setHemisphere(hemi);
-    $('stageLabel').textContent=`${HEMI_NAME[hemi][0].toUpperCase()}${HEMI_NAME[hemi].slice(1)} hemisphere · Grid 10 mm`;
-    setPressed('[data-hemi]',hemi,'hemi');
-    setRanges(entry);
-    list.replaceChildren();focusIndex=-1;openIndex=-1;setFocus();
-    lab.centre=null;
-    const start=(first&&initial.centre)||mirrored||anchorFor(entry,`AF_${hemi}`);
-    setCentre(start,{source:first&&!initial.centre?'anchor':'control'});
-    if(first&&!initial.centre)$('anchor').value=`AF_${hemi}`;
-    if(!first){scene.flyTo({view:hemi==='L'?'left':'right',tweenMs:350});setPressed('[data-view]','lateral','view');}
-    settle();
-    showStatus('');
-  }finally{lab.loading=false;if(lab.ready)controls.disabled=false;}
+  const entry=await loadLayer(hemi);
+  if(tornDown())return;
+  const previous=layer();
+  if(previous&&previous!==entry){
+    for(const object of previous.objects)stage.scene.remove(object);
+    for(const row of rowsByHemi.get(lab.hemi)?.values()??[])row.details.open=false;
+  }
+  const mirrored=lab.centre&&lab.hemi!==hemi?[-lab.centre[0],lab.centre[1],lab.centre[2]]:lab.centre;
+  if(lab.hemi!==hemi)for(const id of CORRIDOR_IDS)if(lab.entries[id]){const [x,y,z]=lab.entries[id];lab.entries[id]=[-x,y,z];}
+  for(const id of CORRIDOR_IDS)lab.corridors[id]=null;
+  lab.hemi=hemi;
+  for(const object of entry.objects)if(!object.parent)stage.scene.add(object);
+  scene.setHemisphere(hemi);
+  $('stageLabel').textContent=`${HEMI_NAME[hemi][0].toUpperCase()}${HEMI_NAME[hemi].slice(1)} hemisphere · Grid 10 mm`;
+  setPressed('[data-hemi]',hemi,'hemi');
+  setRanges(entry);
+  list.replaceChildren();focusIndex=-1;openIndex=-1;setFocus();
+  lab.centre=null;
+  const start=(first&&initial.centre)||mirrored||anchorFor(entry,`AF_${hemi}`);
+  setCentre(start,{source:first&&!initial.centre?'anchor':'control'});
+  if(first&&!initial.centre)$('anchor').value=`AF_${hemi}`;
+  if(!first){scene.flyTo({view:hemi==='L'?'left':'right',tweenMs:350});setPressed('[data-view]','lateral','view');}
+  settle();
+}
+// A switch is refused while one is in flight; success or failure ends it.
+async function switchHemisphere(hemi){
+  if(!sendLoad('switch'))return;
+  try{await showHemisphere(hemi);sendLoad('loaded');}catch(error){sendLoad('error',error);}
 }
 
 function bindControls(){
   for(const button of document.querySelectorAll('[data-hemi]'))button.addEventListener('click',()=>{
-    if(button.dataset.hemi!==lab.hemi)showHemisphere(button.dataset.hemi).catch(error=>fail(error));
+    if(button.dataset.hemi!==lab.hemi)switchHemisphere(button.dataset.hemi);
   });
   for(const button of document.querySelectorAll('[data-view]'))button.addEventListener('click',()=>{
     const view=button.dataset.view;
@@ -720,7 +713,7 @@ function setCursor(value){if(value)mount.dataset.lesion=value;else delete mount.
 function bindDrag(){
   mount.addEventListener('pointerdown',event=>{
     if(drag){event.stopPropagation();event.preventDefault();return;}
-    if(!lab.ready||lab.loading||event.button!==0)return;
+    const {ready,loading}=flags();if(!ready||loading||event.button!==0)return;
     const rect=mount.getBoundingClientRect(),point=localPoint(event,rect);
     // Placing an entry: a click (not a drag, which still rotates) on the cortex sets it on pointerup.
     if(lab.placing&&!onSphere(point,event.pointerType)){place={pointerId:event.pointerId,x:event.clientX,y:event.clientY,rect};return;}
@@ -753,7 +746,7 @@ function bindDrag(){
     // Without a button pressed, the atlas would hover-pick cortex parcels; the lab has none to show.
     if(event.buttons===0&&event.pointerType!=='touch'){
       event.stopPropagation();
-      const next=lab.ready&&onSphere(localPoint(event),event.pointerType);
+      const next=flags().ready&&onSphere(localPoint(event),event.pointerType);
       if(next!==hover){hover=next;if(!lab.placing||hover)setCursor(hover?'hover':null);else setCursor('place');}
     }
   },true);
@@ -822,7 +815,7 @@ function computeBrainRect(){
 
 if(testMode)Object.defineProperty(window,'__lesionLabTest',{get:()=>{
   const rect=mount.getBoundingClientRect(),entry=layer(),sr=stageEl.getBoundingClientRect();
-  return {ready:lab.ready,error:lab.error,slow:lab.slow,loading:lab.loading,hemi:lab.hemi,centre:lab.centre&&[...lab.centre],radius:lab.radius,
+  return {...flags(),load:lab.load.status,hemi:lab.hemi,centre:lab.centre&&[...lab.centre],radius:lab.radius,
     marginOn:lab.marginOn,margin:lab.margin,rows:lab.rows.filter(r=>r.cut||r.margin).map(r=>({...r})),named:lab.named.map(n=>n.object),
     sphere:ringScreen?{x:rect.left+ringScreen.x,y:rect.top+ringScreen.y,r:ringScreen.r}:null,count:entry?.pack.count??0,
     extent:entry?entry.pack.extent.map(v=>[...v]):null,classifyMs:lab.classifyMs,classifyMax:lab.classifyMax,dragging:!!drag,
@@ -842,7 +835,7 @@ if(testMode)window.__lesionLabEntry=(id,{x,y,point}={})=>{
 
 addEventListener('pagehide',event=>{
   if(event.persisted)return;
-  leaving=true;rings?.observer.disconnect();insetsObserver?.disconnect();
+  sendLoad('leave');rings?.observer.disconnect();insetsObserver?.disconnect();
   for(const entry of layers.values())disposeLayer(entry);layers.clear();
   scene?.dispose();scene=null;stage=null;
 });
@@ -854,7 +847,7 @@ $('radius').value=String(lab.radius);$('radiusValue').textContent=`${lab.radius}
 $('corridorWidth').value=String(lab.corridorMm);$('corridorWidthValue').textContent=`${lab.corridorMm} mm`;
 $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin').value=String(lab.margin);$('marginValue').textContent=`${lab.margin} mm`;
 (async()=>{
-  const slow=setTimeout(()=>{if(!lab.ready&&!lab.error)fail(new Error('Atlas load exceeded 30 s'),{slow:true});},SLOW_MS);
+  const slow=setTimeout(()=>sendLoad('slow',new Error('Atlas load exceeded 30 s')),SLOW_MS);
   try{
     const [sceneModule,three,data]=await Promise.all([import('./atlas_scene.js?v=lesion-20260930-1'),import('three'),import('./atlas_data.js')]);
     THREE=three;decodeAtlasBundle=data.decodeAtlasBundle;
@@ -862,24 +855,24 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
       hover:false,
       // Before the lab is ready its own loading messages lead, and the scene's "Atlas ready" is not the lab's.
       onStatus(message,detail){
-        if(lab.ready)showStatus(detail?.ready?'':message);
-        else if(!detail?.ready&&!lab.slow&&!lab.error)showStatus(message);
+        if(flags().ready)showStatus(detail?.ready?'':message);
+        else if(!detail?.ready&&lab.load.status==='booting')showStatus(message);
       },
       onView({view}){
         lab.view=view==='left'||view==='right'?'lateral':view;
         setPressed('[data-view]',lab.view,'view');$('viewStatus').textContent=VIEW_NAMES[lab.view]||VIEW_NAMES.free;
       }});
-    if(leaving){created.dispose();return;}
+    if(tornDown()){created.dispose();return;}
     scene=created;stage=scene.stage;
     if(!stage)throw Error('This atlas build does not expose the lab stage');
     scene.setProfile('presenter');scene.setPlaying(false);scene.setDeep(false);scene.setSurface(.14);scene.setHemisphere(lab.hemi);
     scene.flyTo({view:'oblique',tweenMs:0});
     createSphere();
     await showHemisphere(lab.hemi,{first:true});
-    if(leaving)return;
+    if(tornDown())return;
     bindControls();bindDrag();bindDrawer();
-    lab.ready=true;lab.slow=false;controls.disabled=false;$('retryScene').hidden=true;showStatus('');
+    sendLoad('loaded');
     stage.requestDraw();
-  }catch(error){fail(error);}
+  }catch(error){sendLoad('error',error);}
   finally{clearTimeout(slow);}
 })();

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCaseAudio } from '../../viewer/case_audio.js';
+import { ACTIVE_STATUSES, AUDIO_STATUSES, createCaseAudio } from '../../viewer/case_audio.js';
 
 function deferred() {
   let resolve;
@@ -208,4 +208,24 @@ test('recorder errors stop tracks and resolve stop without leaving a stale recor
   assert.equal(audio.state.status, 'error');
   assert.match(audio.state.error, /Recording failed/i);
   assert.equal(stream.tracks[0].stopCalls, 1);
+});
+
+test('every reported status is in the exported closed set; the active ones block leaving', async () => {
+  assert.ok(Object.isFrozen(AUDIO_STATUSES) && Object.isFrozen(ACTIVE_STATUSES));
+  assert.deepEqual(ACTIVE_STATUSES.filter(status => !AUDIO_STATUSES.includes(status)), []);
+  const seen = new Set();
+  const Recorder = recorderFactory();
+  const audio = createCaseAudio({ Recorder, getUserMedia: async () => streamWithTracks(), onChange: state => seen.add(state.status) });
+  await audio.start();
+  Recorder.instances[0].emitData('x');
+  const stopping = audio.stop();
+  Recorder.instances[0].emitStop();
+  await stopping;
+  await audio.start();
+  Recorder.instances[1].emitError();
+  audio.discard();
+  audio.dispose();
+  assert.deepEqual([...seen].sort(), [...AUDIO_STATUSES].sort());
+  assert.equal(audio.state.status, 'idle');
+  await assert.rejects(audio.start(), /disposed/);
 });
