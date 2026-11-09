@@ -6,6 +6,7 @@ import {mkdir, writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 import pixelmatch from 'pixelmatch';
 import {PNG} from 'pngjs';
+import {checkFibreMotion} from './cinematic_motion.mjs';
 
 const base = process.argv.find(v => v.startsWith('--url='))?.slice(6);
 if (!base) throw new Error('Pass --url=');
@@ -94,6 +95,17 @@ try {
   s = await state(a.page);
   assert(!s.params.some(k => /peel|ghost/i.test(k)), `Peel is not written to the URL: ${s.params}`);
   report.checks.push(`Peel slider: 0→50→100 changes ${dissolved.join(' and ')} canvas pixels; reduced motion applies each move at once; keyboard works; URL keys ${s.params.join(',')}`);
+  // A pathway chip (togglePathway is the chip's handler) never moves the Layers level the Peel owns. The level is
+  // still the boot value (>= 60, the reveal threshold), so outside Cinematic view the same pick would open it to 15.
+  const levelBefore = s.surfaceLevel;
+  await a.page.evaluate(() => { window.__atlasTest.togglePathway('FAT_L'); window.__atlasTest.togglePathway('OR_L'); });
+  await litReady(a.page, [...ENTRY.slice(0, 11), 'OR_L']);
+  s = await state(a.page);
+  assert.equal(s.surfaceLevel, levelBefore, `a pathway chip in Cinematic view leaves the Layers surface level to the Peel (${levelBefore} -> ${s.surfaceLevel})`);
+  assert.equal(s.surfaceDisabled, true); assert.equal(s.peel, 50, 'the Peel is untouched by the chip');
+  await a.page.evaluate(() => { window.__atlasTest.togglePathway('OR_L'); window.__atlasTest.togglePathway('FAT_L'); });
+  await litReady(a.page, ENTRY);
+  report.checks.push(`a pathway chip in Cinematic view keeps the Layers surface level at ${levelBefore}`);
   // Hover still names the streamline under the pointer.
   const projected = await a.page.evaluate(() => {
     const t = window.__atlasTest, rect = document.querySelector('#atlasCanvas>canvas').getBoundingClientRect(), points = [];
@@ -244,6 +256,9 @@ try {
   await p.page.screenshot({path: `${out}/entry-375.png`});
   report.checks.push('375 px: legend and Peel slider inside, no overlap, no horizontal scroll');
   await p.context.close();
+
+  // 8. No fibre-animation work while Cinematic view hides the traces (cinematic_motion.mjs).
+  await checkFibreMotion({browser, report, withTest, ready, menu, litReady});
 
   assert.deepEqual(report.errors, [], 'no console or page errors');
   console.log(`PASS: ${report.checks.length} Cinematic view checks\n- ${report.checks.join('\n- ')}`);

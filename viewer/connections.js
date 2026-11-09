@@ -1,6 +1,7 @@
 // Connections page: a node-link reading of the white matter teaching notes. Every link opens its quotes.
 import {CONNECTION_ROWS} from './connections_data.js';
 import {NODE_TYPES,VERBS,VIEWS,buildGraph,around,findNode} from './connections_graph.js';
+import {routeFromHash,hashFor,routeContent} from './connections_route.js';
 
 const graph=buildGraph(CONNECTION_ROWS);
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -8,6 +9,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const typeKey=n=>graph.nodeType.get(n)||'Model';
 
+// The route (a named view or a found node) lives in the URL hash only; `current` is what the hash resolves to.
 let network=null,current=null,currentLinks=[];
 const stage=$('graphCanvas'),inspector=$('inspector'),status=$('graphStatus');
 // The canvas cannot read CSS variables, so the stage's own tokens are resolved once here.
@@ -123,18 +125,24 @@ function focusNode(n){
   if(currentLinks.some(l=>l.subj===n||l.obj===n)){network.selectNodes([n]);network.focus(n,{scale:1.1,animation:reducedMotion?false:{duration:420,easingFunction:'easeOutCubic'}});showNode(n);}
   else openNeighbourhood(n);
 }
-function openNeighbourhood(n){
-  current={id:'find',title:n,intro:`Everything the notes state about ${n}.`,focus:n};
-  document.querySelectorAll('#viewList button').forEach(b=>b.setAttribute('aria-pressed','false'));
-  $('viewTitle').textContent=n;
-  draw(around(graph,n),n);
+// A route change is a hash change: the browser adds the history entry, hashchange renders it. Choosing the route
+// already shown redraws it in place.
+function go(route){const h=hashFor(route);if(location.hash===h)render(route);else location.hash=h;}
+const openNeighbourhood=n=>go({kind:'node',node:n});
+const selectView=v=>go({kind:'view',view:v});
+function render(route){
+  current=routeContent(route,graph);
+  const viewId=route.kind==='view'?route.view.id:null;
+  document.querySelectorAll('#viewList button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===viewId)));
+  $('viewTitle').textContent=current.title;
+  document.body.dataset.route=hashFor(route).slice(1);
+  draw(current.links,current.focus);
 }
-function selectView(v){
-  current=v;
-  document.querySelectorAll('#viewList button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===v.id)));
-  $('viewTitle').textContent=v.title;
-  draw(v.links(graph),v.focus);
-  if(location.hash.slice(1)!==v.id)history.replaceState(null,'',`#${v.id}`);
+// Reload, Back and Forward all land here. An unknown hash falls back to the default view and the hash is rewritten in place.
+function sync(){
+  const route=routeFromHash(location.hash,VIEWS,graph),h=hashFor(route);
+  if(location.hash!==h)history.replaceState(null,'',h);
+  render(route);
 }
 
 $('viewList').innerHTML=VIEWS.map(v=>`<li><button type="button" data-view="${v.id}" aria-pressed="false">${esc(v.title)}<small>${esc(v.blurb)}</small></button></li>`).join('');
@@ -147,6 +155,6 @@ $('findForm').addEventListener('submit',e=>{e.preventDefault();const hit=findNod
 if(!window.vis?.Network){status.textContent='The graph library did not load. Reload the page to try again.';}
 else{
   status.hidden=true;
-  selectView(VIEWS.find(v=>v.id===location.hash.slice(1))||VIEWS[0]);
-  addEventListener('hashchange',()=>{const v=VIEWS.find(v=>v.id===location.hash.slice(1));if(v&&v!==current)selectView(v);});
+  sync();
+  addEventListener('hashchange',sync);
 }

@@ -10,7 +10,7 @@ if(!base)throw Error('Pass the isolated atlas --url');
 const out=process.argv.find(v=>v.startsWith('--out='))?.slice(6)||'output/anatomy-v1-20260910/browser';
 await mkdir(out,{recursive:true});
 const report={version:CONTENT_VERSION,steps:[],checks:[],layouts:[],errors:[],requests:[],externalRequests:[]};
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,channel:'chromium'});
 const sameCamera=(actual,expected,message='Camera changed')=>actual.forEach((value,index)=>assert(Math.abs(value-expected[index])<1e-7,message));
 try{
   const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'}),page=await context.newPage();
@@ -150,7 +150,7 @@ try{
       if(camera)sameCamera(s.camera,camera);camera=s.camera;
       assert.match(await page.locator('#lessonSceneStatus').innerText(),/Lecture comparison/);
       assert.equal(await page.locator('#sceneNetwork').isVisible(),s.network.mode!=='off');
-      if(option.bundles)for(const id of option.bundles)assert(s.bundles.includes(`${id}_${s.hemisphere}`)||s.bundles.includes(id));
+      if(option.bundles)await page.waitForFunction(ids=>{const t=window.__atlasTest;return ids.every(id=>t.bundles.includes(`${id}_${t.hemisphere}`)||t.bundles.includes(id));},option.bundles,{timeout:15000});
     }
     await page.locator('#lessonRestore').click();assert.deepEqual((await state()).network,resolveTeachingScene(lesson,lesson.steps[0]).network);
   }
@@ -158,7 +158,7 @@ try{
 
   await choose('motor-cst');await page.locator('#lessonNext').click();await jump(4);await page.locator('#phase-compare').click();
   for(const [width,height,profile] of [[1440,900,'teaching'],[1157,601,'teaching'],[851,900,'teaching'],[390,844,'teaching'],[320,700,'teaching'],[1440,900,'presenter']]){
-    await page.setViewportSize({width,height});await page.locator('#lessonProfile').selectOption(profile);await page.locator('.brand').scrollIntoViewIfNeeded();
+    await page.setViewportSize({width,height});if(await page.locator('#lessonProfile').inputValue()!==profile)await page.locator('#lessonProfile').selectOption(profile);await page.locator('.brand').scrollIntoViewIfNeeded();
     const metrics=await page.evaluate(()=>{const rect=s=>{const e=document.querySelector(s),r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,bottom:r.bottom,scroll:e.scrollHeight,client:e.clientHeight};};return {width:innerWidth,height:innerHeight,pageWidth:document.documentElement.scrollWidth,stage:rect('.atlas-stage'),canvas:rect('#atlasCanvas>canvas'),panel:rect('#lessonPanel'),readout:rect('.scene-readout'),nav:rect('.lesson-controls')};});
     assert(metrics.pageWidth<=width,`horizontal overflow at ${width}`);
     assert(metrics.readout.bottom<=metrics.stage.bottom+1,`readout outside stage at ${width}`);
