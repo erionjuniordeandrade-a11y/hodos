@@ -17,8 +17,8 @@
    reuses the shared mount id; #atlasCanvas.lab-canvas matches specificity and wins on top. */
 .lab-canvas,#atlasCanvas.lab-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:0;z-index:0}
 .lab-canvas canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-.lab-canvas[data-lesion=hover] canvas{cursor:grab}
-.lab-canvas[data-lesion=drag] canvas{cursor:grabbing}
+.lab-canvas[data-lesion=hovering] canvas{cursor:grab}
+.lab-canvas[data-lesion=dragging] canvas{cursor:grabbing}
 
 .lab-rings{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
 .lab-rings polygon{fill:none;stroke:var(--color-focus);stroke-width:1.5;stroke-linejoin:round}
@@ -324,7 +324,7 @@
 /* Corridors: entry placement in the rail, the A/B comparison in the drawer. Colours repeat
    lesion_lab.js CORRIDOR_COLOR
    (tokens.css --color-corridor-a/-b). */
-.lab-canvas[data-lesion=place] canvas{cursor:crosshair}
+.lab-canvas[data-lesion=placing] canvas,.lab-canvas[data-lesion=place-pending] canvas{cursor:crosshair}
 .lab-corridors{display:grid;gap:var(--space-xs)}
 .lab-corridors label{font-size:var(--text-sm);color:var(--color-ink)}
 .lab-corridor-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-xs)}

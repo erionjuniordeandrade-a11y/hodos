@@ -43,6 +43,7 @@ try{
    await page.keyboard.press('Escape');await page.locator('#referenceDialog').waitFor({state:'hidden'});
    report.checks.push('lesion-marker reference opens the atlas frame with a canvas');
    // The first LESSON reference is whichever reference button is not the lesion marker; the marker has no lesson phases.
+   const historyBefore=await page.evaluate(()=>history.length);
    await page.locator('.stage-body .reference-links button').filter({hasNot:page.getByText('Lesion marker')}).first().click();
    const frame=page.frameLocator('#referenceDialog iframe');await frame.locator('#phase-compare').waitFor();await frame.locator('#phase-compare').click();
    await frame.locator('#lessonNext').click();assert.equal(await savedLearning(),learning);
@@ -54,6 +55,7 @@ try{
    await frame.locator('body').click({position:{x:5,y:5}});
    await page.keyboard.press('Escape');await page.locator('#referenceDialog').waitFor({state:'hidden'});assert.equal(await page.locator('iframe').count(),0);
    assert.equal(await page.locator('#stageTitle').textContent(),'Explore the relationships');report.checks.push('reference round trip preserves original progress and case stage');
+   assert.equal(await page.evaluate(()=>history.length),historyBefore,'links followed inside the reference frame add no history entries');report.checks.push('reference frame links leave no dead history entries');
   }
   await next();await page.locator('#revisedResponse').fill(`Reconsidered teaching answer ${id}`);await next();
   // Cases with a Decide stage lock a choice before the conference response; commit the first option, then continue.

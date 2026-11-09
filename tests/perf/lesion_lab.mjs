@@ -339,6 +339,32 @@ try{
     report.checks.push('MdLF_L (no quote in the graph) shows No quoted evidence and writes no statement');
     await closeDrawer(page);
 
+    // Esc closes the open drawer and returns focus to the control that opened it (escapeAction, lesion_model.js).
+    await page.locator('#openEvidence').click();
+    await page.waitForFunction(()=>!document.getElementById('evidenceDrawer').inert);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>document.getElementById('evidenceDrawer').inert);
+    assert.equal(await page.evaluate(()=>document.activeElement?.id),'openEvidence','Esc returns focus to the opener');
+    assert.equal(await page.locator('#openEvidence').getAttribute('aria-expanded'),'false');
+    // One pointer state behind the cursor (pointerState, lesion_model.js): over the sphere a pointerdown drags even
+    // while an entry is armed, so the hover cursor stays; off the sphere the armed entry shows the crosshair.
+    await showStage(page);
+    state=await lab(page);
+    const canvasCursor=()=>page.evaluate(()=>getComputedStyle(document.querySelector('#atlasCanvas canvas')).cursor);
+    await page.mouse.move(state.sphere.x,state.sphere.y);
+    await page.waitForFunction(()=>window.__lesionLabTest.pointer==='hovering');
+    await page.evaluate(()=>document.querySelector('[data-entry="A"]').click());
+    state=await lab(page);
+    assert.equal(state.placing,'A');
+    assert.equal(state.pointer,'hovering','an armed entry does not take the cursor over the sphere');
+    assert.equal(await canvasCursor(),'grab');
+    await page.mouse.move(state.sphere.x+state.sphere.r+80,state.sphere.y);
+    await page.waitForFunction(()=>window.__lesionLabTest.pointer==='placing');
+    assert.equal(await canvasCursor(),'crosshair');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>window.__lesionLabTest.placing===null&&window.__lesionLabTest.pointer==='idle');
+    report.checks.push('Esc closes the drawer and returns focus to its opener; one pointer state drives the cursor (hover wins over an armed entry on the sphere)');
+
     await page.selectOption('#anchor','AF_L');
     await page.waitForFunction(()=>window.__lesionLabTest.rows.some(r=>r.id==='AF_L'&&r.cut>0));
     const small=cutIds(await lab(page));

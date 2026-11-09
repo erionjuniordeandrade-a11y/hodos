@@ -4,7 +4,7 @@
 // The geometric test and the evidence joins live in lesion_model.js; nothing here writes a claim.
 import {labBundles,packStreamlines,classify,summarize,bundleAnchor,clampCentre,parseLabParams,evidenceFor,namedDeficits,
   classifyCorridors,summarizeCorridor,CORRIDOR_IDS,CORRIDOR_MM,loadStep,loadFlags,
-  CLAIMS,CLAIMS_WITH_PMID,UNPLACED_CLAIMS,SPARED,MARGIN,CUT} from './lesion_model.js';
+  CLAIMS,CLAIMS_WITH_PMID,UNPLACED_CLAIMS,SPARED,MARGIN,CUT,pointerState,escapeAction,bundleFocus} from './lesion_model.js';
 import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
 import {VERBS} from './connections_graph.js';
@@ -33,7 +33,7 @@ const lab={hemi:initial.hemi,centre:null,radius:initial.radius,marginOn:initial.
   load:{status:'booting',error:null},rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique',
   entries:{...initial.entries},corridorMm:initial.corridor,placing:null,corridors:{A:null,B:null}};
 let scene=null,stage=null,THREE=null,decodeAtlasBundle=null;
-let sphere=null,rings=null,ringScreen=null,drag=null,place=null,hover=false,focusIndex=-1,openIndex=-1;
+let sphere=null,rings=null,ringScreen=null,drag=null,place=null,hover=false,focusIndex=-1,openIndex=-1,lastFocus='none';
 let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
 const mount=$('atlasCanvas'),status=$('sceneStatus'),list=$('bundleList'),controls=$('lesionControls');
@@ -70,6 +70,7 @@ function renderLoad(){
   if(text)showStatus(text);else if(status==='ready')showStatus('');
   $('retryScene').hidden=!text;controls.disabled=!ready||loading;
   if(text&&!ready){$('labSummary').textContent='The bundle list needs the 3D atlas. Retry it above; the method, sources and limits below remain available.';$('labSummary').dataset.empty='true';}
+  syncPointer();
 }
 $('retryScene').addEventListener('click',()=>location.reload());
 $('skipLink').addEventListener('click',event=>{event.preventDefault();$('labMain').focus();});
@@ -231,7 +232,7 @@ function setEntry(id,point){
 function setPlacing(id){
   lab.placing=id;
   for(const button of document.querySelectorAll('[data-entry]'))button.setAttribute('aria-pressed',String(button.dataset.entry===id));
-  setCursor(id?'place':hover?'hover':null);
+  syncPointer();
   $('corridorHint').textContent=id?`Click the cortex where corridor ${id} enters. Drag still rotates the view; Esc cancels.`:
     'Choose an entry, then click the cortex where the corridor starts. The corridor runs straight to the sphere.';
 }
@@ -473,10 +474,12 @@ function rowFor(entry,index){
   item.addEventListener('pointerleave',()=>{if(focusIndex===index){focusIndex=-1;setFocus();}});
   const row={item,details,counts,bar};cache.set(index,row);return row;
 }
+// bundleFocus (lesion_model.js) decides; a hover whose row left the list ends here, so it does not come back with the row.
 function setFocus(){
   const entry=layer();if(!entry)return;
-  const next=focusIndex>=0?focusIndex:openIndex;
-  if(entry.shared.uFocus.value!==next){entry.shared.uFocus.value=next;stage.requestDraw();}
+  const focus=bundleFocus({hovered:focusIndex,open:openIndex},lab.reached.map(r=>r.index));
+  focusIndex=focus.hovered;lastFocus=focus.state;
+  if(entry.shared.uFocus.value!==focus.index){entry.shared.uFocus.value=focus.index;stage.requestDraw();}
 }
 
 const SLIDES=cites=>cites.map(c=>c.replace(/^m/,'')).join(', ');
@@ -547,6 +550,7 @@ function renderPanel(){
   });
   const current=[...list.children];
   if(current.length!==items.length||current.some((node,i)=>node!==items[i]))list.replaceChildren(...items);
+  setFocus();
   renderStory(entry,marginLines);
   updateChips(cutRows.length,cutLines,entry.pack.count);
   renderCorridors(entry);
@@ -625,7 +629,14 @@ function bindControls(){
   width.addEventListener('input',()=>{lab.corridorMm=Number(width.value);$('corridorWidthValue').textContent=`${lab.corridorMm} mm`;applyGeometry();});
   width.addEventListener('change',settle);
   for(const button of document.querySelectorAll('[data-entry]'))button.addEventListener('click',()=>setPlacing(lab.placing===button.dataset.entry?null:button.dataset.entry));
-  addEventListener('keydown',event=>{if(event.key==='Escape'&&lab.placing)setPlacing(null);});
+  // escapeAction (lesion_model.js) owns the priority; one step per press.
+  addEventListener('keydown',event=>{
+    if(event.key!=='Escape')return;
+    switch(escapeAction({dragging:!!drag,placing:lab.placing,drawerOpen:!drawer.inert})){
+      case 'cancel-placing':setPlacing(null);break;
+      case 'close-drawer':closeDrawer();break;
+    }
+  });
   $('compareCorridors').addEventListener('click',()=>{openDrawer();$('corridorCompare').scrollIntoView({block:'start'});});
   $('anchor').addEventListener('change',()=>{
     const value=$('anchor').value,entry=layer();if(!value||!entry)return;
@@ -709,14 +720,18 @@ function rayHit(point,target){
   t.ndc.set(point.x/w*2-1,-(point.y/h)*2+1);t.ray.setFromCamera(t.ndc,stage.camera);
   return t.ray.ray.intersectPlane(t.plane,target);
 }
-function setCursor(value){if(value)mount.dataset.lesion=value;else delete mount.dataset.lesion;}
+// The only writer of [data-lesion]: pointerState (lesion_model.js) names the state, lesion-lab.css maps it to a cursor.
+function syncPointer(){
+  const state=pointerState({dragging:!!drag,placePending:!!place,hover,placing:!!lab.placing},flags());
+  if(state==='idle')delete mount.dataset.lesion;else mount.dataset.lesion=state;
+}
 function bindDrag(){
   mount.addEventListener('pointerdown',event=>{
     if(drag){event.stopPropagation();event.preventDefault();return;}
     const {ready,loading}=flags();if(!ready||loading||event.button!==0)return;
     const rect=mount.getBoundingClientRect(),point=localPoint(event,rect);
     // Placing an entry: a click (not a drag, which still rotates) on the cortex sets it on pointerup.
-    if(lab.placing&&!onSphere(point,event.pointerType)){place={pointerId:event.pointerId,x:event.clientX,y:event.clientY,rect};return;}
+    if(lab.placing&&!onSphere(point,event.pointerType)){place={pointerId:event.pointerId,x:event.clientX,y:event.clientY,rect};syncPointer();return;}
     if(!onSphere(point,event.pointerType))return;
     event.stopPropagation();event.preventDefault();
     const {Vector3,Plane}=THREE,t=dragTmp;
@@ -732,7 +747,7 @@ function bindDrag(){
     // own orbit drag already disables auto-frame via its own controlstart handler.
     // setInteracting resizes (and so clears) the drawing buffer: redraw now, or the canvas shows blank
     // until the first pointermove moves the sphere (the drag-start flicker).
-    mount.setPointerCapture(event.pointerId);setCursor('drag');stage.setInteracting(true);stage.setFrameHold(true);stage.requestDraw();
+    mount.setPointerCapture(event.pointerId);syncPointer();stage.setInteracting(true);stage.setFrameHold(true);stage.requestDraw();
   },true);
   mount.addEventListener('pointermove',event=>{
     if(drag){
@@ -747,26 +762,26 @@ function bindDrag(){
     if(event.buttons===0&&event.pointerType!=='touch'){
       event.stopPropagation();
       const next=flags().ready&&onSphere(localPoint(event),event.pointerType);
-      if(next!==hover){hover=next;if(!lab.placing||hover)setCursor(hover?'hover':null);else setCursor('place');}
+      if(next!==hover){hover=next;syncPointer();}
     }
   },true);
   mount.addEventListener('pointerup',event=>{
     if(!place||event.pointerId!==place.pointerId)return;
-    const start=place;place=null;
+    const start=place;place=null;syncPointer();
     if(Math.hypot(event.clientX-start.x,event.clientY-start.y)>6||!lab.placing)return;
     const point=cortexHit(localPoint(event,start.rect));
     if(!point){$('corridorHint').textContent='That click missed the cortex. Click on the brain surface.';return;}
     event.stopPropagation();
     const id=lab.placing;setPlacing(null);setEntry(id,point);
   },true);
-  mount.addEventListener('pointercancel',()=>{place=null;},true);
+  mount.addEventListener('pointercancel',()=>{place=null;syncPointer();},true);
   const end=event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;
     event.stopPropagation();drag=null;
-    setCursor(hover?'hover':lab.placing?'place':null);stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
+    syncPointer();stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
   };
   for(const type of ['pointerup','pointercancel','lostpointercapture'])mount.addEventListener(type,end,true);
-  mount.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=false;setCursor(lab.placing?'place':null);}});
+  mount.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=false;syncPointer();}});
 }
 
 // ---- Evidence notes and the test hook -----------------------------------------------------------
@@ -819,6 +834,7 @@ if(testMode)Object.defineProperty(window,'__lesionLabTest',{get:()=>{
     marginOn:lab.marginOn,margin:lab.margin,rows:lab.rows.filter(r=>r.cut||r.margin).map(r=>({...r})),named:lab.named.map(n=>n.object),
     sphere:ringScreen?{x:rect.left+ringScreen.x,y:rect.top+ringScreen.y,r:ringScreen.r}:null,count:entry?.pack.count??0,
     extent:entry?entry.pack.extent.map(v=>[...v]):null,classifyMs:lab.classifyMs,classifyMax:lab.classifyMax,dragging:!!drag,
+    pointer:mount.dataset.lesion||'idle',focus:lastFocus,focusIndex:entry?entry.shared.uFocus.value:-1,
     scene:scene?(({frames,view,hemisphere,camera,render})=>({frames,view,hemisphere,camera,pipeline:render.pipeline}))(scene.state):null,
     story:lastStory,insets:lastInsets,sheet:SHEET_LAYOUT.matches?(dock.dataset.sheet||'peek'):null,drawer:!drawer.inert,
     frame:lastInsets?{left:sr.left+lastInsets.left,top:sr.top+lastInsets.top,right:sr.right-lastInsets.right,bottom:sr.bottom-lastInsets.bottom}:null,

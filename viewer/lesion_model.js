@@ -255,6 +255,41 @@ export function loadStep(load,event,error){
 /** The flags browser gates read from __lesionLabTest, derived from the status. */
 export const loadFlags=({status,error})=>({ready:status==='ready'||status==='switching'||status==='switch-failed',loading:status==='switching',slow:status==='slow',error});
 
+// ---- Pointer, Esc and bundle focus: the lab's interaction decisions ---------------------------
+
+// The pointer over the stage. lesion_lab.js writes the state to [data-lesion]; lesion-lab.css maps it to a cursor.
+export const POINTER_STATES=Object.freeze(['idle','hovering','placing','place-pending','dragging']);
+/** One priority order: a refused pointer (atlas not ready or switching) shows no action, then the gesture in
+ * flight (a drag, a pending placement click), then what a pointerdown would start here: on the sphere it drags
+ * even while an entry is armed, so hovering wins over placing; off the sphere an armed entry places. */
+export function pointerState({dragging,placePending,hover,placing},{ready,loading}){
+  if(!ready||loading)return 'idle';
+  if(dragging)return 'dragging';
+  if(placePending)return 'place-pending';
+  if(hover)return 'hovering';
+  return placing?'placing':'idle';
+}
+// What one Esc press does; the page performs the action and reads the state again on the next press.
+export const ESCAPE_ACTIONS=Object.freeze(['none','cancel-placing','close-drawer']);
+/** A drag owns the pointer (Esc does nothing until the button lifts), then an armed or pending entry is disarmed,
+ * then the open evidence drawer closes. One step per press. */
+export function escapeAction({dragging,placing,drawerOpen}){
+  if(dragging)return 'none';
+  if(placing)return 'cancel-placing';
+  return drawerOpen?'close-drawer':'none';
+}
+// Which bundle the scene lifts (uFocus) while the rest dims.
+export const FOCUS_STATES=Object.freeze(['none','hovered','open']);
+/** The hovered row, else the open row, each only while its row is listed (`shown` holds the listed bundle indices).
+ * A hover ends with its row: a removed node gets no pointerleave. An open row keeps its <details> state, so `open`
+ * is left to the caller and lifts again when the row returns. */
+export function bundleFocus({hovered,open},shown){
+  const listed=index=>index>=0&&shown.includes(index);
+  const nextHovered=listed(hovered)?hovered:-1;
+  const state=nextHovered>=0?'hovered':listed(open)?'open':'none';
+  return {state,hovered:nextHovered,index:state==='hovered'?nextHovered:state==='open'?open:-1};
+}
+
 // ---- Evidence: the quoted graph joined to its provenance -------------------------------------
 
 const INJURY_ROWS=CONNECTION_ROWS.filter(row=>row[1]==='Tract'&&row[2]==='INJURY_CAUSES');

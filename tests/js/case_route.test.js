@@ -55,3 +55,17 @@ test('one history navigation is one decision; a cancelled one is recognised unti
  // A refused entry does not mask a later, different navigation.
  assert.equal(historyEntry(shown,back.entry,'#c/3',{at:3}).kind,'new');
 });
+test('entries a closed reference iframe left behind are the shown entry: Back over them asks nothing and overwrites nothing',()=>{
+ // The reference dialog's iframe navigated twice while Stage 5 (index 5) was on screen, then the dialog closed. Chrome keeps the
+ // two joint entries; each carries the top window's own hash and state {at:5}. Back lands on them before it reaches Stage 4.
+ const shown={hash:'#c/5',at:5},dead={hash:'#c/5',at:5};
+ const d1=historyEntry(shown,null,dead.hash,{at:dead.at});assert.equal(d1.kind,'shown','first dead entry');
+ const d2=historyEntry(shown,null,dead.hash,{at:dead.at});assert.equal(d2.kind,'shown','the entry pushed before the iframe moved');
+ // The next Back reaches Stage 4: one decision. Cancelled, history.go(shown.at-entry.at) is go(1) and lands on a dead entry, still 'shown'.
+ const back=historyEntry(shown,null,'#c/4',{at:4});assert.deepEqual(back,{entry:{hash:'#c/4',at:4},kind:'new'});
+ assert.equal(shown.at-back.entry.at,1);
+ assert.equal(historyEntry(shown,back.entry,'#c/5',{at:5}).kind,'shown','go(1) returns to a dead entry of the shown Stage');
+ // Dead entries between Stage 4 and Stage 5 (the iframe moved while Stage 4 was shown): Back from 5 meets one as a normal Stage 4 entry.
+ const mid=historyEntry(shown,null,'#c/4',{at:4});assert.equal(mid.kind,'new');
+ assert.equal(historyEntry({hash:'#c/4',at:4},null,'#c/4',{at:4}).kind,'shown','its sibling dead entries are then the shown one');
+});

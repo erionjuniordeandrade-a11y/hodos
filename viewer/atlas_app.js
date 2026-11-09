@@ -16,6 +16,8 @@ import {mountSlicePanel} from './atlas_slice_panel.js';
 import {tractsToSearchValue,tractsFromSearch,cameraToSearchValue,cameraFromSearch,viewToSearchValue,viewFromSearch} from './atlas_deeplink.js';
 import {arterialSelection,arterialToSearchValue,arterialLabel} from './atlas_arterial.js';
 import {networkWash,arterialWash,washOf,washLayers,washFromSearch,washReadout} from './cortex_wash.js';
+import {INITIAL_WORKSPACE,workspaceTransition,drawerOf} from './atlas_workspace.js';
+import {revealedSurfaceLevel} from './atlas_cinematic.js';
 
 const $=id=>document.getElementById(id),initial=atlasSelectionFromSearch(location.search);
 // Read the boot query before any syncURL() runs: a pick/clear rewrites the URL from scene state, which is still off at boot.
@@ -131,8 +133,11 @@ function showDeep(entry,{reveal=true}={}){
     'Group reference surface. Its appearance does not establish a functional state or connection.';
   syncURL();
 }
+/** Open a defined cortex so a picked pathway or deep structure shows. In Cinematic view the Peel owns
+ * the surface (atlas_cinematic.js), so the Layers level is left exactly as it was for the exit restore. */
 function revealInterior(){
-  if(Number($('surfaceLevel').value)>=60){scene.setSurface(.15);$('surfaceLevel').value='15';}
+  const level=revealedSurfaceLevel({level:Number($('surfaceLevel').value),cinematic});
+  if(level!=null){scene.setSurface(level/100);$('surfaceLevel').value=String(level);}
 }
 /** Apply one or more bundles at once (v2 `bundles`+`ghost`); a single id keeps the exact
  * v1 pathway-summary text. Owns `selectedBundles` (pick order = tint order) and syncs the chips. */
@@ -332,16 +337,26 @@ function restoreExploration({retain=false}={}){
   applyBundles(exploration.bundles||[],exploration.ghostBundles||[]);playing=false;motionUI();if(!retain)exploration=null;
   $('explorationStatus').hidden=true;syncMedialLabel();
 }
-function setMode(mode){
-  // Capture before the library changes the canvas aspect ratio and auto-framing.
-  if(mode==='library'&&document.body.dataset.mode==='explore'&&!exploration&&scene)exploration=exploreSnapshot();
-  const wasExplore=document.body.dataset.mode==='explore';
-  document.body.dataset.mode=mode;document.body.dataset.expanded='false';$('expandAnatomy').setAttribute('aria-pressed','false');$('expandAnatomy').textContent='Expand';
-  if(mode==='explore')$('anatomyDrawer').open=true;else if(wasExplore)$('anatomyDrawer').open=false;
+/** Workspace mode (atlas_workspace.js): the machine decides, this renders. Handlers only send events. */
+let workspace=INITIAL_WORKSPACE;
+// Whether the stylesheet floats the drawer over the page (an overlay) rather than docking it as a column.
+const drawerOverlay=()=>['fixed','absolute'].includes(getComputedStyle($('anatomyDrawer')).position);
+function renderWorkspace(){
+  const {mode,expanded,drawerOpen}=workspace;
+  document.body.dataset.mode=mode;document.body.dataset.expanded=String(expanded);
+  document.body.dataset.drawer=drawerOf(workspace,drawerOverlay()); // after data-mode: the stylesheet docks by mode
+  $('expandAnatomy').setAttribute('aria-pressed',String(expanded));$('expandAnatomy').textContent=expanded?'Back to lesson':'Expand';
+  $('anatomyDrawer').open=drawerOpen;
   $('atlasWorkspace').dataset.lessonHidden=String(mode==='explore');$('toggleLesson').setAttribute('aria-expanded',String(mode!=='explore'));
   $('learnHome').setAttribute('aria-current',mode==='explore'?'false':'page');$('toggleLesson').setAttribute('aria-current',mode==='explore'?'page':'false');
 }
-setMode('library');
+function sendWorkspace(event){workspace=workspaceTransition(workspace,event);renderWorkspace();}
+function setMode(mode){
+  // Capture before the library changes the canvas aspect ratio and auto-framing.
+  if(mode==='library'&&workspace.mode==='explore'&&!exploration&&scene)exploration=exploreSnapshot();
+  sendWorkspace({type:'mode',mode});
+}
+renderWorkspace();
 $('learnHome').addEventListener('click',()=>player?.library());
 $('toggleLesson').addEventListener('click',()=>player?.explore());
 $('lessonProfile').addEventListener('change',()=>setProfile($('lessonProfile').value));
@@ -353,19 +368,20 @@ function closeSearch({refocus=true}={}){
 $('openAnatomySearch').addEventListener('click',()=>{const open=$('anatomySearch').hidden;
   if(open){$('anatomySearch').hidden=false;$('openAnatomySearch').setAttribute('aria-expanded','true');$('pathwayFilter').focus();}
   else closeSearch();});
-$('openAtlasTools').addEventListener('click',()=>{const docked=document.body.dataset.mode==='explore';$('anatomyDrawer').open=docked?true:!$('anatomyDrawer').open;if(docked)$('atlasArea').focus({preventScroll:false});});
+$('openAtlasTools').addEventListener('click',()=>{const docked=drawerOf(workspace,drawerOverlay())==='docked';sendWorkspace({type:'tools',overlay:drawerOverlay()});if(docked)$('atlasArea').focus({preventScroll:false});});
+// The summary is a heading while the drawer is docked and a toggle while it floats: the machine decides, never the native toggle.
+$('anatomyDrawer').querySelector(':scope>summary').addEventListener('click',event=>{event.preventDefault();sendWorkspace({type:'summary',overlay:drawerOverlay()});});
 $('anatomyDrawer').addEventListener('toggle',()=>{$('openAtlasTools').setAttribute('aria-expanded',String($('anatomyDrawer').open));});
 // The skip link moves focus itself; following its fragment would add a history entry and fire popstate.
-document.querySelector('.skip-link').addEventListener('click',event=>{event.preventDefault();$('anatomyDrawer').open=true;$('atlasControls').focus();});
+document.querySelector('.skip-link').addEventListener('click',event=>{event.preventDefault();sendWorkspace({type:'skip'});$('atlasControls').focus();});
 const viewMenu=document.querySelector('.atlas-view-menu');
 document.addEventListener('pointerdown',event=>{if(viewMenu.open&&!viewMenu.contains(event.target))viewMenu.open=false;});
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;
   if(viewMenu.open){viewMenu.open=false;viewMenu.querySelector('summary').focus();}
   else if(!$('anatomySearch').hidden)closeSearch();
-  else if($('anatomyDrawer').open&&document.body.dataset.mode!=='explore'){$('anatomyDrawer').open=false;$('openAtlasTools').focus();}
+  else if(drawerOf(workspace,drawerOverlay())==='open'){sendWorkspace({type:'escape',overlay:drawerOverlay()});$('openAtlasTools').focus();}
 });
-$('expandAnatomy').addEventListener('click',()=>{const open=document.body.dataset.expanded!=='true';document.body.dataset.expanded=String(open);
-  $('expandAnatomy').setAttribute('aria-pressed',String(open));$('expandAnatomy').textContent=open?'Back to lesson':'Expand';});
+$('expandAnatomy').addEventListener('click',()=>sendWorkspace({type:'expand'}));
 $('tracePlay').addEventListener('click',()=>{playing=!playing;motionUI();});
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',motionUI);
 // Copy link (in the Views menu, so the default toolbar and its pixel baselines stay unchanged): Clipboard API where allowed, else a hidden input + execCommand; announced in the polite status line.
@@ -534,7 +550,8 @@ try{
     // Test-only: inject a v2 declarative scene directly, bypassing lesson content, so Playwright
     // can exercise SCENE GRAMMAR v2 (bundles/ghost/regions/camera/deepRegions) in isolation.
     applyScene:sceneInput=>applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...sceneInput}},currentHemisphere()),{authored:true}),
-    togglePathway,projectBundleVertex:scene.projectBundleVertex,setGhost:scene.setGhost,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase})});
+    togglePathway,projectBundleVertex:scene.projectBundleVertex,setGhost:scene.setGhost,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase,
+    workspace:{...workspace,drawer:drawerOf(workspace,drawerOverlay())}})});
   window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
 }catch(error){
   $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`;

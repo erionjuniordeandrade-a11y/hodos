@@ -18,6 +18,9 @@ import {createTractRangeLoader} from './tract_ranges.js';
 import {mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import {SLICE_AXES,sliceMesh,chainContours,slicePolylines,nearestVertex} from './atlas_slice.js';
 import {litStreamlineGeometry,litStreamlineIndex,LIT_STREAMLINE_FAST} from './lit_streamlines.js';
+import {cameraFrameTransition,refitsOnLoad,framesFocus,holdsView} from './atlas_camera_frame.js';
+import {fibreMotion} from './atlas_cinematic.js';
+import {placeLabels} from './atlas_labels.js';
 import {clampPeel,clampGhost,peelRange,peelThreshold,createPeelUniforms,addPeel} from './cortex_peel.js';
 const MANIFEST_SHA256='772efa37e0756552aafc1fb4720565d104a23f38d597977835c77c91a1bf35a3';
 const sha256=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
@@ -90,9 +93,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const fill=new THREE.DirectionalLight(0xe4e0f3,1.25);fill.position.set(200,-180,120);scene.add(fill);
   const centre=new THREE.Vector3(0,-18,8),hemis={},deep=[],bundles=new Map(),frameGeometry=[];
   let playing=false,profile='teaching',frame=0,last=0,time=0,disposed=false,view='left';
-  let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false,autoFrame=true;
+  let selected=null,highlighted=[],visibleHemi='both',surface=.6,deepVisible=false,framed=false;
   let hoveredLine=null,controlsActive=false,frameHold=false;
-  let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameFocus=false,focusFlight=null;
+  // Camera framing (atlas_camera_frame.js): one state; focusFlight is the pending flight's data.
+  let deepHighlightIds=[],deepFocusIds=[],cameraTransition=null,frameState='auto-framed',focusFlight=null;
+  const frameEvent=event=>{frameState=cameraFrameTransition(frameState,event);if(frameState!=='flight-pending')focusFlight=null;};
   let corridorOverlay=null,cinematic=false,peel=0,ghost=0,peelLook=null;
   let slice=null,sliceFrame=null,context=null;const slicePlane=new THREE.Plane(),sceneListeners=new Set();
   const sceneChanged=()=>{for(const listener of sceneListeners)listener();};
@@ -130,8 +135,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       // Above or below the triad, it steps 4 px further out so the two line ends stay clear of it.
       m.text.textContent=m.letter+n.letter;m.text.setAttribute('x',String(x-side*3.5));m.text.setAttribute('y',String(side?y:y+Math.sign(y-40)*4));
       m.text.style.textAnchor=side<0?'end':side>0?'start':'';n.text.style.opacity='0';m.merged=n.merged=true;}
-    const next=`${visibleHemi}:${autoFrame?view:'free'}`;
-    if(next!==viewStamp){viewStamp=next;onView({hemisphere:visibleHemi,view:autoFrame?view:'free'});}
+    const named=holdsView(frameState,focusFlight),next=`${visibleHemi}:${named?view:'free'}`;
+    if(next!==viewStamp){viewStamp=next;onView({hemisphere:visibleHemi,view:named?view:'free'});}
   }
   const traces=[];let frames=0,contextLost=false,controlLast=0;
   const currentTarget=()=>controls.getTarget(new THREE.Vector3(),false);
@@ -145,7 +150,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const bundleIdsBy=ghost=>[...bundles].filter(([,v])=>v.ghost===ghost).map(([id])=>id);
   function draw(now=0){
     frame=0;if(disposed||contextLost)return;
-    const moving=playing&&profile==='teaching'&&!reduced.matches&&!document.hidden;
+    const moving=fibreMotion({playing,profile,reducedMotion:reduced.matches,hidden:document.hidden,cinematic});
     if(moving&&last)time+=Math.min((now-last)/1000,.05);
     last=moving?now:0;
     for(const trace of traces)trace.material.userData.time.value=time;
@@ -154,8 +159,9 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(moving||changed)requestDraw();
   }
   function requestDraw(){if(!frame&&!disposed&&!contextLost)frame=requestAnimationFrame(draw);}
-  controls.addEventListener('controlstart',()=>{controlsActive=true;focusFlight=null;clearHover();cameraTransition=null;autoFrame=false;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
-  controls.addEventListener('control',()=>{autoFrame=false;requestDraw();});
+  // Any camera input (drag, touch, wheel, keys below) is the user's: it cancels a pending flight.
+  controls.addEventListener('controlstart',()=>{controlsActive=true;frameEvent({type:'user',source:'pointer'});clearHover();cameraTransition=null;pipeline.setInteracting(true);updateLineResolutions();onInteraction();requestDraw();});
+  controls.addEventListener('control',()=>{frameEvent({type:'user',source:'wheel'});requestDraw();});
   controls.addEventListener('controlend',()=>{controlsActive=false;pipeline.setInteracting(false);updateLineResolutions();annotationStamp='';requestDraw();});
   // Camera has come to rest (pointer released, or camera-controls went idle after a smoothed move/view change): URL deep links listen here, debounced by the caller.
   const restListeners=new Set(),emitRest=()=>{for(const fn of restListeners)fn();};
@@ -191,8 +197,8 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     // near a text-wrap boundary; a wide desktop frame never wraps, so it never showed the bug).
     // The projection/viewport update above still applies so the frame itself tracks size changes;
     // only the auto-frame camera re-fit is held.
-    if(framed&&autoFrame&&!frameHold){
-      const target=computeViewTarget(view,cameraTransition?.zoom??1,frameFocus);
+    if(framed&&holdsView(frameState,focusFlight)&&!frameHold){
+      const target=computeViewTarget(view,cameraTransition?.zoom??1,framesFocus(frameState));
       lookAt(target.position,target.centre,!!cameraTransition&&!reduced.matches);controls.update(0);
     }requestDraw();};
   // Opt-in only (contract 5.1): with insets never set, resize() takes exactly the branch above
@@ -257,15 +263,15 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     return {view:resolved,centre:targetCentre,position:targetCentre.clone().addScaledVector(direction,distance)};
   }
   function setView(key='left') {
-    cameraTransition=null;frameFocus=false;focusFlight=null;
+    cameraTransition=null;frameEvent({type:'view'});
     const target=computeViewTarget(key,1);
-    view=target.view;autoFrame=true;lookAt(target.position,target.centre);controls.update(0);requestDraw();
+    view=target.view;lookAt(target.position,target.centre);controls.update(0);requestDraw();
   }
   /** Animate the camera to a named view; prefers-reduced-motion jumps instantly. */
   function flyTo({view:key='left',zoom=1,tweenMs=900,focus=false}={}) {
-    frameFocus=focus;focusFlight=focus?{view:key,zoom,tweenMs}:null;
+    frameEvent({type:'fly',focus,zoom});focusFlight=focus?{view:key,zoom,tweenMs}:null;
     const target=computeViewTarget(key,zoom,focus);
-    view=target.view;autoFrame=zoom<=1;
+    view=target.view;
     const transition=!reduced.matches&&tweenMs>0;
     controls.smoothTime=transition?Math.max(.08,tweenMs/3000):0;
     const token=cameraTransition=transition?{target,zoom,start:performance.now(),duration:tweenMs}:null;
@@ -286,7 +292,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-','_','Home'].includes(event.key))return;
     event.preventDefault();cameraTransition=null;onInteraction();
     if(event.key==='Home'){setView(view);return;}
-    autoFrame=false;
+    frameEvent({type:'user',source:'keyboard'});
     const target=currentTarget(),offset=camera.position.clone().sub(target),right=new THREE.Vector3().crossVectors(camera.up,offset).normalize();
     if(event.shiftKey&&event.key.startsWith('Arrow')){
       const up=new THREE.Vector3().crossVectors(offset,right).normalize(),shift=new THREE.Vector3();
@@ -518,7 +524,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     leaders.setAttribute('viewBox',`0 0 ${w} ${h}`);
     const p=new THREE.Vector3(),n=new THREE.Vector3(),toward=new THREE.Vector3();
     const candidates=Object.values(hemis).filter(host=>host.group.visible&&host.shell.visible).map(host=>host.shell);
-    const columns=[[],[]],fitLabels=w*.30<128,labelWidth=Math.min(150,Math.max(120,w*.40)),gap=6;
+    const fitLabels=w*.30<128,labelWidth=Math.min(150,Math.max(120,w*.40)),gap=6;
     for(const a of annotations){const pos=a.geo.attributes.position,normal=a.geo.attributes.normal;
       const occluders=a.kind==='deep'?[a.mesh,...candidates.filter(m=>m.material.opacity>=1)]:candidates;
       const ranked=[];let anchor=new THREE.Vector3(),front=false;
@@ -547,28 +553,18 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       a.node.style.cssText=`max-width:${labelWidth}px`;
       a.width=Math.ceil(a.node.getBoundingClientRect().width);if(!fitLabels)a.width=Math.max(128,a.width);
       a.node.style.width=`${a.width}px`;a.height=a.node.offsetHeight;
-      columns[a.x<w/2?0:1].push(a);
     }
-    // Wrapped deep-structure names need their real height, not a fixed row gap.
-    // Move labels across the scene only when their preferred column cannot fit.
-    const columnHeight=list=>list.reduce((sum,a)=>sum+a.height+gap,0)-gap;
-    for(const [side,list] of columns.entries())while(list.length>1&&columnHeight(list)>h-16){
-      const other=columns[1-side],move=[...list].sort((a,b)=>Math.abs(a.x-w/2)-Math.abs(b.x-w/2))
-        .find(a=>columnHeight([...other,a])<=h-16);
-      if(!move)break;list.splice(list.indexOf(move),1);other.push(move);
-    }
-    for(const [side,list] of columns.entries()){
-      list.sort((a,b)=>a.y-b.y);
-      let previous=8-gap,remaining=columnHeight(list);
-      for(const [i,a] of list.entries()){
-        const top=Math.min(h-8-remaining,Math.max(8,a.y-a.height/2,previous+gap));
-        previous=top+a.height;remaining-=a.height+gap;
-        const left=side?w-a.width-8:8;
-        a.node.style.cssText=`left:${left}px;top:${top}px;width:${a.width}px`;
-        if(a.tint){a.node.style.setProperty('--label-color',a.tint);a.line.style.stroke=a.tint;}
-        a.line.setAttribute('x1',String(side?left:left+a.width));a.line.setAttribute('y1',String(top+a.height/2));
-        a.line.setAttribute('x2',String(a.x));a.line.setAttribute('y2',String(a.y));
-      }
+    // Placement (atlas_labels.js): two edge columns, wrapped deep-structure names at their real height,
+    // nothing over the orientation marker. The marker is measured, not assumed, in the layer's frame.
+    const frame=annotationLayer.getBoundingClientRect(),marker=orientation.getBoundingClientRect();
+    const obstacles=[{left:marker.left-frame.left,top:marker.top-frame.top,right:marker.right-frame.left,bottom:marker.bottom-frame.top}];
+    const placed=placeLabels({width:w,height:h,labels:annotations,obstacles,gap});
+    for(const [i,a] of annotations.entries()){
+      const {left,top,side}=placed[i];
+      a.node.style.cssText=`left:${left}px;top:${top}px;width:${a.width}px`;
+      if(a.tint){a.node.style.setProperty('--label-color',a.tint);a.line.style.stroke=a.tint;}
+      a.line.setAttribute('x1',String(side?left:left+a.width));a.line.setAttribute('y1',String(top+a.height/2));
+      a.line.setAttribute('x2',String(a.x));a.line.setAttribute('y2',String(a.y));
     }
   }
   function setSurface(value){
@@ -681,7 +677,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       applyClipping();requestDraw();sceneChanged();
       // A lesson flight fits its focus before the pathways arrive by range request; refit once they are in,
       // unless the learner has taken the camera since.
-      if(focusFlight&&frameFocus&&entries.some(item=>!item.isGhost))flyTo(focusFlight);
+      if(refitsOnLoad(frameState)&&focusFlight&&entries.some(item=>!item.isGhost))flyTo(focusFlight);
     }catch(error){
       if(request===bundleRequest&&!disposed){bundleError=error.message;onStatus(`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`);console.error(error);}
     }
@@ -917,11 +913,11 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     setDeep(state.deepVisible);setDeepHighlight(state.deepHighlight||[]);setNetworks(state.network||networkSelection('off'));
     setSurface(state.surface);
     camera.up.fromArray(state.up);controls.updateCameraUp();view=state.view;
-    autoFrame=false;frameFocus=false;lookAt(new THREE.Vector3().fromArray(state.camera),new THREE.Vector3().fromArray(state.target));controls.update(0);requestDraw();
+    frameEvent({type:'place'});lookAt(new THREE.Vector3().fromArray(state.camera),new THREE.Vector3().fromArray(state.target));controls.update(0);requestDraw();
   }
   // Instant camera placement (deep link): the tail of restore() without touching the scene content.
   function setCamera({camera:position,target,up}){
-    cameraTransition=null;camera.up.fromArray(up);controls.updateCameraUp();autoFrame=false;frameFocus=false;
+    cameraTransition=null;camera.up.fromArray(up);controls.updateCameraUp();frameEvent({type:'place'});
     lookAt(new THREE.Vector3().fromArray(position),new THREE.Vector3().fromArray(target));controls.update(0);requestDraw();
   }
   function projectBundleVertex(id,streamline,vertex){
@@ -951,7 +947,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       bundleAlpha:Object.fromEntries([...bundles].map(([id,v])=>[id,v.alpha])),network:{...networkSel},arterial:{...arterialSel},corridors:corridorOverlay?.state.corridors??[],
       vertices:Object.values(hemis).map(h=>h.count),view,deepVisible,slice:slice?{...slice,crosshair:slice.crosshair?[...slice.crosshair]:null}:null,lesion:lesion?{...lesion.marker}:null,deepHighlight:[...deepHighlightIds],deepFocus:[...deepFocusIds],
       render:{cortex:'shaded-mesh',pipeline:pipeline.diagnostics,surfaceOpacity:hemis.L.shell.material.opacity,
-        cameraFrame:frameFocus?'lesson':'whole',target:currentTarget().toArray(),
+        cameraFrame:frameState,target:currentTarget().toArray(),
         labels:annotations.map(a=>({key:a.key,kind:a.kind,x:a.x,y:a.y,visibility:a.visibility,primary:a.primary}))},
       camera:camera.position.toArray(),cameraTransition:cameraTransition?{elapsed:performance.now()-cameraTransition.start,duration:cameraTransition.duration}:null};},
     dispose(){clearHover();sceneListeners.clear();disposeSliceFrame();for(const host of Object.values(hemis))host.material.dispose();if(peelLook)for(const m of [peelLook.colour,peelLook.depth,peelLook.normal])m.dispose();corridorOverlay?.dispose();reduced.removeEventListener('change',motionChanged);draco.dispose();scene.traverse(o=>{disposeGeometry(o.geometry);o.material?.dispose();});disposeBase();},
