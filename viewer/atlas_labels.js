@@ -31,7 +31,8 @@ export function placeLabels({width:w,height:h,labels,obstacles=[],gap=6,margin=8
   const placed=new Map();
   for(const [side,list] of columns.entries()){
     list.sort((a,b)=>a.y-b.y);
-    const {ceiling,floor}=room(side,list);
+    // A column that cannot clear an obstacle keeps the whole frame: a label over the marker beats one cut off at the edge.
+    const clear=room(side,list),{ceiling,floor}=columnHeight(list)<=clear.floor-clear.ceiling?clear:{ceiling:margin,floor:h-margin};
     let previous=ceiling-gap,remaining=columnHeight(list);
     for(const a of list){
       const top=Math.min(floor-remaining,Math.max(ceiling,a.y-a.height/2,previous+gap));

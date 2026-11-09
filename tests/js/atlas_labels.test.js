@@ -46,3 +46,16 @@ test('labels: an obstacle the columns never reach changes nothing (wide frames k
   assert.deepEqual(placeLabels({width:w,height:h,labels,obstacles:[marker(w,h)]}),placeLabels({width:w,height:h,labels}));
   assert.deepEqual(placeLabels({width:w,height:h,labels,obstacles:[{left:0,top:0,right:0,bottom:0}]}),placeLabels({width:w,height:h,labels}),'a degenerate obstacle is ignored');
 });
+
+test('labels: a column that cannot clear the marker keeps the whole frame, so no label is cut off at the edge',()=>{
+  // A narrow, short stage: at 320 px both 128 px columns cross the centred marker. Five wrapped names per side fit
+  // the frame but not the frame less the marker; a label over the marker beats a label clipped above the frame.
+  const w=320,h=300,labels=[];
+  for(let i=0;i<5;i++)labels.push(label(60,40+i*50,128,38),label(260,40+i*50,128,38));
+  const placed=placeLabels({width:w,height:h,labels,obstacles:[marker(w,h)]});
+  for(const [i,p] of placed.entries()){
+    assert(p.top>=8,`label ${i} starts above the frame margin (top ${p.top})`);
+    assert(p.top+labels[i].height<=h-8,`label ${i} ends below the frame margin (bottom ${p.top+labels[i].height})`);
+  }
+  assert.deepEqual(placed,placeLabels({width:w,height:h,labels}),'the column falls back to the placement without the marker');
+});
