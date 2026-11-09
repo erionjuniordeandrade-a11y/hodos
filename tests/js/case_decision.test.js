@@ -45,7 +45,7 @@ test('saved state for a case without a decision restores unchanged',()=>{
  assert.equal(r.stage,4);assert.equal(r.maxStage,5);assert.equal(r.initial,'i');assert.equal(r.revision,'r');assert.equal(r.response,'resp');
  assert.equal(r.mode,'spoken');assert.equal(r.spokenDone,true);assert.deepEqual(r.ratings,{0:'addressed',3:'revisit'});assert.equal(r.decision,null);
  // Stage 6 does not exist for a six-stage case.
- const s=createCaseStore(memory(),{cases});s.update(id,{stage:6});assert.equal(s.get(id).stage,0);
+ const s=createCaseStore(memory(),{cases});s.move(id,6,{reach:true});assert.equal(s.get(id).stage,0);assert.equal(s.get(id).maxStage,0);
 });
 test('legacy six-stage saved state migrates when the case gains a decision',()=>{
  const storage=memory();

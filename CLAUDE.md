@@ -35,3 +35,7 @@ The five canonical roles, each label string equal to its name. See `docs/agents/
 ### Domain docs
 
 Single-context: one `CONTEXT.md` plus `docs/adr/` at the repo root, both created lazily. See `docs/agents/domain.md`.
+
+### State machines
+
+Every mode and lifecycle in `viewer/` is listed in `docs/state-machines.md` with its states, its module and the `data-*` attribute or test field that names it. New stateful UI follows `docs/adr/0001-explicit-state-machines.md`: one pure transition function with a node test, and the DOM only renders it.

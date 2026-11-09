@@ -151,6 +151,21 @@ export function classifyCorridor(pack,{start,end,radius},hits){
   return total;
 }
 
+// Corridor per id: no entry, an entry inside the sphere, or a valid axis. A missing cache entry is stale.
+export const CORRIDOR_STATES=Object.freeze(['unplaced','inside','valid']);
+/** Reclassifies only the corridors whose state, axis or width changed since cache[id]; true when any did. */
+export function classifyCorridors(pack,{entries,centre,radius,corridorMm,hemi},cache,hits){
+  let changed=false;
+  for(const id of CORRIDOR_IDS){
+    const point=entries[id],axis=point&&centre?corridorAxis(point,centre,radius):null;
+    const state=!point?'unplaced':axis?'valid':'inside',key=axis?`${hemi}|${state}|${axis.start}|${axis.end}|${corridorMm}`:`${hemi}|${state}`;
+    if(cache[id]?.key===key)continue;
+    if(axis)classifyCorridor(pack,{start:axis.start,end:axis.end,radius:corridorMm/2},hits[id]);else hits[id].fill(0);
+    cache[id]={state,key,axis};changed=true;
+  }
+  return changed;
+}
+
 /**
  * Per bundle: how many sampled streamlines the corridor cuts that the lesion sphere does not already
  * cut, and how many it crosses in all.
@@ -223,6 +238,22 @@ export function parseLabParams(search){
     entries:{A:parseEntry(params.get('a')),B:parseEntry(params.get('b'))},
     corridor:clampStep(params.get('cd'),CORRIDOR_MM,CORRIDOR_MM.initial)};
 }
+
+// ---- Load lifecycle: every status of the lab's 3D atlas and the only moves between them ----------
+
+export const LOAD_STATUSES=Object.freeze(['booting','slow','failed','ready','switching','switch-failed','torn-down']);
+// 'switch-failed' keeps the previous hemisphere usable; 'torn-down' follows pagehide.
+const LOAD_MOVES=Object.freeze({booting:{slow:'slow',loaded:'ready',error:'failed',leave:'torn-down'},slow:{loaded:'ready',error:'failed',leave:'torn-down'},
+  failed:{leave:'torn-down'},ready:{switch:'switching',leave:'torn-down'},switching:{loaded:'ready',error:'switch-failed',leave:'torn-down'},
+  'switch-failed':{switch:'switching',leave:'torn-down'},'torn-down':{}});
+/** Returns load itself when the event does not apply, so the caller can tell a refused move. */
+export function loadStep(load,event,error){
+  const status=LOAD_MOVES[load.status]?.[event];
+  if(!status)return load;
+  return {status,error:status==='failed'||status==='switch-failed'?error?.message||String(error):null};
+}
+/** The flags browser gates read from __lesionLabTest, derived from the status. */
+export const loadFlags=({status,error})=>({ready:status==='ready'||status==='switching'||status==='switch-failed',loading:status==='switching',slow:status==='slow',error});
 
 // ---- Evidence: the quoted graph joined to its provenance -------------------------------------
 

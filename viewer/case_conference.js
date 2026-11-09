@@ -1,6 +1,6 @@
 import {CASES,CASE_VERSION} from './case_content.js';
-import {createCaseStore} from './case_state.js';
-import {createCaseAudio} from './case_audio.js';
+import {createCaseStore,historyEntry} from './case_state.js';
+import {ACTIVE_STATUSES,createCaseAudio} from './case_audio.js';
 import {CASE_IMAGES,IMAGE_CAPTION} from './case_images.js';
 import {CASE_LESIONS,LESION_NOTE} from './case_lesions.js';
 
@@ -9,27 +9,36 @@ let storage;try{storage=localStorage;}catch{}
 const store=createCaseStore(storage);
 const STAGE_TITLES={Case:'Read the case',Interpret:'State your interpretation',Explore:'Explore the relationships',Reconsider:'Consider the new finding',Decide:'Make the call',Respond:'Prepare your response',Debrief:'Compare your reasoning'};
 const lastStage=id=>store.stages(id).length-1;
-let active=null,audio=null,audioURL=null,referenceTrigger=null,currentHash='';
+let active=null,audio=null,audioURL=null,referenceTrigger=null;
+// The history entry on screen (canonical hash, index history.state.at), and an entry whose navigation the learner cancelled.
+let shown={hash:null,at:-1},refused=null;
 const el=(tag,attrs={},text='')=>{const n=document.createElement(tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));if(text)n.textContent=text;return n;};
 const p=(text,cls='')=>el('p',cls?{class:cls}:{},text);
 const button=(text,fn,attrs={})=>{const n=el('button',{type:'button',...attrs},text);n.addEventListener('click',fn);return n;};
 const list=items=>{const n=el('ul');for(const t of items)n.append(el('li',{},t));return n;};
-function busy(){return ['requesting','recording','stopping'].includes(audio?.state.status);}
+function busy(){return ACTIVE_STATUSES.includes(audio?.state.status);}
 function cleanupAudio(){audio?.dispose();audio=null;if(audioURL)URL.revokeObjectURL(audioURL);audioURL=null;}
 function canMove(){if(!busy())return true;if(!confirm('Stop recording and continue? The current recording will be discarded.'))return false;cleanupAudio();if(active)initAudio();return true;}
 function initAudio(){audio=createCaseAudio({onChange:s=>{if(active&&['ready','requesting'].includes(s.status))store.update(active.id,{spokenDone:s.status==='ready'});renderAudio();}});}
+function openCase(id){const c=CASES.find(c=>c.id===id)||null;if(c?.id===active?.id)return;cleanupAudio();pendingChoice=null;active=c;if(active)initAudio();}
+function show(at,push){
+ const r=active&&store.get(active.id),hash=active?`#${active.id}/${r.reviewOnly?'review':r.stage}`:push?'':location.hash;
+ shown={hash,at};history[push?'pushState':'replaceState']({at},'',`${location.pathname}${location.search}${hash}`);render(true);
+}
 function navigate(id='',stage=0,{review=false}={}){
  if(!canMove())return;
- if(id!==active?.id){cleanupAudio();pendingChoice=null;active=CASES.find(c=>c.id===id)||null;if(active)initAudio();}
- if(active){const r=store.get(active.id);store.update(active.id,{stage,maxStage:review?r.maxStage:Math.max(stage,r.maxStage),reviewOnly:review});}
- currentHash=active?`#${active.id}/${review?'review':stage}`:'';history.pushState(null,'',`${location.pathname}${location.search}${currentHash}`);render(true);
+ openCase(id);if(active)store.move(active.id,review?'review':stage,{reach:true});
+ refused=null;show(shown.at+1,true);
 }
+// popstate and its paired hashchange both land here and decide once. A cancelled navigation returns with
+// history.go, so no entry is overwritten.
 function route(){
- const [id,part]=location.hash.slice(1).split('/'),c=CASES.find(c=>c.id===id);
- if(!canMove()){history.replaceState(null,'',`${location.pathname}${location.search}${currentHash}`);return;}
- if(c?.id!==active?.id){cleanupAudio();pendingChoice=null;active=c||null;if(active)initAudio();}
- if(active){const r=store.get(active.id),review=part==='review';const requested=Number(part),last=lastStage(active.id),stage=review?last:Number.isInteger(requested)&&requested>=0&&requested<=last?Math.min(requested,r.maxStage):r.maxStage;store.update(active.id,{stage,reviewOnly:review});currentHash=`#${active.id}/${review?'review':stage}`;history.replaceState(null,'',`${location.pathname}${location.search}${currentHash}`);}
- else currentHash='';render(true);
+ const {entry,kind}=historyEntry(shown,refused,location.hash,history.state);
+ if(kind!=='refused')refused=null;if(kind!=='new')return;
+ if(!canMove()){refused=entry;if(entry.at!==shown.at)history.go(shown.at-entry.at);else history.replaceState({at:entry.at},'',`${location.pathname}${location.search}${shown.hash}`);return;}
+ const [id,part]=location.hash.slice(1).split('/');
+ openCase(id);if(active)store.move(active.id,part);
+ show(entry.at,false);
 }
 function sourceLink(c,id){const s=c.sources.find(s=>s.id===id);return s?el('a',{href:s.url,target:'_blank',rel:'noopener noreferrer',class:'source-link'},s.title):document.createTextNode('');}
 function diagram(c){
@@ -100,7 +109,7 @@ function saveTools(body){
  if(store.notice)tools.append(button('Clear saved drafts',()=>{if(confirm('Clear all saved Case Conference drafts? Atlas lesson progress will remain.')){store.clearSaved();updateSaveStatus();}}));body.append(tools);updateSaveStatus();
 }
 function renderAudio(){
- const box=$('audioPanel');if(!box||!audio)return;box.replaceChildren();const s=audio.state;
+ const box=$('audioPanel');if(!box||!audio)return;box.replaceChildren();const s=audio.state;box.dataset.status=s.status;
  box.append(p('Record locally, or rehearse aloud without recording. Audio stays in this tab until you change cases or leave; download it if you want to keep it.','muted'));
  const controls=el('div',{class:'audio-controls'});
  controls.append(button(s.blob?'Record again':'Record response',()=>{if(!s.blob||confirm('Replace the current recording?'))audio.start().catch(()=>{/* The module reports the error through onChange. */});}));
@@ -135,12 +144,12 @@ function debrief(body){
 function render(focus=false){
  main.replaceChildren();
  if(!active){
-  const intro=el('section',{class:'catalog-intro'});intro.append(el('h1',{tabindex:'-1'},'Bring your reasoning to the conference.'),p('Four staged glioma cases for senior neurosurgical residents. Interpret the findings, explore the relationships, then defend what you think and what you still need to know.'),p('About ten minutes per case. Speak or write. No account or automated grading.','muted'),p('Fictional teaching pilot. Schematics are not patient imaging. Debriefs are drafts awaiting independent clinical review.','draft-note'));main.append(intro);
+  main.dataset.stage='catalogue';const intro=el('section',{class:'catalog-intro'});intro.append(el('h1',{tabindex:'-1'},'Bring your reasoning to the conference.'),p('Four staged glioma cases for senior neurosurgical residents. Interpret the findings, explore the relationships, then defend what you think and what you still need to know.'),p('About ten minutes per case. Speak or write. No account or automated grading.','muted'),p('Fictional teaching pilot. Schematics are not patient imaging. Debriefs are drafts awaiting independent clinical review.','draft-note'));main.append(intro);
   const catalogue=el('div',{class:'case-list'});for(const c of CASES){const r=store.get(c.id),row=el('article',{class:'case-row'}),copy=el('div'),actions=el('div',{class:'row-actions'});copy.append(p(c.location),el('h2',{},c.title),p(c.summary));actions.append(button(r.maxStage?'Continue case':'Begin case',()=>navigate(c.id,r.reviewOnly?r.maxStage:r.stage),{class:'primary'}),button('Review debrief',()=>navigate(c.id,lastStage(c.id),{review:true}),{class:'text-button'}));row.append(copy,actions);catalogue.append(row);}main.append(catalogue);
   const exercise=el('article',{class:'case-row'}),copy=el('div');copy.append(p('MIPS concepts'),el('h2',{},'One target, two corridors'),p('Orient in the reference atlas, compare two illustrative access volumes, then explain the trade-offs.'));exercise.append(copy,el('a',{href:'./mips.html'},'Open corridor exercise'));main.append(exercise);
  }else{
   const r=store.get(active.id),top=el('div',{class:'case-top'});top.append(button('All cases',()=>navigate(),{class:'text-button'}),p(`Fictional teaching case ${active.number} · Senior level`));main.append(top);
-  const stages=store.stages(active.id),name=stages[r.stage],last=stages.length-1;
+  const stages=store.stages(active.id),name=stages[r.stage],last=stages.length-1;main.dataset.stage=r.reviewOnly?'review':name;
   const nav=el('ol',{class:`stage-nav${stages.length===7?' has-decision':''}`,'aria-label':'Case stages'});stages.forEach((name,i)=>{const li=el('li'),b=button(name,()=>navigate(active.id,i));if(i===r.stage)b.setAttribute('aria-current','step');b.disabled=i>r.maxStage;li.append(b);nav.append(li);});main.append(nav);
   const work=el('div',{class:'case-workbench'}),aside=el('aside',{class:'case-aside','aria-label':'Case context'}),body=el('section',{class:'stage-body'});
   const schematic=el('details',{class:'schematic'});schematic.open=!CASE_IMAGES[active.id]&&matchMedia('(min-width:851px)').matches;schematic.append(el('summary',{},'Schematic location'),diagram(active));
@@ -165,5 +174,8 @@ window.addEventListener('popstate',route);window.addEventListener('hashchange',r
 window.addEventListener('pagehide',()=>{cleanupAudio();closeReference();});
 window.addEventListener('pageshow',e=>{if(e.persisted&&active){initAudio();render();}});
 window.addEventListener('beforeunload',e=>{if(busy()){e.preventDefault();e.returnValue='';}});
-document.addEventListener('click',e=>{const a=e.target.closest?.('a');if(a&&!a.hasAttribute('download')&&!a.target&&busy()){if(!canMove())e.preventDefault();}});
+// The skip link moves focus itself: following its fragment would route to a case named "caseMain", the catalogue.
+document.querySelector('.skip-link').addEventListener('click',e=>{e.preventDefault();main.focus();});
+// Only a link that would leave the stage can discard a recording; one whose own handler kept the page in place cannot.
+document.addEventListener('click',e=>{const a=e.target.closest?.('a');if(a&&!e.defaultPrevented&&!a.hasAttribute('download')&&!a.target&&busy()){if(!canMove())e.preventDefault();}});
 route();

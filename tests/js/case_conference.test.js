@@ -6,8 +6,8 @@ import {LESSONS} from '../../viewer/lesson_content.js';
 const memory=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)};};
 test('review does not unlock practice stages or remain sticky when practice resumes',()=>{
  const store=createCaseStore(memory()),id=CASES[0].id;
- store.update(id,{stage:5,reviewOnly:true});assert.equal(store.get(id).maxStage,0);
- store.update(id,{stage:0,reviewOnly:false});assert.equal(store.get(id).reviewOnly,false);assert.equal(store.get(id).maxStage,0);
+ store.move(id,'review');assert.equal(store.get(id).maxStage,0);
+ store.move(id,'0');assert.equal(store.get(id).reviewOnly,false);assert.equal(store.get(id).maxStage,0);
 });
 test('four fictional cases reference installed lessons and evidence',()=>{
  assert.equal(CASES.length,4);assert.equal(new Set(CASES.map(c=>c.id)).size,4);

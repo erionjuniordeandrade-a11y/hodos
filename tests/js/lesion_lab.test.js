@@ -10,7 +10,8 @@ import {CONNECTION_ROWS} from '../../viewer/connections_data.js';
 import {CLAIM_PROVENANCE,PMID_RECORDS,GRAPH_TO_ATLAS,UNPLACED_SUBJECTS} from '../../viewer/lesion_evidence.js';
 import {labBundles,packStreamlines,segmentDistance2,classify,summarize,bundleAnchor,clampCentre,parseLabParams,
   claimsFor,evidenceFor,headlines,namedDeficits,familyOf,EVIDENCE_GAPS,CLAIMS,CLAIMS_WITH_PMID,UNPLACED_CLAIMS,
-  SPARED,MARGIN,CUT,RADIUS,MARGIN_MM,CORRIDOR_MM,segmentSegmentDistance2,corridorAxis,classifyCorridor,summarizeCorridor} from '../../viewer/lesion_model.js';
+  SPARED,MARGIN,CUT,RADIUS,MARGIN_MM,CORRIDOR_MM,segmentSegmentDistance2,corridorAxis,classifyCorridor,summarizeCorridor,
+  classifyCorridors,CORRIDOR_STATES,LOAD_STATUSES,loadStep,loadFlags} from '../../viewer/lesion_model.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const tractMeta=JSON.parse(await readFile(path.join(root,'viewer/atlas/tracts.json'),'utf8'));
@@ -197,6 +198,58 @@ test('a corridor runs from the entry to the near surface of the sphere and cuts 
   const rows=summarizeCorridor(probe,hits,lesion);
   assert.deepEqual(rows.map(({id,cut,crossed,total})=>({id,cut,crossed,total})),
     [{id:'P_L',cut:1,crossed:2,total:3},{id:'Q_L',cut:1,crossed:1,total:2}]);
+});
+
+test('a corridor is reclassified only when its state, axis, width or hemisphere changes',()=>{
+  const probe=packStreamlines([
+    {id:'P_L',group:'Association',lines:[[[-20,0,30],[0,0,30],[20,0,30]],[[-20,6,30],[0,6,30],[20,6,30]],[[-5,0,0],[5,0,0]]]},
+    {id:'Q_L',group:'Projection',lines:[[[0,-20,40],[0,0,40],[0,20,40]],[[40,40,40],[41,41,41]]]},
+  ]);
+  const hits={A:new Uint8Array(probe.count),B:new Uint8Array(probe.count)},cache={A:null,B:null};
+  const input={entries:{A:null,B:null},centre:[0,0,0],radius:10,corridorMm:8,hemi:'L'};
+  const run=(patch={})=>classifyCorridors(probe,Object.assign(input,patch),cache,hits);
+  assert.equal(run(),true,'a stale cache classifies once');
+  assert.equal(run(),false,'unchanged unplaced corridors cost nothing (every drag frame re-uploaded the state texture before)');
+  assert.deepEqual([cache.A.state,cache.B.state],['unplaced','unplaced']);
+  assert.equal(run({entries:{A:[0,0,50],B:null}}),true);assert.equal(cache.A.state,'valid');assert.deepEqual([...hits.A],[1,0,0,1,0]);
+  assert.equal(run(),false);
+  assert.equal(run({corridorMm:12}),true,'a wider corridor');assert.deepEqual([...hits.A],[1,1,0,1,0]);
+  assert.equal(run({centre:[0,0,1]}),true,'the sphere moved, so the axis end moved');
+  assert.equal(run({hemi:'R'}),true,'another hemisphere is another sample');
+  assert.equal(run({entries:{A:[0,0,5],B:null}}),true);assert.equal(cache.A.state,'inside');assert.deepEqual([...hits.A],[0,0,0,0,0]);
+  assert.equal(run({entries:{A:[0,0,6],B:null}}),false,'a move that stays inside the sphere changes nothing');
+  run({entries:{A:[0,0,50],B:null}});assert.equal(run({entries:{A:null,B:null}}),true,'unplacing clears the hits');assert.deepEqual([...hits.A],[0,0,0,0,0]);
+  assert.ok([cache.A,cache.B].every(c=>CORRIDOR_STATES.includes(c.state)));
+});
+
+test('the load lifecycle: one table of moves, and the flags the browser gates read',()=>{
+  const EVENTS=['slow','loaded','error','switch','leave'];
+  const expected={
+    booting:{slow:'slow',loaded:'ready',error:'failed',leave:'torn-down'},
+    slow:{loaded:'ready',error:'failed',leave:'torn-down'},
+    failed:{leave:'torn-down'},
+    ready:{switch:'switching',leave:'torn-down'},
+    switching:{loaded:'ready',error:'switch-failed',leave:'torn-down'},
+    'switch-failed':{switch:'switching',leave:'torn-down'},
+    'torn-down':{},
+  };
+  assert.ok(Object.isFrozen(LOAD_STATUSES));assert.deepEqual(Object.keys(expected),[...LOAD_STATUSES]);
+  for(const status of LOAD_STATUSES)for(const event of EVENTS){
+    const load={status,error:null},next=loadStep(load,event,new Error('boom'));
+    assert.equal(next.status,expected[status][event]??status,`${status} + ${event}`);
+    if(!expected[status][event])assert.equal(next,load,`${status} refuses ${event} without a new object`);
+  }
+  const flags=(...events)=>loadFlags(events.reduce((load,event)=>loadStep(load,event,new Error('boom')),{status:'booting',error:null}));
+  assert.deepEqual(flags(),{ready:false,loading:false,slow:false,error:null});
+  assert.deepEqual(flags('slow'),{ready:false,loading:false,slow:true,error:null});
+  assert.deepEqual(flags('slow','loaded'),{ready:true,loading:false,slow:false,error:null});
+  assert.deepEqual(flags('error'),{ready:false,loading:false,slow:false,error:'boom'});
+  assert.deepEqual(flags('loaded','switch'),{ready:true,loading:true,slow:false,error:null});
+  // A failed hemisphere switch keeps the lab usable; the next successful switch clears the error (it stayed set before).
+  assert.deepEqual(flags('loaded','switch','error'),{ready:true,loading:false,slow:false,error:'boom'});
+  assert.deepEqual(flags('loaded','switch','error','switch','loaded'),{ready:true,loading:false,slow:false,error:null});
+  assert.deepEqual(flags('loaded','switch','switch','loaded'),flags('loaded'),'a second switch while one is in flight is refused');
+  assert.equal(loadStep({status:'booting',error:null},'error','plain text').error,'plain text');
 });
 
 test('the page states its scope, sample sizes that match the atlas, and follows the site CSP',async()=>{
