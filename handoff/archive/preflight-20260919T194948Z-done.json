@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "deliverable": "All findings in handoff/HODOS-SITE-ANALYSIS-2026-09-19.md fixed, merged to main and live on hodosatlas.com",
+  "task": "5-lane agent team (luna max x2, grok, sonnet x2) in worktrees; Fable merges, gates, deploys",
+  "target": "hodosatlas.com",
+  "repo": "/Users/eriondeandrade/hodos",
+  "env": "",
+  "verify": "npm test >/dev/null && rm -rf dist/preflight-verify && node scripts/build-hodos.mjs --out=dist/preflight-verify >/dev/null && bash output/verify-live-20260919.sh https://hodosatlas.com && node tests/perf/views_menu.mjs --url=https://hodosatlas.com --out=output/views-live",
+  "accept": "npm test green; build green; browser gates green on the built export; live site shows each fix",
+  "created": "2026-09-19T17:57:58Z",
+  "init_fingerprint": "93e5881c583202d4",
+  "repairs": [
+    {
+      "ts": "2026-09-19T18:36:25Z",
+      "why": "prevents the fixes deliverable from failing because the local/CI server cannot serve /lessons routes and three gates pin stale values (png plates, 4 case rows), so the merged tree cannot be verified",
+      "fingerprint": "7f9bb2b4cd81742c"
+    }
+  ],
+  "runs": [
+    {
+      "ts": "2026-09-19T19:44:28Z",
+      "cmd": "npm test && node scripts/build-hodos.mjs --out=dist/hodos-fixes-20260919 && live checks (views hit-test, lesson pages 200 + unique html, headers)",
+      "exit": 2,
+      "duration_s": 0.0,
+      "fingerprint": "c78b3d3cafe5f8f6",
+      "head": "381c6b2",
+      "log": "handoff/preflight-last-run.log"
+    },
+    {
+      "ts": "2026-09-19T19:49:48Z",
+      "cmd": "npm test >/dev/null && rm -rf dist/preflight-verify && node scripts/build-hodos.mjs --out=dist/preflight-verify >/dev/null && bash output/verify-live-20260919.sh https://hodosatlas.com && node tests/perf/views_menu.mjs --url=https://hodosatlas.com --out=output/views-live",
+      "exit": 0,
+      "duration_s": 36.1,
+      "fingerprint": "ee047d0e321c31c7",
+      "head": "678544a",
+      "log": "handoff/preflight-last-run.log"
+    }
+  ],
+  "updated": "2026-09-19T19:49:48Z",
+  "end_state": "done",
+  "end_detail": "",
+  "ended": "2026-09-19T19:49:48Z"
+}

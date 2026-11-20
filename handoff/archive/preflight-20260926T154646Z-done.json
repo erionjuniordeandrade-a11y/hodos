@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "deliverable": "Hodos public pages pass the official frontend-design skill audit within design.md lock, deployed",
+  "task": "apply frontend-design skill to hodos",
+  "target": "",
+  "repo": "/Users/eriondeandrade/hodos",
+  "env": "",
+  "verify": "npm test && npm run build -- --out=dist/hodos-fd-20260926",
+  "accept": "every skill tell outside the lock fixed or justified; 0 console errors; live on hodosatlas.com",
+  "created": "2026-09-26T15:41:09Z",
+  "init_fingerprint": "b46cb6232e873ad3",
+  "repairs": [],
+  "runs": [
+    {
+      "ts": "2026-09-26T15:44:34Z",
+      "cmd": "npm test && npm run build -- --out=dist/hodos-fd-20260926",
+      "exit": 0,
+      "duration_s": 1.3,
+      "fingerprint": "47465e96cac670fb",
+      "head": "2f4e41b",
+      "log": "handoff/preflight-last-run.log"
+    },
+    {
+      "ts": "2026-09-26T15:46:46Z",
+      "cmd": "npm test && npm run build -- --out=dist/hodos-fd-20260926",
+      "exit": 0,
+      "duration_s": 1.2,
+      "fingerprint": "be7bfb6ab359f14b",
+      "head": "b25eee4",
+      "log": "handoff/preflight-last-run.log"
+    }
+  ],
+  "updated": "2026-09-26T15:46:46Z",
+  "end_state": "done",
+  "end_detail": "",
+  "ended": "2026-09-26T15:46:46Z"
+}

@@ -229,18 +229,31 @@ Speech is fluent but meaning-related substitutions occur, with repetition better
 ## Full source list
 
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **N5** — Saur et al., 2008 · dorsal and ventral language pathways (PMID 19004769) — functional_measurement
+  - _Scope:_ Task fMRI combined with tractography: repetition and comprehension motivated different pathway hypotheses. These task-defined routes are not interchangeable with every named atlas fascicle.
 - **N7** — Fedorenko et al., 2011 · individually localized language-selective regions (PMID 21885736) — functional_measurement
+  - _Scope:_ Individual-subject fMRI localizers distinguished high-level language responses from several nonlinguistic task responses. This atlas has no equivalent individual language localizer.
 - **N1** — Yeo et al., 2011 · intrinsic cortical network organization (PMID 21653723) — atlas
+  - _Scope:_ Resting-state fMRI in 1,000 adults. Source of the installed seven-network cortical partition; no individual task activation or subcortical network map is supplied.
 - **N11** — Seeley et al., 2007 · salience and executive-control networks (PMID 17329432) — association
+  - _Scope:_ Task-free connectivity separated a frontoinsular/dorsal-cingulate network from a lateral frontoparietal control network. This is a different definition from the coarse Yeo-7 ventral-attention partition.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **N6** — Duffau et al., 2005 · semantic errors during cortico-subcortical stimulation (PMID 15705610) — functional_measurement
+  - _Scope:_ Awake surgery series of 17 dominant-hemisphere low-grade gliomas. Semantic paraphasias supported a ventral pathway hypothesis, partly corresponding to IFOF; no measured stimulation sites are installed here.
 - **N15** — Panesar, Yeh, Jacquesson, Hula & Fernandez-Miranda, 2018 · ILF connectivity, segmentation and laterality (PMID 29922132) — experimental_anatomy
+  - _Scope:_ Non-tensor tractography with cadaveric dissection of the inferior longitudinal fasciculus. Supports temporo-occipital course; display geometry alone does not assign a naming deficit to this fascicle.
 - **R3** — Kier et al., 2004 · temporal stem, uncinate, IFOF and optic radiation (PMID 15140705) — experimental_anatomy
+  - _Scope:_ Human anatomical dissection correlated with MR imaging. Supports relative temporal-stem anatomy; not a universal surgical distance.
 - **R9** — Catani et al., 2012 · short frontal-lobe connections (PMID 22209688) — experimental_anatomy
+  - _Scope:_ Tractography and post-mortem dissection describe FAT relationships with both SMA and pre-SMA. HCP 6mp and 6ma are orientation pointers here, not measured endpoints of this displayed sample.
 - **S4** — Catani et al., 2013 · FAT and verbal fluency (DOI 10.1093/brain/awt163) — association
+  - _Scope:_ Primary progressive aphasia cohorts and controls; diffusion measures related to language tests. A cohort association is not a universal deficit prediction.
 - **R6** — Chernoff et al., 2018 · a neurosurgical case study of speech planning (PMID 29569513) — association
+  - _Scope:_ A longitudinal surgical case involving the left FAT, with a temporal-resection comparison case tested using the same measures. The fluency/naming dissociation in these two cases does not assign an exclusive function or population-level risk to a tract.
 - **R7** — Chernoff et al., 2019 · sentence planning during stimulation (PMID 31210568) — functional_measurement
+  - _Scope:_ One awake-mapping case: stimulation changed phrase-boundary timing without the same effect on intra-word articulation. The measured sites are not installed in this atlas.
 
 ## Review checklist
 

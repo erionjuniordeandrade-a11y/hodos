@@ -148,10 +148,15 @@ A colleague says: “The potentials were stable to closure, so the corticospinal
 ## Full source list
 
 - **mep** — Giampiccolo et al. · Long-term motor deficit in brain tumour surgery with preserved intra-operative motor-evoked potentials (PMID 33615216)
+  - _Scope:_ Single-centre peri-Rolandic series. Most early deficits occurred without a change in the potentials; long-term deficit related to resection extending into dorsal premotor and anterior cingulate territory. It is not an outcome prediction for this fictional patient.
 - **sma** — Krainik et al. · Role of the supplementary motor area in motor deficit following medial frontal lobe surgery (PMID 11552019)
+  - _Scope:_ Prospective functional MRI and clinical series. Describes the transient contralateral deficit after medial frontal resection; it does not provide an individual recovery timeline.
 - **sma-series** — Bannur & Rajshekhar · Post operative supplementary motor area syndrome: clinical features and outcome (PMID 10912196)
+  - _Scope:_ Small clinical series describing the syndrome, including neglect with right-sided lesions. Small numbers; features, not frequencies.
 - **neglect** — He et al. · Breakdown of functional connectivity in frontoparietal networks underlies behavioral deficits in spatial neglect (PMID 17359924)
+  - _Scope:_ Stroke cohort. Supports a disconnection account of neglect; it is not a tumour or oedema study.
 - **steroid** — Bastin et al. · Effects of dexamethasone on cerebral perfusion and water diffusion in patients with high-grade glioma (PMID 16484419)
+  - _Scope:_ Imaging study of the steroid effect on peritumoural water within days. It supports the timing argument, not a mechanism for any individual deficit.
 
 ## Review checklist
 

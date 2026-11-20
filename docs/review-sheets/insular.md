@@ -121,7 +121,9 @@ A tract rendering appears to leave a gap along the medial side. How would you ex
 ## Full source list
 
 - **insula-anatomy** — Tanriover et al. · Microsurgical anatomy of the insula and sylvian fissure (PMID 15137609)
+  - _Scope:_ Human microsurgical anatomy study. Vascular descriptions support orientation, not universal operative distances.
 - **lsa** — Resection of insular gliomas: importance of lenticulostriate artery position (PMID 18976071)
+  - _Scope:_ Clinical series relating tumor and artery position. Its individual imaging is not installed in this atlas.
 
 ## Review checklist
 

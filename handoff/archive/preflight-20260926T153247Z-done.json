@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "deliverable": "Hodos /connections page: quoted tract-area-network graph in Hodos design, deployed",
+  "task": "port wm-kg-pilot connectome atlas into Hodos",
+  "target": "",
+  "repo": "/Users/eriondeandrade/hodos",
+  "env": "",
+  "verify": "npm test && npm run build -- --out=dist/hodos-connections-20260926",
+  "accept": "page live at hodosatlas.com/connections, 0 console errors, matches Hodos tokens",
+  "created": "2026-09-26T15:25:31Z",
+  "init_fingerprint": "b885c7e230d36afa",
+  "repairs": [],
+  "runs": [
+    {
+      "ts": "2026-09-26T15:31:50Z",
+      "cmd": "npm test && npm run build -- --out=dist/hodos-connections-20260926",
+      "exit": 0,
+      "duration_s": 1.2,
+      "fingerprint": "808a5892399b43d3",
+      "head": "b8666ae",
+      "log": "handoff/preflight-last-run.log"
+    },
+    {
+      "ts": "2026-09-26T15:32:47Z",
+      "cmd": "npm test && npm run build -- --out=dist/hodos-connections-20260926",
+      "exit": 0,
+      "duration_s": 1.3,
+      "fingerprint": "5ffe998ad44da453",
+      "head": "2f4e41b",
+      "log": "handoff/preflight-last-run.log"
+    }
+  ],
+  "updated": "2026-09-26T15:32:47Z",
+  "end_state": "done",
+  "end_detail": "",
+  "ended": "2026-09-26T15:32:47Z"
+}

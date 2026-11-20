@@ -159,14 +159,23 @@ After a left medial frontal procedure, speech initiation and right-sided spontan
 ## Full source list
 
 - **R9** — Catani et al., 2012 · short frontal-lobe connections (PMID 22209688) — experimental_anatomy
+  - _Scope:_ Tractography and post-mortem dissection describe FAT relationships with both SMA and pre-SMA. HCP 6mp and 6ma are orientation pointers here, not measured endpoints of this displayed sample.
 - **S4** — Catani et al., 2013 · FAT and verbal fluency (DOI 10.1093/brain/awt163) — association
+  - _Scope:_ Primary progressive aphasia cohorts and controls; diffusion measures related to language tests. A cohort association is not a universal deficit prediction.
 - **R6** — Chernoff et al., 2018 · a neurosurgical case study of speech planning (PMID 29569513) — association
+  - _Scope:_ A longitudinal surgical case involving the left FAT, with a temporal-resection comparison case tested using the same measures. The fluency/naming dissociation in these two cases does not assign an exclusive function or population-level risk to a tract.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **R7** — Chernoff et al., 2019 · sentence planning during stimulation (PMID 31210568) — functional_measurement
+  - _Scope:_ One awake-mapping case: stimulation changed phrase-boundary timing without the same effect on intra-word articulation. The measured sites are not installed in this atlas.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **M4** — Usuda et al., 2022 · corticospinal tracts arising from different cortical areas (PMID 35787428) — reconstruction
+  - _Scope:_ Healthy-volunteer tractography comparing descending contributions by cortical origin. Streamline distributions depend on acquisition, model and ROI recipe; they are not axon counts and they are not transferable to a patient.
 - **M9** — Krainik et al., 2001 · supplementary motor area and motor deficit after medial frontal surgery (PMID 11552019) — association
+  - _Scope:_ Surgical series correlating resection extent with postoperative deficit and recovery. The recovery pattern belongs to that series and its follow-up, not to any picture on this screen.
 - **R11** — Giampiccolo et al., 2021 · motor deficits with preserved intraoperative MEPs (PMID 33615216) — association
+  - _Scope:_ Retrospective peri-Rolandic tumour-surgery series with lesion-symptom mapping. Motor deficits could persist despite unchanged MEPs. This supports broader motor assessment, not a diagnosis or recovery guarantee for the hypothetical case.
 
 ## Review checklist
 

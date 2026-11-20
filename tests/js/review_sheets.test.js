@@ -122,3 +122,21 @@ test('negative control: the completeness check catches a dropped step field', ()
   const sheet = buildLessonSheet(lesson, TEACHING_GUIDES[lesson.id]).replace(lesson.steps[0].surgical, '');
   assert.ok(!sheet.includes(lesson.steps[0].surgical));
 });
+
+// Learners read each cited source's scope note (lesson player and case conference),
+// so the reviewer must see it too: species, cohort and method limits live there.
+test('completeness: every cited source scope note is on its sheet', () => {
+  for (const lesson of LESSONS) {
+    const sheet = buildLessonSheet(lesson, TEACHING_GUIDES[lesson.id]);
+    const ids = new Set(lesson.steps.flatMap((step) => sourceIdsForStep(step)));
+    for (const id of ids) {
+      assert.ok(sheet.includes(SOURCES[id].scope), `${lesson.id}: missing scope of ${id}`);
+    }
+  }
+  for (const case_ of CASES) {
+    const sheet = buildCaseSheet(case_);
+    for (const s of case_.sources) {
+      if (s.scope) assert.ok(sheet.includes(s.scope), `${case_.id}: missing scope of ${s.id}`);
+    }
+  }
+});

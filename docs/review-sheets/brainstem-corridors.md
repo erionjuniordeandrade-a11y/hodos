@@ -234,15 +234,25 @@ Left whole-face lower motor neuron facial weakness accompanies right limb weakne
 ## Full source list
 
 - **B4** — Párraga et al., 2016 · internal architecture of the brainstem in 3D images (PMID 26517774) — experimental_anatomy
+  - _Scope:_ Three-dimensional internal architecture study describing long tracts and cranial nerve nuclei relationships. Nuclei are not installed in this viewer.
 - **K3** — Fernández-Miranda et al., 2008, three-dimensional microsurgical and tractographic anatomy of cerebral white matter (PMID 18695585) — experimental_anatomy
+  - _Scope:_ Human fibre dissection and tractographic anatomy of the cingulum and its relationship to the corpus callosum and cingulate gyrus.
 - **K8** — Yeh et al., 2018, population averaged atlas of the human structural connectome (PMID 29758339) — atlas
+  - _Scope:_ Population averaged structural connectome atlas supporting general population level discussion of callosal and cingulum topography. It is background for atlas methods, not the provenance of the installed HCP1065 bundle geometry.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **B1** — Recalde et al., 2008 · anterolateral brainstem safe entry zones (PMID 18424962) — experimental_anatomy
+  - _Scope:_ Human cadaveric anatomy describing anterolateral brainstem entry relationships with the corticospinal tract and medial lemniscus. It supports spatial teaching, not an instruction or an individual corridor.
 - **B3** — Yagmurlu et al., 2014 · three-dimensional brainstem anatomy and safe entry zones (PMID 24983443) — experimental_anatomy
+  - _Scope:_ Three-dimensional dissection linking long fibre tracts and cerebellar peduncles to surface relationships. It provides anatomical context for comparison with the rendered families.
 - **B5** — Meola et al., 2016 · dentatorubrothalamic tract pathways (PMID 26452117) — reconstruction
+  - _Scope:_ Human connectome-based tractography with microdissection validation of decussating and nondecussating dentatorubrothalamic components as they leave the superior cerebellar peduncle.
 - **B8** — Barut et al., 2026 · connectional anatomy of the cerebellum (PMID 42398110) — experimental_anatomy
+  - _Scope:_ Dedicated surgical-anatomy account of the superior, middle and inferior cerebellar peduncles and their dentate connections. The named nuclei are not rendered here.
 - **B6** — Rhoton and Tedeschi, 2008 · microsurgical anatomy of acoustic neuroma (PMID 18534333) — experimental_anatomy
+  - _Scope:_ Cerebellopontine angle anatomy describing the cranial nerve VII and VIII exit complex and neighbouring cerebellar peduncle relationships.
 - **B2** — Cavalcanti et al., 2016 · microsurgical anatomy of brainstem safe entry zones (PMID 26452114) — experimental_anatomy
+  - _Scope:_ A modern cadaveric atlas of midbrain, pontine and medullary entry relationships. The study describes anatomy and landmarks; it does not supply a patient-specific decision rule.
 
 ## Review checklist
 

@@ -193,15 +193,25 @@ A person omits items on the left during search despite useful hand strength. How
 ## Full source list
 
 - **N1** — Yeo et al., 2011 · intrinsic cortical network organization (PMID 21653723) — atlas
+  - _Scope:_ Resting-state fMRI in 1,000 adults. Source of the installed seven-network cortical partition; no individual task activation or subcortical network map is supplied.
 - **N2** — Corbetta et al., 2000 · voluntary orienting and target detection (PMID 10700263) — functional_measurement
+  - _Scope:_ Event-related fMRI distinguished preparatory intraparietal activity from right temporoparietal target responses. Functional task regions are not identical to HCP parcel boundaries.
 - **N4** — He et al., 2007 · network disconnection in spatial neglect (PMID 17359924) — association
+  - _Scope:_ Stroke cohort linking spatial deficits to frontoparietal connectivity disruption. A lesion-network association is not a glioma resection-risk model.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **N11** — Seeley et al., 2007 · salience and executive-control networks (PMID 17329432) — association
+  - _Scope:_ Task-free connectivity separated a frontoinsular/dorsal-cingulate network from a lateral frontoparietal control network. This is a different definition from the coarse Yeo-7 ventral-attention partition.
 - **N7** — Fedorenko et al., 2011 · individually localized language-selective regions (PMID 21885736) — functional_measurement
+  - _Scope:_ Individual-subject fMRI localizers distinguished high-level language responses from several nonlinguistic task responses. This atlas has no equivalent individual language localizer.
 - **N3** — Thiebaut de Schotten et al., 2011 · lateralized visuospatial attention network (PMID 21926985) — association
+  - _Scope:_ Human tractography and visuospatial task associations. Hemispheric asymmetry in that sample does not make attention exclusively right-sided or identify an individual surgical boundary.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **N13** — Dosenbach et al., 2007 · adaptive and stable task control (PMID 17576922) — functional_measurement
+  - _Scope:_ Task-response patterns and resting-state connectivity motivated distinct frontoparietal and cingulo-opercular control systems. Network definitions and proposed timescales belong to that analysis.
 - **N14** — Thiebaut de Schotten et al., 2005 · stimulation and spatial awareness (PMID 16195465) — functional_measurement
+  - _Scope:_ Intraoperative stimulation produced rightward line-bisection shifts. The paper used historical fascicle terminology; this lesson does not relabel its stimulation sites as a particular installed SLF branch.
 
 ## Review checklist
 

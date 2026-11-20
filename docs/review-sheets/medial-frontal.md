@@ -128,6 +128,7 @@ A colleague says: “Power is normal, so the motor system is probably not involv
 ## Full source list
 
 - **sma** — Resection of supplementary motor area gliomas: revisiting supplementary motor syndrome and the role of the frontal aslant tract (PMID 34598138)
+  - _Scope:_ Retrospective surgical cohort. Postoperative associations do not diagnose preoperative symptoms or provide an individual probability of deficit.
 
 ## Review checklist
 
