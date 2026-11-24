@@ -456,7 +456,7 @@ try{
   // Fallback: the 3D atlas fails; the page says so, offers Retry and keeps its method and sources.
   {
     const context=await browser.newContext({viewport:{width:1440,height:900}});
-    await context.route('**/atlas_scene.js*',route=>route.abort());
+    await context.route('**/*atlas_scene*.js*',route=>route.abort());
     const page=await context.newPage(),expected=[];watch(page,expected);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.__lesionLabTest?.error);

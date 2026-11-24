@@ -865,7 +865,7 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
 (async()=>{
   const slow=setTimeout(()=>sendLoad('slow',new Error('Atlas load exceeded 30 s')),SLOW_MS);
   try{
-    const [sceneModule,three,data]=await Promise.all([import('./atlas_scene.js?v=lesion-20260930-1'),import('three'),import('./atlas_data.js')]);
+    const [sceneModule,three,data]=await Promise.all([import('./atlas_scene.js'),import('three'),import('./atlas_data.js')]);
     THREE=three;decodeAtlasBundle=data.decodeAtlasBundle;
     const created=await sceneModule.createAtlasScene(mount,{
       hover:false,

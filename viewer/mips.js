@@ -46,7 +46,7 @@ render();
 try{
   // The exercise needs the corridor API. Separate this dependency from a renderer
   // cached by an earlier visit to the atlas during a Pages deployment transition.
-  const {createAtlasScene}=await import('./atlas_scene.js?v=mips-20260919-1');
+  const {createAtlasScene}=await import('./atlas_scene.js');
   scene=await createAtlasScene($('atlasCanvas'),{
     onStatus(message,detail){$('sceneStatus').textContent=message;$('sceneStatus').hidden=!!detail?.ready;},
     onView({view}){

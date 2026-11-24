@@ -1,7 +1,7 @@
 // Original synthetic illustrations, not registered MRI or anatomical ground truth.
 // Each case carries a FLAIR-style and a contrast-enhanced T1-style axial section at a matching level.
-const flair=(id,where)=>({src:`./case-images/${id}.png`,sequence:'FLAIR',alt:`Synthetic axial FLAIR-style illustration with ${where}.`});
-const t1c=(id,where)=>({src:`./case-images/${id}-t1c.png`,sequence:'T1 +C',alt:`Synthetic axial contrast-enhanced T1-style illustration at the same level, with ${where}.`});
+const flair=(id,where)=>({src:`./case-images/${id}.webp`,sequence:'FLAIR',alt:`Synthetic axial FLAIR-style illustration with ${where}.`});
+const t1c=(id,where)=>({src:`./case-images/${id}-t1c.webp`,sequence:'T1 +C',alt:`Synthetic axial contrast-enhanced T1-style illustration at the same level, with ${where}.`});
 export const CASE_IMAGES={
  'medial-frontal':[flair('medial-frontal','a left parasagittal frontal bright region, on the right of the image'),t1c('medial-frontal','a mildly dark, non-enhancing left medial frontal region and no ring of enhancement')],
  insular:[flair('insular','a left insular-region bright focus, on the right of the image. Perforator relationships are not established'),t1c('insular','a mildly dark, non-enhancing expansion of the left insula and no enhancement')],
