@@ -160,12 +160,19 @@ A left insular lesion extends toward the lentiform complex despite preserved nam
 ## Full source list
 
 - **R5** — Tanriover et al., 2004 · microsurgical anatomy of the insula and Sylvian fissure (PMID 15137609) — experimental_anatomy
+  - _Scope:_ Human microsurgical anatomy of insular gyri, the Sylvian fissure and MCA branches/perforators. Those vessels are discussed, not rendered here.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **S11** — Craig, 2002 · interoception framework (DOI 10.1038/nrn894) — conceptual_model
+  - _Scope:_ Review and conceptual synthesis, not a primary tractography or timing experiment.
 - **S12** — Mesulam & Mufson, 1982 · insular cortical outputs (DOI 10.1002/cne.902120104) — experimental_anatomy
+  - _Scope:_ Tracer experiments in old-world monkeys. Species and experimental scope limit translation to an individual human reconstruction.
 - **R2** — Ribas et al., 2018 · microsurgical anatomy of the central core (PMID 29271710) — experimental_anatomy
+  - _Scope:_ Stepwise human dissections of the insula, capsules, basal ganglia and thalamus. Gross atlas meshes illustrate only part of these layered relationships.
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
+  - _Scope:_ Provenance for the Melbourne Subcortex Atlas scale-1 meshes rendered here. Scale 1 is the coarsest level: anterior and posterior thalamus are merged and no brainstem nucleus is included.
 - **N6** — Duffau et al., 2005 · semantic errors during cortico-subcortical stimulation (PMID 15705610) — functional_measurement
+  - _Scope:_ Awake surgery series of 17 dominant-hemisphere low-grade gliomas. Semantic paraphasias supported a ventral pathway hypothesis, partly corresponding to IFOF; no measured stimulation sites are installed here.
 
 ## Review checklist
 

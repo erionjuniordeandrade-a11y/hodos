@@ -132,7 +132,9 @@ The referral describes language as “intact”. What does the reported observat
 ## Full source list
 
 - **language** — Saur et al. · Ventral and dorsal pathways for language (PMID 19004769)
+  - _Scope:_ Task fMRI and tractography. Functional route hypotheses are task-dependent and are not interchangeable with each named atlas bundle.
 - **vision** — Yogarajah et al. · Defining Meyer’s loop: temporal-lobe resections, visual fields and tractography (PMID 19460796)
+  - _Scope:_ Control and temporal-resection cohorts; anatomical variation and postoperative field outcomes. Not a study of this fictional tumor or its individual risk.
 
 ## Review checklist
 

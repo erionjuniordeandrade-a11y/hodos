@@ -44,7 +44,8 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert(landingAssets.some(f=>f.path==='media/landing/case-right-medial-frontal-20260914.jpg'));
   assert(receipt.files.some(f=>f.path==='landing.js'));
   assert(receipt.files.some(f=>f.path==='lesson_previews.js'));
-  assert.match(home,/<script src="\.\/lesson_previews\.js" defer><\/script>/);
+  assert.match(home,/<script src="\.\/landing\.js\?v=[a-f0-9]{12}" defer><\/script>/);
+  assert.match(home,/<script src="\.\/lesson_previews\.js\?v=[a-f0-9]{12}" defer><\/script>/);
   for(const id of ['motor-cst','fat-language','default-mode-network']){
     assert(home.includes(`data-preview-target="preview-${id}"`));
     assert(home.includes(`href="./atlas?lesson=${id}&amp;step=0&amp;phase=orient&amp;hemi=L"`));
@@ -106,6 +107,11 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert.match(headers,/Permissions-Policy: microphone=\(self\), camera=\(\)/);
   assert.doesNotMatch(headers,/^\/vendor\/\*$/m);assert.match(headers,/\/vendor\/fonts\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
   assert.match(headers,/\/vendor\/addons\/libs\/draco\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=14400, must-revalidate/);
+  assert.match(headers,/\/atlas_app\.bundle\.js\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
+  assert.match(headers,/\/lesion_lab\.bundle\.js\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
+  assert.match(headers,/\/mips\.bundle\.js\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
+  const redirects=await readFile(path.join(out,'_redirects'),'utf8');
+  assert.match(redirects,/^\/cases \/case-conference 301$/m);
   assert.match(headers,/https:\/\/hodos-atlas\.pages\.dev\/\*\n  X-Robots-Tag: noindex/);
   assert.match(headers,/https:\/\/:version\.hodos-atlas\.pages\.dev\/\*\n  X-Robots-Tag: noindex/);
   assert.match(headers,/https:\/\/www\.hodosatlas\.com\/\*\n  X-Robots-Tag: noindex/);

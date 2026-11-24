@@ -79,7 +79,7 @@ A left deep lesion is followed by right face, arm and leg weakness with hemisens
 - **K3** — Fernández-Miranda et al., 2008, three-dimensional microsurgical and tractographic anatomy of cerebral white matter (PMID 18695585) — experimental_anatomy
 - **R2** — Ribas et al., 2018 · microsurgical anatomy of the central core (PMID 29271710) — experimental_anatomy
 - **Q5** — Costa et al., 2018, A Technical Guide for Fiber Tract Dissection of the Internal Capsule. (PMID 29465740) — experimental_anatomy
-- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus–cortex connections (PMID 12808459) — reconstruction
+- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus-cortex connections (PMID 12808459) — reconstruction
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
 - **D1** — Van Essen et al., 2013 · the WU-Minn Human Connectome Project overview (PMID 23684880) — atlas
@@ -230,7 +230,7 @@ A left deep lesion is followed by right face, arm and leg weakness with hemisens
 - **K3** — Fernández-Miranda et al., 2008, three-dimensional microsurgical and tractographic anatomy of cerebral white matter (PMID 18695585) — experimental_anatomy
 - **R2** — Ribas et al., 2018 · microsurgical anatomy of the central core (PMID 29271710) — experimental_anatomy
 - **Q5** — Costa et al., 2018, A Technical Guide for Fiber Tract Dissection of the Internal Capsule. (PMID 29465740) — experimental_anatomy
-- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus–cortex connections (PMID 12808459) — reconstruction
+- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus-cortex connections (PMID 12808459) — reconstruction
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
 - **D1** — Van Essen et al., 2013 · the WU-Minn Human Connectome Project overview (PMID 23684880) — atlas
@@ -238,16 +238,27 @@ A left deep lesion is followed by right face, arm and leg weakness with hemisens
 ## Full source list
 
 - **K3** — Fernández-Miranda et al., 2008, three-dimensional microsurgical and tractographic anatomy of cerebral white matter (PMID 18695585) — experimental_anatomy
+  - _Scope:_ Human fibre dissection and tractographic anatomy of the cingulum and its relationship to the corpus callosum and cingulate gyrus.
 - **R2** — Ribas et al., 2018 · microsurgical anatomy of the central core (PMID 29271710) — experimental_anatomy
+  - _Scope:_ Stepwise human dissections of the insula, capsules, basal ganglia and thalamus. Gross atlas meshes illustrate only part of these layered relationships.
 - **Q5** — Costa et al., 2018, A Technical Guide for Fiber Tract Dissection of the Internal Capsule. (PMID 29465740) — experimental_anatomy
+  - _Scope:_ A stepwise Klingler dissection guide to the anterior limb, genu, posterior limb, retrolenticular and sublenticular relationships. It supports a teaching description of relative organisation while leaving method and level limits explicit.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
+  - _Scope:_ Provenance for the Melbourne Subcortex Atlas scale-1 meshes rendered here. Scale 1 is the coarsest level: anterior and posterior thalamus are merged and no brainstem nucleus is included.
 - **D1** — Van Essen et al., 2013 · the WU-Minn Human Connectome Project overview (PMID 23684880) — atlas
-- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus–cortex connections (PMID 12808459) — reconstruction
+  - _Scope:_ Provenance for the S1200 group-average surface rendered here. A group-average midthickness surface is a population object; individual gyral and sulcal anatomy differs from it.
+- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus-cortex connections (PMID 12808459) — reconstruction
+  - _Scope:_ Probabilistic diffusion tractography relating thalamic territory to cortical target. A connectivity-defined territory is a model output, not a nuclear boundary, and this viewer ships no thalamic nuclei.
 - **K8** — Yeh et al., 2018, population averaged atlas of the human structural connectome (PMID 29758339) — atlas
+  - _Scope:_ Population averaged structural connectome atlas supporting general population level discussion of callosal and cingulum topography. It is background for atlas methods, not the provenance of the installed HCP1065 bundle geometry.
 - **Q1** — Türe et al., 1999, Topographic anatomy of the insular region. (PMID 10193618) — experimental_anatomy
+  - _Scope:_ Human cadaveric anatomy of the insular gyri, external and extreme capsules, claustrum and lentiform relationships. It anchors the layered transsylvian description without supplying a patient-specific corridor.
 - **Q4** — Ribas et al., 2015, Microsurgical anatomy of the inferior limiting insular sulcus and the temporal stem. (PMID 25859806) — experimental_anatomy
+  - _Scope:_ Human microsurgical anatomy of the inferior limiting insular sulcus and temporal stem. It supports the anatomical boundaries of transsylvian and transcortical descriptions without making a universal distance claim.
 - **Q6** — Seidel et al., 2013, The warning-sign hierarchy between quantitative subcortical motor mapping and continuous motor evoked potential monitoring during resection of supratentorial brain tumors. (PMID 23198802) — association
+  - _Scope:_ A clinical study relating subcortical stimulation-current threshold, motor evoked potential change and observed outcome. The reported relationship is evidence from that setting, not a universal threshold to act on.
 
 ## Review checklist
 

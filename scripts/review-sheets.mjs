@@ -37,6 +37,11 @@ function formatSourceLine(source) {
   return `- **${source.id}** — ${source.title}${tag ? ` (${tag})` : ''}${evidence}`;
 }
 
+function formatSourceEntry(source) {
+  const line = formatSourceLine(source);
+  return source && source.scope ? `${line}\n  - _Scope:_ ${source.scope}` : line;
+}
+
 function sourceLookupFor(sourceIds, sourcesById) {
   return sourceIds.map((id) => sourcesById[id]).filter(Boolean);
 }
@@ -116,7 +121,7 @@ export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions =
   });
   lines.push('## Full source list', '');
   if (allSourceIds.size) {
-    sourceLookupFor([...allSourceIds], sourcesById).forEach((s) => lines.push(formatSourceLine(s)));
+    sourceLookupFor([...allSourceIds], sourcesById).forEach((s) => lines.push(formatSourceEntry(s)));
   } else {
     lines.push('NO SOURCES');
   }
@@ -163,7 +168,7 @@ export function buildCaseSheet(case_) {
   });
   lines.push('## Full source list', '');
   if ((case_.sources ?? []).length) {
-    case_.sources.forEach((s) => lines.push(formatSourceLine(s)));
+    case_.sources.forEach((s) => lines.push(formatSourceEntry(s)));
   } else {
     lines.push('NO SOURCES');
   }

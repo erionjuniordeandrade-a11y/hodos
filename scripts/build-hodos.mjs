@@ -233,7 +233,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // Long-cached assets referenced by plain path (fonts, brand files) get a content-hash query
   // key, so a changed file is fetched under a new key instead of served stale for 30 days.
   // Stylesheets are keyed too: a page must never pair new markup with a stale sheet from cache.
-  const keyed=[...supportingFiles.filter(n=>/^(brand|vendor\/fonts)\/.*\.(svg|png|woff2|ttf)$/.test(n)||/^[a-z_-]+\.css$/.test(n)),...bundleOutputs.values()];
+  const keyed=[...supportingFiles.filter(n=>/^(brand|vendor\/fonts)\/.*\.(svg|png|woff2|ttf)$/.test(n)||/^[a-z_-]+\.css$/.test(n)),...bundleOutputs.values(),'landing.js','lesson_previews.js','case_conference.js','connections.js','case_reference.js'];
   const versionRefs=text=>{for(const name of keyed){const key=sha256(files.get(name)).slice(0,12);
     text=text.replace(new RegExp(`(["'(])(\\./|/)${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}(["')])`,'g'),`$1$2${name}?v=${key}$3`);}return text;};
   for(const [name,bytes] of files)if(/\.(html|css)$/.test(name)){
@@ -273,10 +273,10 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     '/atlas/*',...cached,'/vendor/fonts/*',...cached,'/reference-plates/*',...cached,'/brand/*',...cached,'/media/*',...cached,
     '/vendor/addons/*',...vendorCached,'/vendor/addons/libs/draco/*',...vendorCached,
     'https://hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://:version.hodos-atlas.pages.dev/*','  X-Robots-Tag: noindex','https://www.hodosatlas.com/*','  X-Robots-Tag: noindex',
-    ...keyed.filter(n=>n.endsWith('.css')).flatMap(n=>['/'+n,...cached]),''].join('\n'));
+    ...keyed.filter(n=>n.endsWith('.css')||n.endsWith('.js')).flatMap(n=>['/'+n,...cached]),''].join('\n'));
   // Static rules only today (no splat); a splat rule, if one is ever added, must stay below
   // every static rule since Pages matches _redirects top-to-bottom.
-  add('_redirects','/sources /atlas-sources 301\n');
+  add('_redirects','/sources /atlas-sources 301\n/cases /case-conference 301\n');
   // Plate version keys embedded in the lesson module must match the shipped bytes.
   const plateModule=files.get('dissection_references.js').toString();
   for(const plate of plates)if(!plateModule.includes(`sha:'${plate.sha256.slice(0,12)}'`))throw Error(`Dissection plate version key stale: ${plate.file}`);

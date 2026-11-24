@@ -17,13 +17,13 @@ An expected anterior loop appears short in a reconstruction. What would you inve
 
 ## Three takeaways
 
-1. Connect the gross thalamic, white-matter and medial occipital levels of the account. _(step 0: Orient the thalamic–occipital relationship)_
+1. Connect the gross thalamic, white-matter and medial occipital levels of the account. _(step 0: Orient the thalamic-occipital relationship)_
 2. Distinguish optic radiation, uncinate and IFOF by their temporal courses. _(step 2: Compare the temporal-stem neighbours)_
 3. Separate a display discrepancy from reconstruction limits, variation and individual anatomy. _(step 4: Explain an unexpectedly short loop)_
 
 ## Steps
 
-### Step 0: Orient the thalamic–occipital relationship
+### Step 0: Orient the thalamic-occipital relationship
 
 **Claim:** The optic radiation connects the lateral geniculate region with visual cortex around the calcarine sulcus. Here, gross thalamus and HCP parcel V1 provide reference objects at the two ends of that relationship.
 
@@ -95,11 +95,11 @@ An expected anterior loop appears short in a reconstruction. What would you inve
 
 **Question:** Which association pathway in this comparison links anterior temporal and frontal regions?
 
-**Answer:** The uncinate fasciculus. IFOF has a longer frontal–occipital relationship, while OR belongs to the thalamic–visual cortical relationship. Identify each course before making a functional inference.
+**Answer:** The uncinate fasciculus. IFOF has a longer frontal-occipital relationship, while OR belongs to the thalamic-visual cortical relationship. Identify each course before making a functional inference.
 
 **Evidence Class:** experimental_anatomy
 
-**Notes:** Ask the learner to answer before opening the explanation. Compare the answer with the named structures and the cited method. Teaching point: The uncinate fasciculus. IFOF has a longer frontal–occipital relationship, while OR belongs to the thalamic–visual cortical relationship. Identify each course before making a functional inference.
+**Notes:** Ask the learner to answer before opening the explanation. Compare the answer with the named structures and the cited method. Teaching point: The uncinate fasciculus. IFOF has a longer frontal-occipital relationship, while OR belongs to the thalamic-visual cortical relationship. Identify each course before making a functional inference.
 
 **Sources:**
 - **R3** — Kier et al., 2004 · temporal stem, uncinate, IFOF and optic radiation (PMID 15140705) — experimental_anatomy
@@ -165,14 +165,23 @@ An expected anterior loop appears short in a reconstruction. What would you inve
 ## Full source list
 
 - **R3** — Kier et al., 2004 · temporal stem, uncinate, IFOF and optic radiation (PMID 15140705) — experimental_anatomy
+  - _Scope:_ Human anatomical dissection correlated with MR imaging. Supports relative temporal-stem anatomy; not a universal surgical distance.
 - **R4** — Yogarajah et al., 2009 · Meyer’s loop and postoperative visual fields (PMID 19460796) — association
+  - _Scope:_ Control and temporal-resection cohorts studied with tractography and perimetry. Anterior extent and postoperative field loss vary; a template cannot supply an individual margin.
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
+  - _Scope:_ Provenance for the Melbourne Subcortex Atlas scale-1 meshes rendered here. Scale 1 is the coarsest level: anterior and posterior thalamus are merged and no brainstem nucleus is included.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **S6** — Nilsson et al., 2007 · Meyer’s loop variation (DOI 10.1016/j.eplepsyres.2007.07.012) — reconstruction
+  - _Scope:_ Small DTI study of anterior extent. Its method and sample do not define a universal millimetre boundary.
 - **M11** — Maier-Hein et al., 2017 · the challenge of mapping the connectome with diffusion tractography (PMID 29116093) — reconstruction
+  - _Scope:_ Challenge dataset with a defined ground truth and many submitted pipelines. Its false-positive findings motivate caution; its error figures belong to that challenge and are not an error estimate for this atlas.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **M10** — Farquharson et al., 2013 · why we need to move beyond DTI (PMID 23540269) — reconstruction
+  - _Scope:_ Neurosurgical comparison of tensor and higher-order fibre-orientation models. Demonstrates that the orientation model changes which pathways appear; a rendered bundle inherits its model’s failure modes.
 - **M12** — Nimsky et al., 2005 · pre- and intraoperative DTI-based fiber tracking in glioma surgery (PMID 15617595) — reconstruction
+  - _Scope:_ Operative series using DTI tractography inside neuronavigation, reporting intraoperative displacement of the reconstructed tracts. A preoperative bundle position is not a position during the resection.
 
 ## Review checklist
 

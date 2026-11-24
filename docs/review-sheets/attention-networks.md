@@ -18,7 +18,7 @@ A person omits items on the left during search despite useful hand strength. How
 ## Three takeaways
 
 1. Distinguish preparatory orienting from reorienting toward a relevant event. _(step 1: Distinguish preparing attention from redirecting it)_
-2. Compare the separate superior-longitudinal courses in a frontoparietal account. _(step 2: Add the parietal–frontal white matter)_
+2. Compare the separate superior-longitudinal courses in a frontoparietal account. _(step 2: Add the parietal-frontal white matter)_
 3. Connect the observed spatial bias to a cortical or disconnection hypothesis and individual evidence. _(step 5: Present a right frontoparietal case as a network problem)_
 
 ## Steps
@@ -37,11 +37,11 @@ A person omits items on the left during search despite useful hand strength. How
 
 **Question:** Why is a posterior parietal lesion insufficiently described as damage to an isolated “attention centre”?
 
-**Answer:** The region participates in a frontal–parietal system. A useful account identifies the affected territory, its connections and the observed spatial behaviour. Local tissue injury and remote network dysfunction are different possibilities to examine.
+**Answer:** The region participates in a frontal-parietal system. A useful account identifies the affected territory, its connections and the observed spatial behaviour. Local tissue injury and remote network dysfunction are different possibilities to examine.
 
 **Evidence Class:** atlas
 
-**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: The region participates in a frontal–parietal system. A useful account identifies the affected territory, its connections and the observed spatial behaviour. Local tissue injury and remote network dysfunction are different possibilities to examine.
+**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: The region participates in a frontal-parietal system. A useful account identifies the affected territory, its connections and the observed spatial behaviour. Local tissue injury and remote network dysfunction are different possibilities to examine.
 
 **Sources:**
 - **N1** — Yeo et al., 2011 · intrinsic cortical network organization (PMID 21653723) — atlas
@@ -78,9 +78,9 @@ A person omits items on the left during search despite useful hand strength. How
 - **N11** — Seeley et al., 2007 · salience and executive-control networks (PMID 17329432) — association
 - **N7** — Fedorenko et al., 2011 · individually localized language-selective regions (PMID 21885736) — functional_measurement
 
-### Step 2: Add the parietal–frontal white matter
+### Step 2: Add the parietal-frontal white matter
 
-**Claim:** The superior longitudinal fasciculus family provides several parietal–frontal courses. Inspect the separate branches before using the phrase “frontoparietal disconnection.”
+**Claim:** The superior longitudinal fasciculus family provides several parietal-frontal courses. Inspect the separate branches before using the phrase “frontoparietal disconnection.”
 
 **Observe:** Follow SLF I, II and III individually on the right. Compare their superior/inferior courses with the frontal eye-field and intraparietal references; restore the scene between selections.
 
@@ -92,11 +92,11 @@ A person omits items on the left during search despite useful hand strength. How
 
 **Question:** How can a frontal white-matter lesion contribute to a parietal-type spatial deficit while the parietal cortex appears structurally preserved?
 
-**Answer:** It can affect a pathway participating in frontal–parietal communication. That is a disconnection hypothesis: it requires the lesion’s actual location, a compatible behavioural finding and supporting individual anatomy. A normal-looking distant cortex does not settle network function.
+**Answer:** It can affect a pathway participating in frontal-parietal communication. That is a disconnection hypothesis: it requires the lesion’s actual location, a compatible behavioural finding and supporting individual anatomy. A normal-looking distant cortex does not settle network function.
 
 **Evidence Class:** reconstruction
 
-**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: It can affect a pathway participating in frontal–parietal communication. That is a disconnection hypothesis: it requires the lesion’s actual location, a compatible behavioural finding and supporting individual anatomy. A normal-looking distant cortex does not settle network function.
+**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: It can affect a pathway participating in frontal-parietal communication. That is a disconnection hypothesis: it requires the lesion’s actual location, a compatible behavioural finding and supporting individual anatomy. A normal-looking distant cortex does not settle network function.
 
 **Sources:**
 - **N3** — Thiebaut de Schotten et al., 2011 · lateralized visuospatial attention network (PMID 21926985) — association
@@ -121,11 +121,11 @@ A person omits items on the left during search despite useful hand strength. How
 
 **Question:** A patient searches both sides accurately until the task rule changes. Does that alone demonstrate a lateralized spatial-attention deficit?
 
-**Answer:** No. First characterize the failure to adapt to the rule and whether a left–right bias is present. A task-control difficulty and a spatial bias can coexist, but one should not be inferred solely from the other.
+**Answer:** No. First characterize the failure to adapt to the rule and whether a left-right bias is present. A task-control difficulty and a spatial bias can coexist, but one should not be inferred solely from the other.
 
 **Evidence Class:** atlas
 
-**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: No. First characterize the failure to adapt to the rule and whether a left–right bias is present. A task-control difficulty and a spatial bias can coexist, but one should not be inferred solely from the other.
+**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: No. First characterize the failure to adapt to the rule and whether a left-right bias is present. A task-control difficulty and a spatial bias can coexist, but one should not be inferred solely from the other.
 
 **Sources:**
 - **N13** — Dosenbach et al., 2007 · adaptive and stable task control (PMID 17576922) — functional_measurement
@@ -138,7 +138,7 @@ A person omits items on the left during search despite useful hand strength. How
 
 **Claim:** A rightward error on line bisection is an observation about spatial judgement. Its direction and task conditions matter more than calling the result simply abnormal.
 
-**Observe:** Compare right PF/PFm and TPOJ1 around the supramarginal and temporoparietal region, then follow the parietal–frontal samples. These are orientation pointers, not registered stimulation sites.
+**Observe:** Compare right PF/PFm and TPOJ1 around the supramarginal and temporoparietal region, then follow the parietal-frontal samples. These are orientation pointers, not registered stimulation sites.
 
 **Anatomy:**
   - The cited study reported shifts with right inferior-parietal and caudal superior-temporal stimulation, with larger shifts at a subcortical site. These anatomical territories are broader than the selected HCP parcels.
@@ -193,15 +193,25 @@ A person omits items on the left during search despite useful hand strength. How
 ## Full source list
 
 - **N1** — Yeo et al., 2011 · intrinsic cortical network organization (PMID 21653723) — atlas
+  - _Scope:_ Resting-state fMRI in 1,000 adults. Source of the installed seven-network cortical partition; no individual task activation or subcortical network map is supplied.
 - **N2** — Corbetta et al., 2000 · voluntary orienting and target detection (PMID 10700263) — functional_measurement
+  - _Scope:_ Event-related fMRI distinguished preparatory intraparietal activity from right temporoparietal target responses. Functional task regions are not identical to HCP parcel boundaries.
 - **N4** — He et al., 2007 · network disconnection in spatial neglect (PMID 17359924) — association
+  - _Scope:_ Stroke cohort linking spatial deficits to frontoparietal connectivity disruption. A lesion-network association is not a glioma resection-risk model.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **N11** — Seeley et al., 2007 · salience and executive-control networks (PMID 17329432) — association
+  - _Scope:_ Task-free connectivity separated a frontoinsular/dorsal-cingulate network from a lateral frontoparietal control network. This is a different definition from the coarse Yeo-7 ventral-attention partition.
 - **N7** — Fedorenko et al., 2011 · individually localized language-selective regions (PMID 21885736) — functional_measurement
+  - _Scope:_ Individual-subject fMRI localizers distinguished high-level language responses from several nonlinguistic task responses. This atlas has no equivalent individual language localizer.
 - **N3** — Thiebaut de Schotten et al., 2011 · lateralized visuospatial attention network (PMID 21926985) — association
+  - _Scope:_ Human tractography and visuospatial task associations. Hemispheric asymmetry in that sample does not make attention exclusively right-sided or identify an individual surgical boundary.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **N13** — Dosenbach et al., 2007 · adaptive and stable task control (PMID 17576922) — functional_measurement
+  - _Scope:_ Task-response patterns and resting-state connectivity motivated distinct frontoparietal and cingulo-opercular control systems. Network definitions and proposed timescales belong to that analysis.
 - **N14** — Thiebaut de Schotten et al., 2005 · stimulation and spatial awareness (PMID 16195465) — functional_measurement
+  - _Scope:_ Intraoperative stimulation produced rightward line-bisection shifts. The paper used historical fascicle terminology; this lesson does not relabel its stimulation sites as a particular installed SLF branch.
 
 ## Review checklist
 

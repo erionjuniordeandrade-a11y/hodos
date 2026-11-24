@@ -125,9 +125,13 @@ A tract looks short and sparse. How do you describe the discrepancy without decl
 ## Full source list
 
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **M10** — Farquharson et al., 2013 · why we need to move beyond DTI (PMID 23540269) — reconstruction
+  - _Scope:_ Neurosurgical comparison of tensor and higher-order fibre-orientation models. Demonstrates that the orientation model changes which pathways appear; a rendered bundle inherits its model’s failure modes.
 - **M11** — Maier-Hein et al., 2017 · the challenge of mapping the connectome with diffusion tractography (PMID 29116093) — reconstruction
+  - _Scope:_ Challenge dataset with a defined ground truth and many submitted pipelines. Its false-positive findings motivate caution; its error figures belong to that challenge and are not an error estimate for this atlas.
 - **S8** — Smith et al., 2015 · SIFT2 (DOI 10.1016/j.neuroimage.2015.06.092) — model_metric
+  - _Scope:_ Model-derived streamline contributions to a fibre-density fit. Weights are not probabilities that entire connections are true.
 
 ## Review checklist
 
