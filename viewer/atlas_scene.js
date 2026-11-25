@@ -72,7 +72,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const scene=new THREE.Scene();
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
   // Narrow screens render at 2x at most; resize() applies the same cap to the pipeline.
-  renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?2:3));renderer.setClearColor(0x070c12,0);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x070c12,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.localClippingEnabled=true;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
@@ -186,7 +186,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
       if(insetsWereSet){camera.clearViewOffset();insetsWereSet=false;}
     }
     camera.updateProjectionMatrix();
-    pipeline.resize(w,h,Math.min(devicePixelRatio,innerWidth<700?2:3));
+    pipeline.resize(w,h,Math.min(devicePixelRatio,2));
     updateLineResolutions();
     annotationStamp='';
     // frameHold (lesion-lab only, via stage.setFrameHold): while a caller is mid-drag on its own

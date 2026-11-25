@@ -21,8 +21,9 @@ import {evidenceFor} from '../../viewer/lesion_model.js';
 
 const arg=name=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const out=path.resolve(arg('out')||'output/lesion-lab');
-const record=!process.argv.includes('--no-record');
-const FPS_MIN=58,DRAG_SECONDS=3,VIDEO_SECONDS=30;
+const ciMode=process.argv.includes('--ci');
+const record=!ciMode&&!process.argv.includes('--no-record');
+const FPS_MIN=58,DRAG_SECONDS=ciMode?1.2:3,VIDEO_SECONDS=30;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 await mkdir(out,{recursive:true});
 const report={started:new Date().toISOString(),url:null,renderer:null,fps:{},checks:[],errors:[],expectedErrors:0,video:null};
@@ -194,12 +195,13 @@ async function measureDrag(page,label){
     await page.mouse.move(x+ax*Math.sin(2*Math.PI*t/1.6),y+ay*Math.sin(2*Math.PI*t/1.1));moves++;
     if(!middle&&t>DRAG_SECONDS/2)middle=await lab(page);
   }
+  if(!middle)middle=await lab(page);
   await page.mouse.up();
   const times=await page.evaluate(()=>{const times=window.__frameTimes;window.__frameTimes=null;return times;});
   const after=await lab(page);
   const intervals=times.slice(1).map((t,i)=>t-times[i]),sorted=[...intervals].sort((a,b)=>a-b);
-  const mean=intervals.reduce((a,b)=>a+b,0)/intervals.length,seconds=(times.at(-1)-times[0])/1000;
-  const result={viewport:label,fpsMean:+(1000/mean).toFixed(1),frameP95Ms:+sorted[Math.floor(sorted.length*.95)].toFixed(1),
+  const mean=intervals.length?intervals.reduce((a,b)=>a+b,0)/intervals.length:0,seconds=times.length>=2?(times.at(-1)-times[0])/1000:DRAG_SECONDS;
+  const result={viewport:label,fpsMean:mean?+(1000/mean).toFixed(1):0,frameP95Ms:sorted.length?+sorted[Math.floor(sorted.length*.95)].toFixed(1):0,
     framesOver25Ms:intervals.filter(v=>v>25).length,frames:intervals.length,sceneDrawsPerSecond:+((after.scene.frames-before.scene.frames)/seconds).toFixed(1),
     pointerMoves:moves,seconds:+seconds.toFixed(2),classifyMaxMs:+after.classifyMax.toFixed(2),streamlines:after.count,
     duringDrag:(({drawWidth,drawHeight,pixelRatio,interacting,aoEnabled})=>({drawWidth,drawHeight,pixelRatio,interacting,aoEnabled}))(middle.scene.pipeline),
@@ -208,8 +210,12 @@ async function measureDrag(page,label){
   assert.equal(after.dragging,false,'the drag ends on release');
   assert.notDeepEqual(after.centre,before.centre,'dragging moves the sphere');
   assert(sameCamera(after.scene.camera,before.scene.camera),'dragging the sphere does not rotate the view');
-  assert(result.fpsMean>=FPS_MIN,`${label}: ${result.fpsMean} fps mean during the drag (needs ${FPS_MIN})`);
-  assert(result.sceneDrawsPerSecond>=FPS_MIN,`${label}: the scene redrew ${result.sceneDrawsPerSecond} times a second during the drag (needs ${FPS_MIN})`);
+  if(!ciMode){
+    assert(result.fpsMean>=FPS_MIN,`${label}: ${result.fpsMean} fps mean during the drag (needs ${FPS_MIN})`);
+    assert(result.sceneDrawsPerSecond>=FPS_MIN,`${label}: the scene redrew ${result.sceneDrawsPerSecond} times a second during the drag (needs ${FPS_MIN})`);
+  }else{
+    assert(result.frames>=2,`${label}: at least 2 animation frames during CI drag (${result.frames})`);
+  }
   return result;
 }
 
@@ -274,7 +280,8 @@ function checkEvidence(evidence,hemi){
 let server=null,buildRoot=null;
 let base=arg('url');
 const browser=await chromium.launch({headless:true,
-  args:process.platform==='darwin'?['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']:['--enable-gpu','--ignore-gpu-blocklist']});
+  args:ciMode?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']
+    :(process.platform==='darwin'?['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']:['--enable-gpu','--ignore-gpu-blocklist'])});
 try{
   if(!base){
     buildRoot=await mkdtemp(path.join(os.tmpdir(),'hodos-lesion-lab-'));
@@ -286,7 +293,7 @@ try{
 
   // Desktop: frame rate, controls, every statement the page can show, URL state.
   {
-    const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:2});
+    const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:ciMode?1:2});
     const page=await context.newPage();page.setDefaultTimeout(20000);watch(page,report.errors);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     let state=await ready(page);
@@ -421,7 +428,7 @@ try{
 
   // Phone width: frame rate, touch drag, layout.
   {
-    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
+    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:ciMode?1:3,isMobile:true,hasTouch:true});
     const page=await context.newPage();page.setDefaultTimeout(20000);watch(page,report.errors);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     await ready(page);
