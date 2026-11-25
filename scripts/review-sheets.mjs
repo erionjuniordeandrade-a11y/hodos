@@ -37,6 +37,11 @@ function formatSourceLine(source) {
   return `- **${source.id}** — ${source.title}${tag ? ` (${tag})` : ''}${evidence}`;
 }
 
+function formatSourceEntry(source) {
+  const line = formatSourceLine(source);
+  return source && source.scope ? `${line}\n  - _Scope:_ ${source.scope}` : line;
+}
+
 function sourceLookupFor(sourceIds, sourcesById) {
   return sourceIds.map((id) => sourcesById[id]).filter(Boolean);
 }
@@ -45,7 +50,7 @@ function sourceLookupFor(sourceIds, sourcesById) {
 // chosen by EXCLUSION: any field not listed here as structural or already printed
 // is rendered generically, including fields added to the content later.
 const STEP_SHOWN_OR_STRUCTURAL = new Set(['title', 'text', 'sources', 'scene', 'regions', 'targets']);
-const LESSON_SHOWN_OR_STRUCTURAL = new Set(['id', 'title', 'minutes', 'reviewStatus', 'steps', 'version', 'referenceOnly', 'category']);
+const LESSON_SHOWN_OR_STRUCTURAL = new Set(['id', 'title', 'minutes', 'reviewStatus', 'reviewedAt', 'reviewedBy', 'steps', 'version', 'referenceOnly', 'category']);
 const CASE_SHOWN_OR_STRUCTURAL = new Set(['id', 'fictional', 'title', 'location', 'number', 'prompt', 'debrief', 'sources']);
 
 function label(key) {
@@ -89,7 +94,10 @@ export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions =
   if (!guide) throw new Error(`No teaching guide for lesson ${lesson.id}`);
   const lines = [];
   lines.push(`# ${lesson.title}`, '');
-  lines.push(`Lesson id: \`${lesson.id}\` · Minutes: ${lesson.minutes} · Review status: ${lesson.reviewStatus}`, '');
+  const reviewDetail = lesson.reviewedAt
+    ? ` · Reviewed: ${lesson.reviewedAt}${lesson.reviewedBy ? ` (${lesson.reviewedBy})` : ''}`
+    : '';
+  lines.push(`Lesson id: \`${lesson.id}\` · Minutes: ${lesson.minutes} · Review status: ${lesson.reviewStatus}${reviewDetail}`, '');
   lines.push(...renderRest(lesson, LESSON_SHOWN_OR_STRUCTURAL));
   lines.push('## Opening question', '', guide.question, '');
   lines.push('## Three takeaways', '');
@@ -116,7 +124,7 @@ export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions =
   });
   lines.push('## Full source list', '');
   if (allSourceIds.size) {
-    sourceLookupFor([...allSourceIds], sourcesById).forEach((s) => lines.push(formatSourceLine(s)));
+    sourceLookupFor([...allSourceIds], sourcesById).forEach((s) => lines.push(formatSourceEntry(s)));
   } else {
     lines.push('NO SOURCES');
   }
@@ -163,7 +171,7 @@ export function buildCaseSheet(case_) {
   });
   lines.push('## Full source list', '');
   if ((case_.sources ?? []).length) {
-    case_.sources.forEach((s) => lines.push(formatSourceLine(s)));
+    case_.sources.forEach((s) => lines.push(formatSourceEntry(s)));
   } else {
     lines.push('NO SOURCES');
   }

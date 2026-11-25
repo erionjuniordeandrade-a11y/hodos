@@ -130,13 +130,21 @@ A highlighted parcel, a nearby tract and weakness appear in one report. What doe
 ## Full source list
 
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **R1** — Frigeri et al., 2015 · microsurgical anatomy of the central lobe (PMID 25555079) — experimental_anatomy
+  - _Scope:_ Human cadaveric dissections: precentral/postcentral gyri, paracentral lobule and vascular relationships. The atlas has no vascular layer.
 - **M11** — Maier-Hein et al., 2017 · the challenge of mapping the connectome with diffusion tractography (PMID 29116093) — reconstruction
+  - _Scope:_ Challenge dataset with a defined ground truth and many submitted pipelines. Its false-positive findings motivate caution; its error figures belong to that challenge and are not an error estimate for this atlas.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **D1** — Van Essen et al., 2013 · the WU-Minn Human Connectome Project overview (PMID 23684880) — atlas
+  - _Scope:_ Provenance for the S1200 group-average surface rendered here. A group-average midthickness surface is a population object; individual gyral and sulcal anatomy differs from it.
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
+  - _Scope:_ Provenance for the Melbourne Subcortex Atlas scale-1 meshes rendered here. Scale 1 is the coarsest level: anterior and posterior thalamus are merged and no brainstem nucleus is included.
 - **S4** — Catani et al., 2013 · FAT and verbal fluency (DOI 10.1093/brain/awt163) — association
+  - _Scope:_ Primary progressive aphasia cohorts and controls; diffusion measures related to language tests. A cohort association is not a universal deficit prediction.
 - **R7** — Chernoff et al., 2019 · sentence planning during stimulation (PMID 31210568) — functional_measurement
+  - _Scope:_ One awake-mapping case: stimulation changed phrase-boundary timing without the same effect on intra-word articulation. The measured sites are not installed in this atlas.
 
 ## Review checklist
 

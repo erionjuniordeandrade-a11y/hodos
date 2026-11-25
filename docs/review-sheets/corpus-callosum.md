@@ -237,14 +237,23 @@ Which callosal segment and neighbouring systems matter when a posterior disconne
 ## Full source list
 
 - **K1** — Hofer et al., 2006, topography of the human corpus callosum revisited (PMID 16854598) — reconstruction
+  - _Scope:_ Diffusion tractography study of callosal segments and their cortical topography. This supports a population relationship map, not an individual disconnection boundary.
 - **K3** — Fernández-Miranda et al., 2008, three-dimensional microsurgical and tractographic anatomy of cerebral white matter (PMID 18695585) — experimental_anatomy
+  - _Scope:_ Human fibre dissection and tractographic anatomy of the cingulum and its relationship to the corpus callosum and cingulate gyrus.
 - **K4** — Türe et al., 1996, arteries of the corpus callosum (PMID 8938760) — experimental_anatomy
+  - _Scope:_ Human microsurgical anatomy of pericallosal and callosomarginal arteries around the corpus callosum and cingulate gyrus. No individual vessels, perforators or relevant deep vascular territory are rendered in this lesson.
 - **K8** — Yeh et al., 2018, population averaged atlas of the human structural connectome (PMID 29758339) — atlas
+  - _Scope:_ Population averaged structural connectome atlas supporting general population level discussion of callosal and cingulum topography. It is background for atlas methods, not the provenance of the installed HCP1065 bundle geometry.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **K2** — Wahl et al., 2007, human motor corpus callosum topography and somatotopy (PMID 17989279) — association
+  - _Scope:_ Human study relating motor callosal topography, somatotopy, microstructure and structure function relationships. It supports posterior body and isthmus motor relationships, not a claim that the whole body is a motor compartment.
 - **K7** — Gazzaniga, 2000, cerebral specialization and interhemispheric communication (PMID 10869045) — association
+  - _Scope:_ Foundational review of callosal disconnection syndromes and interhemispheric transfer. Clinical consequences depend on the actual lesion and tested function.
 - **K5** — Güngör et al., 2017, white matter tracts in ventricular surgery and hydrocephalus (PMID 27257832) — experimental_anatomy
+  - _Scope:_ Rhoton lineage fibre dissection relating callosal and deep white matter structures to the transcallosal ventricular corridor. This is anatomical context, not operative instruction.
 - **K6** — De Maria et al., 2025, neurological deficits following brain tumour resection in the supplementary motor area (PMID 40282544) — association
+  - _Scope:_ Modern clinical series describing supplementary motor area syndrome after medial frontal tumour surgery. It does not predict an individual deficit or recovery.
 
 ## Review checklist
 

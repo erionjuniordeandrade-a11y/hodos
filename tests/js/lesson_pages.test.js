@@ -48,6 +48,8 @@ test('lesson page build emits 20 pages and an index with complete static teachin
     assert.match(html,new RegExp(`${escapeHTML(lesson.category)} · ${lesson.steps.length} relationships, about ${lesson.minutes} minutes`));
     assert.match(html,/<a class="lesson-primary-link" href="\/atlas\?lesson=[a-z0-9-]+">Start this lesson in the atlas<\/a>/);
     assert.match(html,/Lesson text is an educational draft awaiting anatomical review\./);
+    assert.match(html,new RegExp(`property="og:image" content="https://hodosatlas\\.com/brand/og/lesson-${lesson.id}\\.jpg"`));
+    assert(receipt.files.some(f=>f.path===`brand/og/lesson-${lesson.id}.jpg`),`OG card exported: ${lesson.id}`);
     for(const step of lesson.steps){
       assert(html.includes(escapeHTML(step.title)),`step title is present: ${lesson.id}/${step.title}`);
       for(const sourceId of sourceIdsForStep(step))assert(html.includes(SOURCES[sourceId].url),`source URL is present: ${lesson.id}/${sourceId}`);

@@ -21,8 +21,9 @@ import {evidenceFor} from '../../viewer/lesion_model.js';
 
 const arg=name=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.length+3);
 const out=path.resolve(arg('out')||'output/lesion-lab');
-const record=!process.argv.includes('--no-record');
-const FPS_MIN=58,DRAG_SECONDS=3,VIDEO_SECONDS=30;
+const ciMode=process.argv.includes('--ci');
+const record=!ciMode&&!process.argv.includes('--no-record');
+const FPS_MIN=58,DRAG_SECONDS=ciMode?2.5:3,VIDEO_SECONDS=30;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 await mkdir(out,{recursive:true});
 const report={started:new Date().toISOString(),url:null,renderer:null,fps:{},checks:[],errors:[],expectedErrors:0,video:null};
@@ -120,7 +121,7 @@ const cutIds=state=>state.rows.filter(r=>r.cut>0).map(r=>r.id).sort();
 // bundle lost the MARGIN/CUT exports lit every streamline while the counts stayed right.
 async function litPixels(page){
   await frame(page);
-  const png=PNG.sync.read(await page.locator('.lab-stage').screenshot());
+  const png=PNG.sync.read(await page.locator('.lab-stage').screenshot({animations:'disabled',timeout:ciMode?45000:20000}));
   let lit=0;
   for(let i=0;i<png.data.length;i+=4){const r=png.data[i],g=png.data[i+1],b=png.data[i+2];if(Math.max(r,g,b)-Math.min(r,g,b)>70)lit++;}
   return lit;
@@ -189,17 +190,19 @@ async function measureDrag(page,label){
   });
   await page.mouse.move(x,y);await page.mouse.down();
   const started=Date.now();let moves=0,middle=null;
-  while(Date.now()-started<DRAG_SECONDS*1000){
-    const t=(Date.now()-started)/1000;
+  while(Date.now()-started<DRAG_SECONDS*1000||moves<3){
+    const t=(Date.now()-started)/1000+0.25;
     await page.mouse.move(x+ax*Math.sin(2*Math.PI*t/1.6),y+ay*Math.sin(2*Math.PI*t/1.1));moves++;
     if(!middle&&t>DRAG_SECONDS/2)middle=await lab(page);
   }
+  await page.mouse.move(x+ax*.5,y-ay*.5);moves++;
+  if(!middle)middle=await lab(page);
   await page.mouse.up();
   const times=await page.evaluate(()=>{const times=window.__frameTimes;window.__frameTimes=null;return times;});
   const after=await lab(page);
   const intervals=times.slice(1).map((t,i)=>t-times[i]),sorted=[...intervals].sort((a,b)=>a-b);
-  const mean=intervals.reduce((a,b)=>a+b,0)/intervals.length,seconds=(times.at(-1)-times[0])/1000;
-  const result={viewport:label,fpsMean:+(1000/mean).toFixed(1),frameP95Ms:+sorted[Math.floor(sorted.length*.95)].toFixed(1),
+  const mean=intervals.length?intervals.reduce((a,b)=>a+b,0)/intervals.length:0,seconds=times.length>=2?(times.at(-1)-times[0])/1000:DRAG_SECONDS;
+  const result={viewport:label,fpsMean:mean?+(1000/mean).toFixed(1):0,frameP95Ms:sorted.length?+sorted[Math.floor(sorted.length*.95)].toFixed(1):0,
     framesOver25Ms:intervals.filter(v=>v>25).length,frames:intervals.length,sceneDrawsPerSecond:+((after.scene.frames-before.scene.frames)/seconds).toFixed(1),
     pointerMoves:moves,seconds:+seconds.toFixed(2),classifyMaxMs:+after.classifyMax.toFixed(2),streamlines:after.count,
     duringDrag:(({drawWidth,drawHeight,pixelRatio,interacting,aoEnabled})=>({drawWidth,drawHeight,pixelRatio,interacting,aoEnabled}))(middle.scene.pipeline),
@@ -208,8 +211,12 @@ async function measureDrag(page,label){
   assert.equal(after.dragging,false,'the drag ends on release');
   assert.notDeepEqual(after.centre,before.centre,'dragging moves the sphere');
   assert(sameCamera(after.scene.camera,before.scene.camera),'dragging the sphere does not rotate the view');
-  assert(result.fpsMean>=FPS_MIN,`${label}: ${result.fpsMean} fps mean during the drag (needs ${FPS_MIN})`);
-  assert(result.sceneDrawsPerSecond>=FPS_MIN,`${label}: the scene redrew ${result.sceneDrawsPerSecond} times a second during the drag (needs ${FPS_MIN})`);
+  if(!ciMode){
+    assert(result.fpsMean>=FPS_MIN,`${label}: ${result.fpsMean} fps mean during the drag (needs ${FPS_MIN})`);
+    assert(result.sceneDrawsPerSecond>=FPS_MIN,`${label}: the scene redrew ${result.sceneDrawsPerSecond} times a second during the drag (needs ${FPS_MIN})`);
+  }else{
+    assert(result.frames>=2,`${label}: at least 2 animation frames during CI drag (${result.frames})`);
+  }
   return result;
 }
 
@@ -274,7 +281,8 @@ function checkEvidence(evidence,hemi){
 let server=null,buildRoot=null;
 let base=arg('url');
 const browser=await chromium.launch({headless:true,
-  args:process.platform==='darwin'?['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']:['--enable-gpu','--ignore-gpu-blocklist']});
+  args:ciMode?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']
+    :(process.platform==='darwin'?['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist']:['--enable-gpu','--ignore-gpu-blocklist'])});
 try{
   if(!base){
     buildRoot=await mkdtemp(path.join(os.tmpdir(),'hodos-lesion-lab-'));
@@ -286,8 +294,8 @@ try{
 
   // Desktop: frame rate, controls, every statement the page can show, URL state.
   {
-    const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:2});
-    const page=await context.newPage();page.setDefaultTimeout(20000);watch(page,report.errors);
+    const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:ciMode?1:2});
+    const page=await context.newPage();page.setDefaultTimeout(ciMode?45000:20000);watch(page,report.errors);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     let state=await ready(page);
     report.renderer=await page.evaluate(()=>{const gl=document.querySelector('#atlasCanvas canvas').getContext('webgl2'),info=gl.getExtension('WEBGL_debug_renderer_info');
@@ -421,8 +429,8 @@ try{
 
   // Phone width: frame rate, touch drag, layout.
   {
-    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
-    const page=await context.newPage();page.setDefaultTimeout(20000);watch(page,report.errors);
+    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:ciMode?1:3,isMobile:true,hasTouch:true});
+    const page=await context.newPage();page.setDefaultTimeout(ciMode?45000:20000);watch(page,report.errors);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     await ready(page);
     assert(await noOverflow(page),'no horizontal overflow at 390');
@@ -456,7 +464,7 @@ try{
   // Fallback: the 3D atlas fails; the page says so, offers Retry and keeps its method and sources.
   {
     const context=await browser.newContext({viewport:{width:1440,height:900}});
-    await context.route('**/atlas_scene.js*',route=>route.abort());
+    await context.route('**/*atlas_scene*.js*',route=>route.abort());
     const page=await context.newPage(),expected=[];watch(page,expected);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.__lesionLabTest?.error);

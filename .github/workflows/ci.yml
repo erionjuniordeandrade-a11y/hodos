@@ -15,6 +15,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Run resident-kit Python tests
+        run: |
+          python3 -m venv /tmp/hodos-kit-venv
+          /tmp/hodos-kit-venv/bin/pip install --quiet pytest python-docx
+          /tmp/hodos-kit-venv/bin/pytest -q scripts/resident-kit/
       - run: npm run build -- --out=dist/ci
       - run: npx playwright install --with-deps chromium
       - name: Serve the export and run the publication gate
@@ -32,6 +37,7 @@ jobs:
           node tests/perf/landing_gate.mjs --url=http://127.0.0.1:51038 --out=output/ci/landing
           node tests/perf/case_conference.mjs --url=http://127.0.0.1:51038/ --out=output/ci/case-conference
           node tests/perf/atlas_dissection.mjs --url=http://127.0.0.1:51038 --out=output/ci/dissection
+          node tests/perf/lesion_lab.mjs --ci --no-record --url=http://127.0.0.1:51038 --out=output/ci/lesion-lab
       - uses: actions/upload-artifact@v4
         if: always()
         with:

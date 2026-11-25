@@ -1,4 +1,4 @@
-import {LESSONS,CONTENT_VERSION,SOURCES,REGIONS,sourceIdsForStep} from './lesson_content.js';
+import {LESSONS,CONTENT_VERSION,SOURCES,REGIONS,sourceIdsForStep,lessonStatusNotice} from './lesson_content.js';
 import {createLessonController,lessonSearch,nextLabel} from './lesson_state.js';
 import {createLearningProgress,createPostopReplay,LEARNING_PHASES,POSTOP_REPLAY_MAX} from './anatomy_learning.js';
 import {matchTeachback,teachbackTerms,micTransition,MIC_IDLE} from './teachback.js';
@@ -260,7 +260,7 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
         const caseQuestion=el('details',{class:'lesson-case-reminder'});caseQuestion.append(el('summary',{},'The question for this lesson'),el('p',{},guide.question));body.append(caseQuestion);
         appendReferences(body,step);
       }
-      if(phase==='brief')body.append(el('p',{class:'lesson-version'},`Educational draft ${CONTENT_VERSION}, anatomical review pending.`));body.scrollTop=scrollTop;
+      if(phase==='brief')body.append(el('p',{class:'lesson-version'},lesson.reviewStatus==='draft'?`Educational draft ${CONTENT_VERSION}, anatomical review pending.`:`${lessonStatusNotice(lesson)} (${CONTENT_VERSION})`));body.scrollTop=scrollTop;
       const footer=el('div',{class:'lesson-controls'}),nav=el('div',{class:'lesson-nav'});
       if(phase==='recap'){
         // With a next lesson, the pinned primary continues to it; #lessonNext still closes the lesson.

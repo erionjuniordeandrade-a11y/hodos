@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {LESSONS,SOURCES,CONTENT_VERSION,validateLessons} from '../../viewer/lesson_content.js';
+import {LESSONS,SOURCES,CONTENT_VERSION,REVIEW_STATUSES,lessonStatusNotice,validateLessons} from '../../viewer/lesson_content.js';
 import {lessonStateFromSearch,lessonSearch,createLessonController,nextReading,previousReading,nextLabel,READING_PHASES} from '../../viewer/lesson_state.js';
 test('ten substantive drafts have resolved sources, notes and knowledge checks',()=>{
   assert.equal(LESSONS.length,20);assert.equal(validateLessons(),true);
@@ -73,4 +73,48 @@ test('the URL carries the Reading: a link without a phase opens on orient, the l
   const query=new URLSearchParams(lessonSearch('?profile=teaching&phase=old',c.state));
   assert.equal(query.get('phase'),'explain');assert.equal(query.get('step'),'2');assert.equal(query.get('profile'),'teaching');
   c.close();assert.equal(new URLSearchParams(lessonSearch('?profile=teaching&phase=old',c.state)).has('phase'),false);
+});
+
+test('reviewStatus graduation supports author-reviewed and peer-reviewed while rejecting invalid states',()=>{
+  assert.deepEqual([...REVIEW_STATUSES],['draft','author-reviewed','peer-reviewed']);
+  const authorReviewed=structuredClone(LESSONS);
+  authorReviewed[0].reviewStatus='author-reviewed';
+  authorReviewed[0].reviewedAt='2026-11-24';
+  assert.equal(validateLessons(authorReviewed),true);
+  assert.match(lessonStatusNotice(authorReviewed[0]),/reviewed by Dr\. Erion de Andrade \(2026-11-24\)/);
+
+  const peerReviewed=structuredClone(LESSONS);
+  peerReviewed[0].reviewStatus='peer-reviewed';
+  peerReviewed[0].reviewedAt='2026-11-24';
+  peerReviewed[0].reviewedBy='Dr. Example Reviewer';
+  assert.equal(validateLessons(peerReviewed),true);
+  assert.match(lessonStatusNotice(peerReviewed[0]),/Peer-reviewed.*Dr\. Example Reviewer, 2026-11-24/);
+
+  const missingDate=structuredClone(LESSONS);
+  missingDate[0].reviewStatus='author-reviewed';
+  assert.throws(()=>validateLessons(missingDate),/requires valid ISO reviewedAt/);
+
+  const badCalendarDate=structuredClone(LESSONS);
+  badCalendarDate[0].reviewStatus='author-reviewed';
+  badCalendarDate[0].reviewedAt='2026-02-30';
+  assert.throws(()=>validateLessons(badCalendarDate),/requires valid ISO reviewedAt/);
+
+  const draftWithDate=structuredClone(LESSONS);
+  draftWithDate[0].reviewedAt='2026-11-24';
+  assert.throws(()=>validateLessons(draftWithDate),/must not carry review metadata/);
+
+  const authorWithReviewer=structuredClone(LESSONS);
+  authorWithReviewer[0].reviewStatus='author-reviewed';
+  authorWithReviewer[0].reviewedAt='2026-11-24';
+  authorWithReviewer[0].reviewedBy='Someone Else';
+  assert.throws(()=>validateLessons(authorWithReviewer),/must not set reviewedBy/);
+
+  const missingReviewer=structuredClone(LESSONS);
+  missingReviewer[0].reviewStatus='peer-reviewed';
+  missingReviewer[0].reviewedAt='2026-11-24';
+  assert.throws(()=>validateLessons(missingReviewer),/requires reviewedBy/);
+
+  const bogus=structuredClone(LESSONS);
+  bogus[0].reviewStatus='approved';
+  assert.throws(()=>validateLessons(bogus),/Invalid lesson identity or review state/);
 });

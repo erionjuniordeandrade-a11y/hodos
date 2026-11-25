@@ -202,15 +202,25 @@ A resident must explain a semantic or phonological deficit near the anterior tem
 ## Full source list
 
 - **K3** — Fernández-Miranda et al., 2008, three-dimensional microsurgical and tractographic anatomy of cerebral white matter (PMID 18695585) — experimental_anatomy
+  - _Scope:_ Human fibre dissection and tractographic anatomy of the cingulum and its relationship to the corpus callosum and cingulate gyrus.
 - **R3** — Kier et al., 2004 · temporal stem, uncinate, IFOF and optic radiation (PMID 15140705) — experimental_anatomy
+  - _Scope:_ Human anatomical dissection correlated with MR imaging. Supports relative temporal-stem anatomy; not a universal surgical distance.
 - **K8** — Yeh et al., 2018, population averaged atlas of the human structural connectome (PMID 29758339) — atlas
+  - _Scope:_ Population averaged structural connectome atlas supporting general population level discussion of callosal and cingulum topography. It is background for atlas methods, not the provenance of the installed HCP1065 bundle geometry.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **V2** — Martino J, et al., 2010, Anatomic dissection of the inferior fronto-occipital fasciculus revisited in the lights of brain stimulation data. (PMID 19775684) — experimental_anatomy
+  - _Scope:_ Fibre dissection reappraisal of the IFOF trajectory through the temporal stem, discussed alongside semantic stimulation findings. It does not establish an individual tract boundary.
 - **V6** — Catani M, et al., 2003, Occipito-temporal connections in the human brain. (PMID 12821517) — reconstruction
+  - _Scope:_ Diffusion MRI virtual dissection of the ILF as a discrete occipito-temporal association pathway. It is a reconstruction, not physical fibre dissection or an individual functional map.
 - **V4** — Peuskens D, et al., 2004, Anatomy of the anterior temporal lobe and the frontotemporal region demonstrated by fiber dissection. (PMID 15509324) — experimental_anatomy
+  - _Scope:_ Fibre dissection description of the temporal stem as a white matter corridor linking the temporal lobe with the insula and basal ganglia region.
 - **V7** — Wen HT, et al., 1999, Microsurgical anatomy of the temporal lobe: part 1: mesial temporal lobe anatomy and its vascular relationships as applied to amygdalohippocampectomy. (PMID 10493377) — experimental_anatomy
+  - _Scope:_ Mesial temporal and vascular relationships that provide anatomical context for the temporal stem, amygdala, hippocampus and anterior choroidal territory. No individual vessels, perforators or relevant deep vascular territory are rendered in this atlas.
 - **N6** — Duffau et al., 2005 · semantic errors during cortico-subcortical stimulation (PMID 15705610) — functional_measurement
+  - _Scope:_ Awake surgery series of 17 dominant-hemisphere low-grade gliomas. Semantic paraphasias supported a ventral pathway hypothesis, partly corresponding to IFOF; no measured stimulation sites are installed here.
 - **N5** — Saur et al., 2008 · dorsal and ventral language pathways (PMID 19004769) — functional_measurement
+  - _Scope:_ Task fMRI combined with tractography: repetition and comprehension motivated different pathway hypotheses. These task-defined routes are not interchangeable with every named atlas fascicle.
 
 ## Review checklist
 

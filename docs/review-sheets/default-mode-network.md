@@ -52,9 +52,9 @@ Motor examination and conversation seem preserved, but recalling familiar events
 
 ### Step 1: Orient the anterior and posterior medial references
 
-**Claim:** Medial prefrontal and posterior cingulate/retrosplenial regions form an anterior–posterior relationship around the medial hemisphere. HCP 10r, 31pv and RSC are reference pointers within that broader anatomy.
+**Claim:** Medial prefrontal and posterior cingulate/retrosplenial regions form an anterior-posterior relationship around the medial hemisphere. HCP 10r, 31pv and RSC are reference pointers within that broader anatomy.
 
-**Observe:** Alternate between 10r, posterior cingulate 31pv and retrosplenial RSC. Follow the anterior–posterior relationship around the callosal region; the outlines do not reproduce the entire functional midline core.
+**Observe:** Alternate between 10r, posterior cingulate 31pv and retrosplenial RSC. Follow the anterior-posterior relationship around the callosal region; the outlines do not reproduce the entire functional midline core.
 
 **Anatomy:**
   - Andrews-Hanna’s study identified anterior medial prefrontal and posterior cingulate regions as a core connecting other default-network components.
@@ -82,13 +82,13 @@ Motor examination and conversation seem preserved, but recalling familiar events
 
 **Claim:** Cingulum pathways provide structural context for medial frontal, posterior medial and parahippocampal relationships. Structural trajectories and correlated fMRI signals contribute different kinds of evidence.
 
-**Observe:** Follow the frontal–parietal and parahippocampal–parietal cingulum samples. Compare their course with the posterior medial parcel and hippocampal reference.
+**Observe:** Follow the frontal-parietal and parahippocampal-parietal cingulum samples. Compare their course with the posterior medial parcel and hippocampal reference.
 
 **Anatomy:**
   - The cingulum family contains distinct sampled components, not a single line that passes through every default-network region.
-  - Greicius combined functional and structural imaging to study medial prefrontal–posterior cingulate and medial temporal–retrosplenial relationships.
+  - Greicius combined functional and structural imaging to study medial prefrontal-posterior cingulate and medial temporal-retrosplenial relationships.
 
-**Surgical:** A lesion near the cingulum can motivate a disconnection question even when separated cortical territories are preserved. That question requires actual lesion–pathway anatomy and cognitive observations.
+**Surgical:** A lesion near the cingulum can motivate a disconnection question even when separated cortical territories are preserved. That question requires actual lesion-pathway anatomy and cognitive observations.
 
 **Question:** If two default-network regions have correlated resting-state signals, must one displayed cingulum streamline connect them directly?
 
@@ -193,14 +193,23 @@ Motor examination and conversation seem preserved, but recalling familiar events
 ## Full source list
 
 - **N1** — Yeo et al., 2011 · intrinsic cortical network organization (PMID 21653723) — atlas
+  - _Scope:_ Resting-state fMRI in 1,000 adults. Source of the installed seven-network cortical partition; no individual task activation or subcortical network map is supplied.
 - **N9** — Andrews-Hanna et al., 2010 · default-network subsystems (PMID 20188659) — functional_measurement
+  - _Scope:_ Connectivity and task studies distinguished a midline core, medial-temporal and dorsomedial-prefrontal components. Their functional regions are not directly installed as parcel labels.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **N11** — Seeley et al., 2007 · salience and executive-control networks (PMID 17329432) — association
+  - _Scope:_ Task-free connectivity separated a frontoinsular/dorsal-cingulate network from a lateral frontoparietal control network. This is a different definition from the coarse Yeo-7 ventral-attention partition.
 - **N7** — Fedorenko et al., 2011 · individually localized language-selective regions (PMID 21885736) — functional_measurement
+  - _Scope:_ Individual-subject fMRI localizers distinguished high-level language responses from several nonlinguistic task responses. This atlas has no equivalent individual language localizer.
 - **N10** — Greicius et al., 2009 · structural and functional DMN relationships (PMID 18403396) — reconstruction
+  - _Scope:_ Combined resting-state fMRI and DTI linked medial prefrontal, posterior cingulate/retrosplenial and medial temporal regions. It does not imply that every correlated pair has a direct axonal connection.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
+  - _Scope:_ Provenance for the Melbourne Subcortex Atlas scale-1 meshes rendered here. Scale 1 is the coarsest level: anterior and posterior thalamus are merged and no brainstem nucleus is included.
 - **N8** — Raichle et al., 2001 · a default mode of brain function (PMID 11209064) — functional_measurement
+  - _Scope:_ PET metabolic/circulatory measurements and task-related decreases motivated the default-mode account. A baseline contrast is not a measurement of an inactive brain.
 
 ## Review checklist
 

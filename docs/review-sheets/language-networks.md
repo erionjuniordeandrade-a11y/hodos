@@ -2,7 +2,7 @@
 
 Lesson id: `language-networks` · Minutes: 22 · Review status: draft
 
-**Summary:** Move beyond two cortical centres: compare speech–sound mapping, meaning, visual input and phrase planning across cortical and white-matter relationships.
+**Summary:** Move beyond two cortical centres: compare speech-sound mapping, meaning, visual input and phrase planning across cortical and white-matter relationships.
 
 **Goals:**
   - Orient inferior frontal and temporal language-related anatomy.
@@ -17,7 +17,7 @@ Speech is fluent but meaning-related substitutions occur, with repetition better
 
 ## Three takeaways
 
-1. Compare dorsal auditory–articulatory accounts with the anatomy of AF and SLF III. _(step 1: Follow the dorsal sound-to-articulation relationship)_
+1. Compare dorsal auditory-articulatory accounts with the anatomy of AF and SLF III. _(step 1: Follow the dorsal sound-to-articulation relationship)_
 2. Distinguish extreme-capsule and IFOF samples within ventral language accounts. _(step 2: Compare the ventral route with the dorsal route)_
 3. Add frontal initiation and phrase planning; characterize the actual language error. _(step 4: Add frontal initiation and phrase planning)_
 
@@ -25,7 +25,7 @@ Speech is fluent but meaning-related substitutions occur, with repetition better
 
 ### Step 0: Replace two centres with a set of relationships
 
-**Claim:** Inferior frontal and temporal regions participate in a distributed language system. HCP labels 44, 45 and STSdp orient anatomy; they are not a complete Broca–Wernicke functional map.
+**Claim:** Inferior frontal and temporal regions participate in a distributed language system. HCP labels 44, 45 and STSdp orient anatomy; they are not a complete Broca-Wernicke functional map.
 
 **Observe:** Compare the inferior frontal parcels with posterior superior-temporal-sulcus reference STSdp. Follow the distance between them before adding the pathways that traverse it.
 
@@ -66,11 +66,11 @@ Speech is fluent but meaning-related substitutions occur, with repetition better
 
 **Question:** Repetition is disproportionately impaired while understanding a simple instruction is relatively preserved. Which pathway question does that pattern raise?
 
-**Answer:** It raises a question about dorsal speech–sound and articulatory integration. Characterize the errors and compare auditory, language and motor-speech performance; the dissociation does not prove that one named fascicle is injured.
+**Answer:** It raises a question about dorsal speech-sound and articulatory integration. Characterize the errors and compare auditory, language and motor-speech performance; the dissociation does not prove that one named fascicle is injured.
 
 **Evidence Class:** functional_measurement
 
-**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: It raises a question about dorsal speech–sound and articulatory integration. Characterize the errors and compare auditory, language and motor-speech performance; the dissociation does not prove that one named fascicle is injured.
+**Notes:** Ask for a spatial explanation before a network name. Then compare the proposed mechanism with the observed task. Discussion answer: It raises a question about dorsal speech-sound and articulatory integration. Characterize the errors and compare auditory, language and motor-speech performance; the dissociation does not prove that one named fascicle is injured.
 
 **Sources:**
 - **N5** — Saur et al., 2008 · dorsal and ventral language pathways (PMID 19004769) — functional_measurement
@@ -116,7 +116,7 @@ Speech is fluent but meaning-related substitutions occur, with repetition better
 
 **Reference Plate:** uncinate
 
-**Observe:** Compare the occipitotemporal ILF, the anterior temporal–frontal turn of UF, and the longer IFOF course. Identify each from its trajectory before discussing the naming task.
+**Observe:** Compare the occipitotemporal ILF, the anterior temporal-frontal turn of UF, and the longer IFOF course. Identify each from its trajectory before discussing the naming task.
 
 **Anatomy:**
   - ILF is a temporo-occipital association pathway; UF curves between anterior temporal and frontal regions.
@@ -229,18 +229,31 @@ Speech is fluent but meaning-related substitutions occur, with repetition better
 ## Full source list
 
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **N5** — Saur et al., 2008 · dorsal and ventral language pathways (PMID 19004769) — functional_measurement
+  - _Scope:_ Task fMRI combined with tractography: repetition and comprehension motivated different pathway hypotheses. These task-defined routes are not interchangeable with every named atlas fascicle.
 - **N7** — Fedorenko et al., 2011 · individually localized language-selective regions (PMID 21885736) — functional_measurement
+  - _Scope:_ Individual-subject fMRI localizers distinguished high-level language responses from several nonlinguistic task responses. This atlas has no equivalent individual language localizer.
 - **N1** — Yeo et al., 2011 · intrinsic cortical network organization (PMID 21653723) — atlas
+  - _Scope:_ Resting-state fMRI in 1,000 adults. Source of the installed seven-network cortical partition; no individual task activation or subcortical network map is supplied.
 - **N11** — Seeley et al., 2007 · salience and executive-control networks (PMID 17329432) — association
+  - _Scope:_ Task-free connectivity separated a frontoinsular/dorsal-cingulate network from a lateral frontoparietal control network. This is a different definition from the coarse Yeo-7 ventral-attention partition.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **N6** — Duffau et al., 2005 · semantic errors during cortico-subcortical stimulation (PMID 15705610) — functional_measurement
+  - _Scope:_ Awake surgery series of 17 dominant-hemisphere low-grade gliomas. Semantic paraphasias supported a ventral pathway hypothesis, partly corresponding to IFOF; no measured stimulation sites are installed here.
 - **N15** — Panesar, Yeh, Jacquesson, Hula & Fernandez-Miranda, 2018 · ILF connectivity, segmentation and laterality (PMID 29922132) — experimental_anatomy
+  - _Scope:_ Non-tensor tractography with cadaveric dissection of the inferior longitudinal fasciculus. Supports temporo-occipital course; display geometry alone does not assign a naming deficit to this fascicle.
 - **R3** — Kier et al., 2004 · temporal stem, uncinate, IFOF and optic radiation (PMID 15140705) — experimental_anatomy
+  - _Scope:_ Human anatomical dissection correlated with MR imaging. Supports relative temporal-stem anatomy; not a universal surgical distance.
 - **R9** — Catani et al., 2012 · short frontal-lobe connections (PMID 22209688) — experimental_anatomy
+  - _Scope:_ Tractography and post-mortem dissection describe FAT relationships with both SMA and pre-SMA. HCP 6mp and 6ma are orientation pointers here, not measured endpoints of this displayed sample.
 - **S4** — Catani et al., 2013 · FAT and verbal fluency (DOI 10.1093/brain/awt163) — association
+  - _Scope:_ Primary progressive aphasia cohorts and controls; diffusion measures related to language tests. A cohort association is not a universal deficit prediction.
 - **R6** — Chernoff et al., 2018 · a neurosurgical case study of speech planning (PMID 29569513) — association
+  - _Scope:_ A longitudinal surgical case involving the left FAT, with a temporal-resection comparison case tested using the same measures. The fluency/naming dissociation in these two cases does not assign an exclusive function or population-level risk to a tract.
 - **R7** — Chernoff et al., 2019 · sentence planning during stimulation (PMID 31210568) — functional_measurement
+  - _Scope:_ One awake-mapping case: stimulation changed phrase-boundary timing without the same effect on intra-word articulation. The measured sites are not installed in this atlas.
 
 ## Review checklist
 

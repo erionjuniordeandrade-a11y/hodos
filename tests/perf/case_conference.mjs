@@ -28,8 +28,8 @@ try{
   if(await page.locator('.case-mri img').count()){
    assert.equal(await page.locator('.case-mri img').count(),2,'FLAIR and T1 +C illustrations');
    for(const img of await page.locator('.case-mri img').all())await img.evaluate(i=>i.decode());
-   assert.match(await page.locator('.case-mri img').nth(0).getAttribute('src'),new RegExp(`${id}.png$`));
-   assert.match(await page.locator('.case-mri img').nth(1).getAttribute('src'),new RegExp(`${id}-t1c.png$`));
+   assert.match(await page.locator('.case-mri img').nth(0).getAttribute('src'),new RegExp(`${id}.webp$`));
+   assert.match(await page.locator('.case-mri img').nth(1).getAttribute('src'),new RegExp(`${id}-t1c.webp$`));
    assert.match(await page.locator('.case-mri figcaption').innerText(),/AI-generated/);
   }else{assert.equal(await page.locator('.case-imaging').count(),0);assert(await page.locator('.schematic svg').isVisible(),'schematic shown when no illustration is installed');}
   await shot(`${id}-imaging`);if(index===0)await shot('medial-case');

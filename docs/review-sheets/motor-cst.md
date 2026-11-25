@@ -195,7 +195,7 @@ How can you explain a motor deficit when the area-4 outline is preserved?
 
 **Surgical:** When discussing a deep sensorimotor deficit, characterize sensation as well as strength. A motor-only bundle selection can hide a neighbouring sensory relationship.
 
-**Question:** Can a continuous-looking ML–thalamus–cortex arrangement prove a single continuous axon?
+**Question:** Can a continuous-looking ML-thalamus-cortex arrangement prove a single continuous axon?
 
 **Answer:** No. These are separate atlas objects. Spatial proximity does not establish a synapse, continuity or direction. Use the thalamus to orient the anatomical relay relationship while keeping its nuclei and the individual connections unresolved.
 
@@ -204,7 +204,7 @@ How can you explain a motor deficit when the area-4 outline is preserved?
 **Notes:** Ask the learner to answer before opening the explanation. Compare the answer with the named structures and the cited method. Teaching point: No. These are separate atlas objects. Spatial proximity does not establish a synapse, continuity or direction. Use the thalamus to orient the anatomical relay relationship while keeping its nuclei and the individual connections unresolved.
 
 **Sources:**
-- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus–cortex connections (PMID 12808459) — reconstruction
+- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus-cortex connections (PMID 12808459) — reconstruction
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
 
@@ -289,21 +289,37 @@ How can you explain a motor deficit when the area-4 outline is preserved?
 ## Full source list
 
 - **R1** — Frigeri et al., 2015 · microsurgical anatomy of the central lobe (PMID 25555079) — experimental_anatomy
+  - _Scope:_ Human cadaveric dissections: precentral/postcentral gyri, paracentral lobule and vascular relationships. The atlas has no vascular layer.
 - **M1** — Glasser et al., 2016 · multi-modal parcellation of human cerebral cortex (PMID 27437579) — atlas
+  - _Scope:_ HCP population reference built from converging cortical features. A parcel boundary here is a group boundary; it does not locate one person’s functional border and it has not been registered to any individual in this viewer.
 - **D1** — Van Essen et al., 2013 · the WU-Minn Human Connectome Project overview (PMID 23684880) — atlas
+  - _Scope:_ Provenance for the S1200 group-average surface rendered here. A group-average midthickness surface is a population object; individual gyral and sulcal anatomy differs from it.
 - **D2** — Yeh, 2022 · population-based tract-to-region connectome of the human brain (PMID 35995773) — atlas
+  - _Scope:_ Provenance for the HCP1065 population-averaged bundles rendered here. Every displayed line is an average-space reconstruction sampled for display; it is not a patient’s pathway and carries no direction of conduction.
 - **D3** — Tian et al., 2020 · topographic organization of the human subcortex (PMID 32989295) — atlas
+  - _Scope:_ Provenance for the Melbourne Subcortex Atlas scale-1 meshes rendered here. Scale 1 is the coarsest level: anterior and posterior thalamus are merged and no brainstem nucleus is included.
 - **M9** — Krainik et al., 2001 · supplementary motor area and motor deficit after medial frontal surgery (PMID 11552019) — association
+  - _Scope:_ Surgical series correlating resection extent with postoperative deficit and recovery. The recovery pattern belongs to that series and its follow-up, not to any picture on this screen.
 - **M4** — Usuda et al., 2022 · corticospinal tracts arising from different cortical areas (PMID 35787428) — reconstruction
+  - _Scope:_ Healthy-volunteer tractography comparing descending contributions by cortical origin. Streamline distributions depend on acquisition, model and ROI recipe; they are not axon counts and they are not transferable to a patient.
 - **R2** — Ribas et al., 2018 · microsurgical anatomy of the central core (PMID 29271710) — experimental_anatomy
+  - _Scope:_ Stepwise human dissections of the insula, capsules, basal ganglia and thalamus. Gross atlas meshes illustrate only part of these layered relationships.
 - **M11** — Maier-Hein et al., 2017 · the challenge of mapping the connectome with diffusion tractography (PMID 29116093) — reconstruction
+  - _Scope:_ Challenge dataset with a defined ground truth and many submitted pipelines. Its false-positive findings motivate caution; its error figures belong to that challenge and are not an error estimate for this atlas.
 - **M5** — Holodny et al., 2005 · somatotopic organization of corticospinal tracts in the internal capsule (PMID 15665224) — reconstruction
+  - _Scope:_ Early DTI tractography of capsular organization, published explicitly against prior reports. A group ordering derived from one method is not a map you can transfer to an individual capsule.
 - **R8** — Tredici et al., 1982 · restricted capsular lesions and motor localization (PMID 7076549) — association
+  - _Scope:_ CT and clinical observations of restricted internal-capsular lesions support classical motor localization while allowing individual variation. A lesion-based inference is not a resolved fibre map in this atlas.
 - **R10** — Yim et al., 2013 · corticobulbar distribution in the internal capsule (PMID 24034408) — reconstruction
+  - _Scope:_ Capsular-infarct observations and a separate DTI sample placed corticobulbar relationships more posteriorly than classical genu accounts. Findings depend on level and method; this atlas cannot adjudicate the individual distribution.
 - **M7** — Schmahmann & Pandya, 1997 · basilar pontine projections from prefrontal cortices (PMID 8987769) — experimental_anatomy
-- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus–cortex connections (PMID 12808459) — reconstruction
+  - _Scope:_ Tracer experiments in rhesus monkey. Species and experimental scope limit translation; a monkey tracer result does not verify a human population reconstruction.
+- **M6** — Behrens et al., 2003 · non-invasive mapping of thalamus-cortex connections (PMID 12808459) — reconstruction
+  - _Scope:_ Probabilistic diffusion tractography relating thalamic territory to cortical target. A connectivity-defined territory is a model output, not a nuclear boundary, and this viewer ships no thalamic nuclei.
 - **M8** — Morris et al., 2009 · proximal dentatothalamocortical tract involvement in posterior fossa syndrome (PMID 19805491) — association
+  - _Scope:_ Clinical-imaging correlation in a paediatric posterior fossa cohort. An association between imaged tract involvement and a postoperative syndrome is not a prediction rule for an individual, and nothing in this scene measures it.
 - **M2** — Gordon et al., 2023 · somato-cognitive action network in motor cortex (PMID 37076628) — functional_measurement
+  - _Scope:_ Precision functional MRI and connectivity in a small set of deeply sampled participants. Effector and inter-effector observations are task, modality and population dependent, and none of that map is installed in this viewer.
 
 ## Review checklist
 

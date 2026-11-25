@@ -169,6 +169,11 @@ function render(focus=false){
   actions.append(r.stage<last?button(name==='Respond'?'View debrief':'Continue',()=>navigate(active.id,r.stage+1),{class:'primary'}):button('Return to cases',()=>navigate(),{class:'primary'}));body.append(actions);
  }
  if(focus)(document.getElementById('stageTitle')||main.querySelector('h1'))?.focus({preventScroll:true});
+ const ann=$('caseAnnounce');
+ if(ann){
+  if(!active)ann.textContent='Case Conference catalogue.';
+  else{const r=store.get(active.id),stages=store.stages(active.id),name=stages[r.stage];ann.textContent=`${active.title}, stage ${r.stage+1} of ${stages.length}: ${STAGE_TITLES[name]}.`;}
+ }
 }
 window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
 window.addEventListener('pagehide',()=>{cleanupAudio();closeReference();});
