@@ -127,3 +127,21 @@ test('parseTestingParams validates query bounds and rejects garbage', () => {
     query: '',
   });
 });
+
+test('testing.css has zero raw hex colors, testing.html obeys strict CSP, and UI text has zero em/en dashes', async () => {
+  const [css, html, js, labCss] = await Promise.all([
+    readFile(path.join(root, 'viewer/testing.css'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing.html'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/lesion-lab.css'), 'utf8'),
+  ]);
+  assert.doesNotMatch(css, /#[0-9a-fA-F]{3,8}\b/, 'testing.css must use tokens only, zero raw hex');
+  assert.doesNotMatch(labCss, /#[0-9a-fA-F]{3,8}\b/, 'lesion-lab.css must remain free of raw hex');
+  assert.doesNotMatch(html, /\sstyle=/i, 'testing.html must not contain inline style attributes');
+  const inlineScripts = [...html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>/gi)].filter(
+    m => !/\btype\s*=\s*(['"])application\/ld\+json\1/i.test(m[1]),
+  );
+  assert.equal(inlineScripts.length, 0, 'testing.html must not contain executable inline scripts');
+  assert.doesNotMatch(html, /[\u2013\u2014]/, 'testing.html must contain zero em/en dashes');
+  assert.doesNotMatch(js, /[\u2013\u2014]/, 'testing.js must contain zero em/en dashes');
+});

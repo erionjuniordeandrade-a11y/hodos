@@ -37,6 +37,7 @@ jobs:
           node tests/perf/landing_gate.mjs --url=http://127.0.0.1:51038 --out=output/ci/landing
           node tests/perf/case_conference.mjs --url=http://127.0.0.1:51038/ --out=output/ci/case-conference
           node tests/perf/atlas_dissection.mjs --url=http://127.0.0.1:51038 --out=output/ci/dissection
+          node tests/perf/testing_page.mjs --url=http://127.0.0.1:51038 --out=output/ci/testing
           node tests/perf/lesion_lab.mjs --ci --no-record --url=http://127.0.0.1:51038 --out=output/ci/lesion-lab
       - uses: actions/upload-artifact@v4
         if: always()

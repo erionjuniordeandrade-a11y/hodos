@@ -159,6 +159,8 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // chunks under chunks/), so /atlas, /mips and /labs/lesion-lab share one minified Three.js +
   // atlas_scene chunk instead of waterfalling unbundled modules. Per-file source modules stay
   // in the export untouched so an export remains a valid build source.
+  add('lesion_lab.js',files.get('lesion_lab.js').toString().replaceAll('./testing.html?target=','./testing?target='));
+  add('testing.js',files.get('testing.js').toString().replaceAll('./atlas.html?lesson=','./atlas?lesson=').replaceAll('./labs/lesion-lab.html?hemi=','./labs/lesion-lab?hemi='));
   const bundleSpecs=[
     {entry:'atlas_app.js',out:'atlas_app.bundle.js'},
     {entry:'mips.js',out:'mips.bundle.js'},
@@ -225,7 +227,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   if(lessonIds.length!==20)throw Error(`Expected exactly 20 lesson ids, found ${lessonIds.length}`);
   const landingLessonIds=lessonIdsFromLanding(processedPages.get('index.html'));
   if(landingLessonIds.length!==20||landingLessonIds.length!==lessonIds.length||landingLessonIds.some(id=>!lessonIds.includes(id)))throw Error(`Landing lesson ids do not match the lesson data: ${landingLessonIds.join(',')}`);
-  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/labs/lesion-lab`,`${SITE_ORIGIN}/lessons`,
+  const sitemapUrls=[`${SITE_ORIGIN}/`,`${SITE_ORIGIN}/atlas`,`${SITE_ORIGIN}/atlas-sources`,`${SITE_ORIGIN}/case-conference`,`${SITE_ORIGIN}/mips`,`${SITE_ORIGIN}/connections`,`${SITE_ORIGIN}/testing`,`${SITE_ORIGIN}/labs/lesion-lab`,`${SITE_ORIGIN}/lessons`,
     ...lessonIds.map(id=>`${SITE_ORIGIN}/lessons/${id}`)];
   add('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
     sitemapUrls.map(u=>`  <url><loc>${u}</loc><lastmod>${lastmod}</lastmod></url>`).join('\n')+`\n</urlset>\n`);
