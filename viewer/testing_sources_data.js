@@ -166,14 +166,14 @@ export const TESTING_SOURCES = Object.freeze({
   roux2003: Object.freeze({
     id: 'roux2003',
     title: 'Roux FE et al., 2003 · Language fMRI vs direct cortical stimulation correlation (66%)',
-    url: 'https://doi.org/10.1227/01.NEU.0000064803.05077.40',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/12762879/',
     evidenceClass: 'functional_measurement',
     scope: 'Direct comparison showing preoperative language fMRI sensitivity near 66% against DES; establishes fMRI as a planning prior rather than intraoperative proof.',
   }),
   roux2011: Object.freeze({
     id: 'roux2011',
     title: 'Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection',
-    url: 'https://doi.org/10.1227/NEU.0b013e31822a1f5d',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/22067336/',
     evidenceClass: 'functional_measurement',
     scope: 'Awake cortical and subcortical stimulation during line bisection eliciting rightward spatial deviation in right parietal and SLF II sites.',
   }),

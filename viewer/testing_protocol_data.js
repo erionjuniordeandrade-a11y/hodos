@@ -185,7 +185,7 @@ export const SCENARIO_DRILLS = Object.freeze([
     id: 'drill-ilf-vof-reading',
     targetId: 'ilf-vof-left-reading',
     title: 'Left basal occipitotemporal naming pass',
-    stem: 'Along the inferior-lateral margin of a left temporo-occipital resection, LF bipolar DES at 3.5 mA causes zero errors on object naming (DO 80). Which deficit can still occur if you clear the corridor on naming alone?',
+    stem: 'Along the inferior-lateral margin of a left temporo-occipital resection, LF bipolar DES at 3.5 mA causes zero errors on object naming. Which deficit can still occur if you clear the corridor on naming alone?',
     options: Object.freeze([
       Object.freeze({
         id: 'a',
