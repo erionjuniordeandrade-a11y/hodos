@@ -25,7 +25,7 @@ try{
     catch(error){report.loading=await page.locator('#atlasLoading').textContent();await page.screenshot({path:`${out}/load-failure.png`});throw error;}
   };
   const visit=async query=>{await page.goto(new URL(`atlas.html?test=1&${query}`,base).href);await ready();};
-  const choose=async id=>{if(await page.locator('#lessonSelect').count())await page.locator('#lessonSelect').selectOption(id);else await page.locator(`#lessonStart-${id}`).click();};
+  const choose=async id=>{if(await page.locator('#lessonSelect').count())await page.locator('#lessonSelect').selectOption(id);else{if(await page.locator('#lessonSyllabus').count()&&!(await page.locator('#lessonSyllabus').evaluate(el=>el.open)))await page.locator('#lessonSyllabus > summary').click();await page.locator(`#lessonStart-${id}`).click();}};
   const jump=async index=>{await page.locator('.lesson-outline>summary').click();await page.locator(`#lessonStep-${index}`).click();};
   const checkLabels=async()=>{
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
@@ -103,6 +103,7 @@ try{
     await page.locator('#lessonReview').click();assert.equal(await page.locator('#lessonReview').innerText(),'Marked reviewed');
     if(lesson.id==='motor-cst')await page.screenshot({path:`${out}/motor-recap.png`,fullPage:true});
     await page.locator('#lessonNext').click();assert.equal((await state()).lesson.status,'inactive');
+    if(await page.locator('#lessonSyllabus').count()&&!(await page.locator('#lessonSyllabus').evaluate(el=>el.open)))await page.locator('#lessonSyllabus > summary').click();
     assert.match(await page.locator(`#lessonStart-${lesson.id}`).innerText(),/reviewed/);
     console.log(`Verified ${lesson.id}: ${lesson.steps.length} complete relationships`);
   }
@@ -199,7 +200,7 @@ try{
   await page.locator('#lessonExplore').click();await page.locator('#openAtlasTools').click();
   if(!(await page.locator('#pathwayClear').isDisabled()))await page.locator('#pathwayClear').click();
   const chips=page.locator('#pathwayGroups .bundle-chip');for(let i=0;i<12;i++)await chips.nth(i).click();
-  assert.equal((await state()).bundles.length,12);assert.match(await page.locator('#pathwayStatus').innerText(),/12.*remove/i);
+  assert.equal((await state()).bundles.length,12);assert.match(await page.locator('#pathwayStatus').innerText(),/12 of 12 shown/i);
   assert.equal(await page.locator('#selectedPathways button').count(),12);
   await page.locator('#selectedPathways button').first().click();assert.equal((await state()).bundles.length,11);
   await page.keyboard.press('Escape');await page.locator('#atlasFit').click();const fitted=(await state()).camera;
