@@ -9,7 +9,19 @@ import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
 import {VERBS} from './connections_graph.js';
 import {composeStory} from './lesion_story.js';
-import {evaluateTestLens,hudTestingSummary,interrogatedFamiliesForLens,lensOf,presetOf} from './testing_model.js';
+import {
+  BATTERY_TASKS,
+  buildTestingSheetData,
+  evaluateCustomBattery,
+  evaluateTestLens,
+  hudTestingSummary,
+  interrogatedFamiliesForLens,
+  interrogatedFamiliesForTasks,
+  lensOf,
+  presetOf,
+} from './testing_model.js';
+import {createTractLabelOverlay} from './lesion_labels.js';
+import {renderTestingSheet, bindTestingSheetDialog} from './testing_sheet.js';
 
 const $=id=>document.getElementById(id);
 const testMode=new URLSearchParams(location.search).has('test');
@@ -33,8 +45,8 @@ const VIEW_NAMES={oblique:'Oblique view',lateral:'Lateral view',medial:'Medial v
 const lab={hemi:initial.hemi,centre:null,radius:initial.radius,marginOn:initial.marginOn,margin:initial.margin,
   load:{status:'booting',error:null},rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique',
   entries:{...initial.entries},corridorMm:initial.corridor,placing:null,corridors:{A:null,B:null},
-  lens:initial.lens,preset:initial.preset,evalLens:null,hudTestingText:''};
-let scene=null,stage=null,THREE=null,decodeAtlasBundle=null;
+  lens:initial.tasks.length?'custom':initial.lens,customTasks:[...initial.tasks],preset:initial.preset,evalLens:null,hudTestingText:''};
+let scene=null,stage=null,THREE=null,decodeAtlasBundle=null,tractLabels=null;
 let sphere=null,rings=null,ringScreen=null,drag=null,place=null,hover=false,focusIndex=-1,openIndex=-1,lastFocus='none';
 let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
@@ -133,6 +145,7 @@ function buildLayer(pack){
             }
             if(uFocus>-.5)alpha*=.35;
           }
+          if(uShow>1.5&&uShow<2.5&&(uLensActive<.5||dim<.5)){tint=min(tint*1.12+vec3(.04*feather),vec3(1.));}
           gl_FragColor=vec4(tint,min(alpha,1.)*feather);}`,
       transparent:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false});
     const lines=new THREE.LineSegments(geometry,material);lines.renderOrder=pass.order;lines.userData.kind='lesion-lab';return lines;
@@ -241,6 +254,7 @@ function setEntry(id,point){
 }
 function setPlacing(id){
   lab.placing=id;
+  if(id){const panel=document.querySelector('.lab-corridors-panel');if(panel)panel.open=true;}
   for(const button of document.querySelectorAll('[data-entry]'))button.setAttribute('aria-pressed',String(button.dataset.entry===id));
   syncPointer();
   $('corridorHint').textContent=id?`Click the cortex where corridor ${id} enters. Drag still rotates the view; Esc cancels.`:
@@ -368,7 +382,8 @@ function writeURL(){
   if(lab.marginOn)params.set('margin',String(lab.margin));
   for(const id of CORRIDOR_IDS)if(lab.entries[id])params.set(id.toLowerCase(),lab.entries[id].join(','));
   if(CORRIDOR_IDS.some(id=>lab.entries[id])&&lab.corridorMm!==CORRIDOR_MM.initial)params.set('cd',String(lab.corridorMm));
-  if(lab.lens!=='all')params.set('lens',lab.lens);
+  if(lab.lens==='custom'&&lab.customTasks.length)params.set('tasks',lab.customTasks.join(','));
+  else if(lab.lens!=='all')params.set('lens',lab.lens);
   if(testMode)params.set('test','1');
   history.replaceState(null,'',`${location.pathname}?${params}`);
 }
@@ -380,7 +395,7 @@ function announce(){
     const r=lab.corridorResults[id];return ` Corridor ${id}, ${Math.round(r.lengthMm)} millimetres, cuts ${plural(r.lines,'more sampled streamline')} in ${plural(r.cut.length,'bundle')}.`;
   }).join('');
   const presetInfo=lab.preset?` Preset ${presetOf(lab.preset)?.label}.`:'';
-  const lensInfo=lab.lens!=='all'?` Lens ${lensOf(lab.lens)?.label}.`:'';
+  const lensInfo=lab.lens==='custom'?` Custom battery ${lab.customTasks.length} tasks.`:lab.lens!=='all'?` Lens ${lensOf(lab.lens)?.label}.`:'';
   $('announce').textContent=(cut.length?`${where} It cuts ${plural(cut.length,'bundle')}: ${cut.slice(0,5).map(r=>bundleLabel(r.id)).join(', ')}${cut.length>5?', and more':''}.`:
     `${where} It cuts no sampled streamline.`)+corridors+presetInfo+lensInfo;
 }
@@ -433,14 +448,16 @@ for(const card of [$('labStory'),$('lesionControls')].filter(Boolean)){
   card.addEventListener('scroll',()=>syncMore(card),{passive:true});
   new ResizeObserver(()=>syncMore(card)).observe(card);
 }
-// Opening Precise position grows the rail past its cap: scroll the section into the rail's view.
-$('lesionControls')?.querySelector('.lab-precise')?.addEventListener('toggle',event=>{
-  const details=event.currentTarget,rail=SHEET_LAYOUT.matches?dock:$('lesionControls');
-  syncMore($('lesionControls'));
-  if(!details.open)return;
-  const over=details.getBoundingClientRect().bottom-rail.getBoundingClientRect().bottom;
-  if(over>0)rail.scrollBy({top:over+8,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
-});
+// Opening any collapsible section grows the rail past its cap: scroll the section into the rail's view.
+for(const details of $('lesionControls')?.querySelectorAll('details')??[]){
+  details.addEventListener('toggle',event=>{
+    const target=event.currentTarget,rail=SHEET_LAYOUT.matches?dock:$('lesionControls');
+    syncMore($('lesionControls'));
+    if(!target.open)return;
+    const over=target.getBoundingClientRect().bottom-rail.getBoundingClientRect().bottom;
+    if(over>0)rail.scrollBy({top:over+8,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  });
+}
 if($('labStory')){
   new MutationObserver(syncStoryMore).observe($('storyText'),{childList:true,subtree:true,characterData:true});
   new MutationObserver(syncStoryMore).observe($('storyTesting'),{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden']});
@@ -531,16 +548,19 @@ function bundleBody(bundle,applying,other){
 }
 
 const familyOfBundle=id=>(/_[LR]$/.test(id)?id.slice(0,-2):id);
-function applyTestLensTexture(entry,hemi,lensId){
+function applyTestLensTexture(entry,hemi,lensId,customTasks=lab.customTasks){
   if(!entry)return;
-  const lens=lensOf(lensId);
-  const active=Boolean(lens&&lens.id!=='all');
+  const customActive=lensId==='custom'&&customTasks.length>0;
+  const lens=customActive?null:lensOf(lensId);
+  const active=customActive||Boolean(lens&&lens.id!=='all');
   const data=entry.texture.image.data;
   if(!active){
     for(let s=0;s<entry.pack.count;s++)data[s*4+3]=255;
     entry.shared.uLensActive.value=0;
   }else{
-    const interrogatedFamilies=interrogatedFamiliesForLens(hemi,lens.id);
+    const interrogatedFamilies=customActive
+      ?interrogatedFamiliesForTasks(hemi,customTasks)
+      :interrogatedFamiliesForLens(hemi,lens.id);
     for(let s=0;s<entry.pack.count;s++){
       const fam=familyOfBundle(entry.pack.bundles[entry.pack.bundleOf[s]].id);
       data[s*4+3]=interrogatedFamilies.has(fam)?46:255;
@@ -550,30 +570,73 @@ function applyTestLensTexture(entry,hemi,lensId){
   entry.texture.needsUpdate=true;
   stage?.requestDraw();
 }
+function syncBatteryUI(){
+  const selected=new Set(lab.customTasks);
+  for(const btn of document.querySelectorAll('[data-battery-task]')){
+    btn.setAttribute('aria-pressed',String(selected.has(btn.dataset.batteryTask)));
+  }
+  const clearBtn=$('clearBattery');
+  if(clearBtn)clearBtn.disabled=!lab.customTasks.length;
+}
 function syncLensUI(){
-  setPressed('[data-lens]',lab.lens,'lens');
-  const lens=lensOf(lab.lens);
+  setPressed('[data-lens]',lab.lens==='custom'?'':lab.lens,'lens');
+  syncBatteryUI();
   const note=$('lensNote');
-  if(!note||!lens)return;
-  note.textContent=lens.id==='all'?lens.summary:`Dimmed = interrogated by this battery, not guaranteed spared. Bright = not interrogated (blind spot or uncurated). ${lens.summary}`;
+  if(!note)return;
+  if(lab.lens==='custom'&&lab.customTasks.length){
+    const ev=evaluateCustomBattery(lab.rows,lab.hemi,lab.customTasks);
+    note.textContent=`Dimmed = interrogated (not spared). Bright = blind spots or uncurated. ${ev.lens.summary}`;
+    return;
+  }
+  const lens=lensOf(lab.lens);
+  if(!lens)return;
+  const shortSummaries={
+    'asleep-mep':'CST only; language, initiation & vision stay bright.',
+    'awake-naming':'AF/IFOF/UF only; reading, FAT, SLF III & motor stay bright.',
+    tailored:'Testable pathways dimmed; Fornix, TR_A & DRTT stay bright.',
+  };
+  note.textContent=lens.id==='all'?lens.summary:`Dimmed = interrogated (not spared). Bright = blind spots or uncurated. ${shortSummaries[lens.id]??lens.summary}`;
 }
 function syncPresetUI(){
   setPressed('[data-preset]',lab.preset??'','preset');
 }
 function setLens(lensId,{announceNow=true}={}){
   const next=lensOf(lensId)?lensId:'all';
-  if(next===lab.lens)return;
+  if(next===lab.lens&&!lab.customTasks.length)return;
+  lab.customTasks=[];
   lab.lens=next;
   syncLensUI();
-  applyTestLensTexture(layer(),lab.hemi,lab.lens);
+  applyTestLensTexture(layer(),lab.hemi,lab.lens,lab.customTasks);
   renderTestingProtocols(lab.rows,lab.hemi);
   clearTimeout(urlTimer);urlTimer=setTimeout(writeURL,250);
   if(announceNow){clearTimeout(announceTimer);announceTimer=setTimeout(announce,ANNOUNCE_MS);}
+}
+function toggleBatteryTask(taskId){
+  const idx=lab.customTasks.indexOf(taskId);
+  if(idx>=0)lab.customTasks.splice(idx,1);
+  else lab.customTasks.push(taskId);
+  lab.lens=lab.customTasks.length?'custom':'all';
+  syncLensUI();
+  applyTestLensTexture(layer(),lab.hemi,lab.lens,lab.customTasks);
+  renderTestingProtocols(lab.rows,lab.hemi);
+  clearTimeout(urlTimer);urlTimer=setTimeout(writeURL,250);
+  clearTimeout(announceTimer);announceTimer=setTimeout(announce,ANNOUNCE_MS);
+}
+function clearBattery(){
+  if(!lab.customTasks.length&&lab.lens==='all')return;
+  lab.customTasks=[];
+  lab.lens='all';
+  syncLensUI();
+  applyTestLensTexture(layer(),lab.hemi,lab.lens,lab.customTasks);
+  renderTestingProtocols(lab.rows,lab.hemi);
+  clearTimeout(urlTimer);urlTimer=setTimeout(writeURL,250);
+  clearTimeout(announceTimer);announceTimer=setTimeout(announce,ANNOUNCE_MS);
 }
 function commitPresetState(preset){
   lab.preset=preset.id;
   lab.radius=preset.radius;
   $('radius').value=String(lab.radius);$('radiusValue').textContent=`${lab.radius} mm`;
+  lab.customTasks=[];
   lab.lens=preset.defaultLens;
   syncPresetUI();
   syncLensUI();
@@ -585,7 +648,7 @@ async function applyPreset(presetId){
     await switchHemisphere(preset.hemi,{centre:[...preset.centre],source:'preset',onLoaded:()=>commitPresetState(preset)});
   }else{
     commitPresetState(preset);
-    applyTestLensTexture(layer(),lab.hemi,lab.lens);
+    applyTestLensTexture(layer(),lab.hemi,lab.lens,lab.customTasks);
     const prev=lab.centre;
     setCentre([...preset.centre],{source:'preset'});
     if(prev&&lab.centre===prev)applyGeometry();
@@ -594,6 +657,20 @@ async function applyPreset(presetId){
 }
 
 const protocolTag=p=>p.id==='fornix-bilateral'?'Fornix':p.id==='slf2-right'?'Right SLF II':p.families.join('/');
+
+function updateTractLabels(){
+  if(!tractLabels)return;
+  const entry=layer();
+  tractLabels.update({
+    reached:lab.reached,
+    evalLens:lab.evalLens,
+    entry,
+    stage,
+    THREE,
+    anchorFor,
+    isMobile:SHEET_LAYOUT.matches,
+  });
+}
 
 function formatHudTestingText(evalLens,hud){
   if(!evalLens.protocols.length&&!evalLens.unmatchedCutIds.length)return '';
@@ -615,19 +692,28 @@ function formatHudTestingText(evalLens,hud){
 
 function renderTestingProtocols(rows,hemi){
   const block=$('testingBlock'),listEl=$('testingList'),coverageEl=$('testingCoverage'),storyTesting=$('storyTesting');
-  const evalLens=evaluateTestLens(rows,hemi,lab.lens);
-  const hud=hudTestingSummary(rows,hemi,lab.lens);
+  const evalLens=lab.lens==='custom'?evaluateCustomBattery(rows,hemi,lab.customTasks):evaluateTestLens(rows,hemi,lab.lens);
+  const hud=hudTestingSummary(rows,hemi,lab.lens,lab.customTasks);
   lab.evalLens=evalLens;
+  if(lab.lens==='custom')syncLensUI();
   const hudText=formatHudTestingText(evalLens,hud);
   lab.hudTestingText=hudText;
   if(storyTesting){storyTesting.textContent=hudText;storyTesting.hidden=!hudText;}
+  const testingRoute=location.pathname.endsWith('.html')?'./testing.html':'./testing';
+  const mapLink=$('openTestingMapLink');
+  if(mapLink){
+    const topTarget=evalLens.blindSpotProtocols[0]?.id??evalLens.protocols[0]?.id;
+    mapLink.href=topTarget?`${testingRoute}?target=${topTarget}`:`${testingRoute}?hemi=${hemi}`;
+  }
+  updateTractLabels();
   if(!block||!listEl)return;
   const {protocols,unmatchedCutIds}=evalLens;
   const hasAny=protocols.length>0||unmatchedCutIds.length>0;
   block.hidden=!hasAny;
   if(!hasAny){listEl.replaceChildren();if(coverageEl)coverageEl.hidden=true;return;}
   const blindSet=new Set(evalLens.blindSpotProtocols.map(p=>p.id));
-  const testingBase=location.pathname.endsWith('.html')?'./testing.html?target=':'./testing?target=';
+  const testingBase=`${testingRoute}?target=`;
+  const entry=layer();
   listEl.replaceChildren(...protocols.map(item=>{
     const mapNames=item.mappingTaskList.map(t=>t.name);
     const monNames=item.monitoringTaskList.map(t=>t.name);
@@ -645,15 +731,21 @@ function renderTestingProtocols(rows,hemi){
     if(monNames.length)taskLines.push(el('p',{className:'lab-testing-tasks',textContent:`Monitor: ${monNames.join(', ')}`}));
     if(!taskLines.length)taskLines.push(el('p',{className:'lab-testing-tasks',textContent:'No real-time probe; protect corridor geometry.'}));
     const warn=el('p',{className:'lab-testing-blindspot',textContent:item.blindSpot});
-    const link=el('a',{className:'lab-testing-link',href:`${testingBase}${item.id}`,textContent:'Open testing protocol'});
+    const link=el('a',{className:'lab-testing-link',href:`${testingBase}${item.id}`,textContent:'Open testing card'});
     const li=el('li',{className:'lab-testing-item'},head,lensTag,bundles,...taskLines,warn,link);
     if(evalLens.active)li.dataset.lensStatus=blindSet.has(item.id)?'blind':'interrogated';
+    const primaryBundleId=item.matchedBundles[0]?.id;
+    const primaryIndex=entry&&primaryBundleId?entry.pack.bundles.findIndex(b=>b.id===primaryBundleId):-1;
+    if(primaryIndex>=0){
+      li.addEventListener('pointerenter',()=>{focusIndex=primaryIndex;setFocus();});
+      li.addEventListener('pointerleave',()=>{if(focusIndex===primaryIndex){focusIndex=-1;setFocus();}});
+    }
     return li;
   }));
   if(coverageEl){
     coverageEl.hidden=!unmatchedCutIds.length;
     if(unmatchedCutIds.length){
-      coverageEl.textContent=`No curated guide protocol yet for: ${unmatchedCutIds.map(bundleLabel).join(', ')}. Absence of a card does not mean monitoring-silent or safe.`;
+      coverageEl.textContent=`No curated testing card yet for: ${unmatchedCutIds.map(bundleLabel).join(', ')}. Absence of a card does not mean monitoring-silent or safe.`;
     }
   }
 }
@@ -733,7 +825,7 @@ async function showHemisphere(hemi,{first=false,centre=null,source='control',onL
   if(lab.hemi!==hemi)for(const id of CORRIDOR_IDS)if(lab.entries[id]){const [x,y,z]=lab.entries[id];lab.entries[id]=[-x,y,z];}
   for(const id of CORRIDOR_IDS)lab.corridors[id]=null;
   lab.hemi=hemi;
-  applyTestLensTexture(entry,hemi,lab.lens);
+  applyTestLensTexture(entry,hemi,lab.lens,lab.customTasks);
   for(const object of entry.objects)if(!object.parent)stage.scene.add(object);
   scene.setHemisphere(hemi);
   $('stageLabel').textContent=`${HEMI_NAME[hemi][0].toUpperCase()}${HEMI_NAME[hemi].slice(1)} hemisphere · Grid 10 mm`;
@@ -753,7 +845,73 @@ async function switchHemisphere(hemi,opts={}){
   try{await showHemisphere(hemi,opts);sendLoad('loaded');return true;}catch(error){sendLoad('error',error);return false;}
 }
 
+function renderBatteryChips(){
+  const asleep=$('batteryAsleep'),awake=$('batteryAwake');
+  if(!asleep||!awake)return;
+  const makeChip=t=>{
+    const btn=el('button',{type:'button',className:'lab-battery-chip',textContent:t.shortLabel});
+    btn.dataset.batteryTask=t.id;
+    btn.setAttribute('aria-pressed','false');
+    btn.addEventListener('click',()=>toggleBatteryTask(t.id));
+    return btn;
+  };
+  asleep.replaceChildren(...BATTERY_TASKS.filter(t=>t.group==='asleep').map(makeChip));
+  awake.replaceChildren(...BATTERY_TASKS.filter(t=>t.group==='awake').map(makeChip));
+}
+
+function captureStagePng(){
+  return new Promise(resolve=>{
+    if(!stage?.canvas){resolve('');return;}
+    stage.requestDraw();
+    requestAnimationFrame(()=>{
+      try{
+        const url=stage.canvas.toDataURL('image/png');
+        resolve(url&&url.startsWith('data:image/png')&&url.length>200?url:'');
+      }catch{
+        resolve('');
+      }
+    });
+  });
+}
+
 function bindControls(){
+  renderBatteryChips();
+  syncBatteryUI();
+  $('clearBattery')?.addEventListener('click',clearBattery);
+  const toggleBtn=$('toggleLabLabels');
+  if(toggleBtn&&tractLabels){
+    toggleBtn.addEventListener('click',()=>{
+      const next=!tractLabels.enabled;
+      tractLabels.setEnabled(next);
+      toggleBtn.setAttribute('aria-pressed',String(next));
+      if(next)updateTractLabels();
+    });
+  }
+  const sheetDialog=$('labTestingSheet');
+  if(sheetDialog){
+    bindTestingSheetDialog(sheetDialog,{getShareUrl:()=>{writeURL();return location.href;}});
+    $('openTestingSheet')?.addEventListener('click',async()=>{
+      if(!lab.centre)return;
+      const evalLens=lab.evalLens??evaluateTestLens(lab.rows,lab.hemi,lab.lens);
+      const snapshotUrl=await captureStagePng();
+      const preset=lab.preset?presetOf(lab.preset):null;
+      const coords=`MNI ${fmt(lab.centre[0])}, ${fmt(lab.centre[1])}, ${fmt(lab.centre[2])} mm, r=${lab.radius} mm`;
+      const sheet=buildTestingSheetData({
+        title:preset?preset.label:'Custom Lesion position',
+        subtitle:`${evalLens.lens.label} (${coords})`,
+        hemi:lab.hemi,
+        protocols:evalLens.protocols,
+        blindSpotIds:evalLens.blindSpotProtocols.map(p=>p.id),
+        interrogatedIds:evalLens.interrogatedProtocols.map(p=>p.id),
+        unmatchedCutIds:evalLens.unmatchedCutIds,
+        note:evalLens.active
+          ?'Dimmed pathways are interrogated by the selected battery; bright pathways are blind spots, untestable, or uncurated.'
+          :'All cut pathways shown without battery filtering.',
+      });
+      renderTestingSheet(sheetDialog,sheet,{snapshotUrl,thirdColTitle:'Blind spots & Corridor only'});
+      sheetDialog.showModal();
+    });
+  }
   for(const button of document.querySelectorAll('[data-hemi]'))button.addEventListener('click',()=>{
     if(button.dataset.hemi!==lab.hemi){lab.preset=null;syncPresetUI();switchHemisphere(button.dataset.hemi);}
   });
@@ -825,6 +983,7 @@ function updateInsets(){
   // The midline note centres itself on the frame's top edge (lesion-lab.css .lab-stage-note).
   for(const side of ['top','left','right','bottom'])stageEl.style.setProperty(`--lab-frame-${side}`,`${next[side]}px`);
   scene.setFrameInsets(insets);
+  updateTractLabels();
 }
 function openDrawer(){
   if(!drawer.inert)return;
@@ -902,7 +1061,7 @@ function bindDrag(){
     // own orbit drag already disables auto-frame via its own controlstart handler.
     // setInteracting resizes (and so clears) the drawing buffer: redraw now, or the canvas shows blank
     // until the first pointermove moves the sphere (the drag-start flicker).
-    mount.setPointerCapture(event.pointerId);syncPointer();stage.setInteracting(true);stage.setFrameHold(true);stage.requestDraw();
+    mount.setPointerCapture(event.pointerId);syncPointer();tractLabels?.setDragging(true);stage.setInteracting(true);stage.setFrameHold(true);stage.requestDraw();
   },true);
   mount.addEventListener('pointermove',event=>{
     if(drag){
@@ -933,7 +1092,7 @@ function bindDrag(){
   const end=event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;
     event.stopPropagation();drag=null;
-    syncPointer();stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
+    syncPointer();tractLabels?.setDragging(false);stage.setInteracting(false);stage.setFrameHold(false);stage.requestDraw();settle();
   };
   for(const type of ['pointerup','pointercancel','lostpointercapture'])mount.addEventListener(type,end,true);
   mount.addEventListener('pointerleave',()=>{if(!drag&&hover){hover=false;syncPointer();}});
@@ -996,7 +1155,7 @@ if(testMode)Object.defineProperty(window,'__lesionLabTest',{get:()=>{
     brainRect:computeBrainRect(),corridorMm:lab.corridorMm,placing:lab.placing,entries:{A:lab.entries.A&&[...lab.entries.A],B:lab.entries.B&&[...lab.entries.B]},
     corridors:Object.fromEntries(CORRIDOR_IDS.map(id=>{const r=lab.corridorResults?.[id];
       return [id,r?.rows?{lengthMm:r.lengthMm,bundles:r.cut.length,lines:r.lines,cut:r.cut.map(({id:b,cut,crossed,total})=>({id:b,cut,crossed,total}))}:null];})),
-    lens:lab.lens,preset:lab.preset,
+    lens:lab.lens,customTasks:[...lab.customTasks],preset:lab.preset,labelCount:tractLabels?.count??0,
     blindSpotProtocols:(lab.evalLens?.blindSpotProtocols??[]).map(p=>p.id),
     interrogatedProtocols:(lab.evalLens?.interrogatedProtocols??[]).map(p=>p.id),
     hudTestingText:lab.hudTestingText};
@@ -1023,7 +1182,7 @@ const initialPreset=candidatePreset&&(!startParams.has('hemi')||candidatePreset.
 if(initialPreset){
   if(!startParams.has('hemi'))lab.hemi=initialPreset.hemi;
   if(!startParams.has('r'))lab.radius=initialPreset.radius;
-  if(!startParams.has('lens'))lab.lens=initialPreset.defaultLens;
+  if(!startParams.has('lens')&&!initial.tasks.length)lab.lens=initialPreset.defaultLens;
 }else{
   lab.preset=null;
 }
@@ -1039,6 +1198,7 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
     THREE=three;decodeAtlasBundle=data.decodeAtlasBundle;
     const created=await sceneModule.createAtlasScene(mount,{
       hover:false,
+      onInteraction(){tractLabels?.setDragging(true);},
       // Before the lab is ready its own loading messages lead, and the scene's "Atlas ready" is not the lab's.
       onStatus(message,detail){
         if(flags().ready)showStatus(detail?.ready?'':message);
@@ -1051,12 +1211,22 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
     if(tornDown()){created.dispose();return;}
     scene=created;stage=scene.stage;
     if(!stage)throw Error('This atlas build does not expose the lab stage');
+    tractLabels=createTractLabelOverlay(stageEl,{
+      onHover:(index,leavingIndex=-1)=>{
+        if(index>=0)focusIndex=index;
+        else if(focusIndex===leavingIndex)focusIndex=-1;
+        setFocus();
+      },
+      onClick:bundleId=>openEvidenceFor(bundleId),
+    });
+    scene.onCameraRest(()=>{tractLabels?.setDragging(false);updateTractLabels();});
     scene.setProfile('presenter');scene.setPlaying(false);scene.setDeep(false);scene.setSurface(.14);scene.setHemisphere(lab.hemi);
     scene.flyTo({view:'oblique',tweenMs:0});
     createSphere();
     await showHemisphere(lab.hemi,{first:true,centre:initialPreset?[...initialPreset.centre]:null,source:initialPreset?'preset':'control'});
     if(tornDown())return;
     bindControls();bindDrag();bindDrawer();
+    updateTractLabels();
     sendLoad('loaded');
     stage.requestDraw();
   }catch(error){sendLoad('error',error);}

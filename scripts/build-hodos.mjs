@@ -12,7 +12,7 @@ const modules=[
   'case_images.js',
   'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'connections.js','connections_route.js','connections_graph.js','connections_data.js',
-  'lesion_lab.js','lesion_model.js','lesion_evidence.js','lesion_story.js',
+  'lesion_lab.js','lesion_model.js','lesion_evidence.js','lesion_story.js','lesion_labels.js',
   'testing_sources_data.js','testing_tasks_data.js','testing_protocol_data.js','testing_tracts_data.js','testing_cortex_data.js','testing_targets_data.js','testing_presets_data.js','testing_lens_model.js','testing_sheet_model.js','testing_map_geometry.js','testing_map.js','testing_sheet.js','testing_model.js','testing.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',

@@ -107,6 +107,41 @@ try {
   report.checks.push('Deep link ?target=af-left selects target with clean atlas route');
 
   assert((await page.evaluate(() => window.__testingTest.mapTargetCount)) >= 20);
+  const realMapPaths = await page.locator('#territoryMap [data-kind="cortex"] .map-shape').count();
+  assert.equal(realMapPaths, 10, 'Expected all 10 real HCP-MMP1 cortical territory polygons on Left map');
+
+  const checkNoCalloutOverlap = async label => {
+    const overlaps = await page.evaluate(() => {
+      const svgs = [...document.querySelectorAll('.territory-map-svg')];
+      const bad = [];
+      for (const svg of svgs) {
+        const boxes = [...svg.querySelectorAll('.map-callout')].map(el => el.getBoundingClientRect());
+        for (let i = 0; i < boxes.length; i++) {
+          for (let j = i + 1; j < boxes.length; j++) {
+            const a = boxes[i], b = boxes[j];
+            if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) {
+              bad.push([i, j]);
+            }
+          }
+        }
+      }
+      return bad;
+    });
+    assert.deepEqual(overlaps, [], `Overlapping .map-callout boxes (${label}): ${JSON.stringify(overlaps)}`);
+  };
+  await checkNoCalloutOverlap('left-both');
+
+  await page.locator('[data-map-layer="cortex"]').click();
+  assert.equal(await page.locator('#territoryMap .map-hotspot[data-kind="tract"]').count(), 0);
+  assert.equal(await page.locator('#territoryMap .map-hotspot[data-kind="cortex"]').count(), 10);
+  await checkNoCalloutOverlap('left-cortex');
+
+  await page.locator('[data-map-layer="tract"]').click();
+  assert.equal(await page.locator('#territoryMap .map-hotspot[data-kind="cortex"]').count(), 0);
+  assert((await page.locator('#territoryMap .map-hotspot[data-kind="tract"]').count()) >= 10);
+  await checkNoCalloutOverlap('left-tract');
+
+  await page.locator('[data-map-layer="both"]').click();
   await page.locator('[data-map-target="ctx-pmfg-left"]').click();
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-pmfg-left');
   assert.match(await page.locator('#targetDetail h3').innerText(), /posterior middle frontal gyrus/);
@@ -121,6 +156,7 @@ try {
   await page.locator('[data-map-hemi="R"]').click();
   assert.equal(await page.evaluate(() => window.__testingTest.mapHemi), 'R');
   await page.locator('[data-map-target="slf2-right"]').waitFor({state: 'visible'});
+  await checkNoCalloutOverlap('right-both');
   await page.locator('[data-map-target="slf2-right"]').click();
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'slf2-right');
   assert.match(await page.locator('#targetDetail h3').innerText(), /Right SLF II/);
@@ -131,10 +167,19 @@ try {
   await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-ifg-left');
 
+  const labSwitchHref = await page.locator('.pillar-link[href*="lesion-lab"]').getAttribute('href');
+  assert(labSwitchHref, '3D Lesion Lab switcher link present on /testing');
+  await page.locator('#openTestingSheet').click();
+  await page.locator('#testingSheetDialog[open]').waitFor({state: 'visible'});
+  assert.match(await page.locator('#testingSheetDialog [data-sheet-watermark]').innerText(), /Group reference.*Educational draft/);
+  assert.equal(await page.locator('#testingSheetDialog input').count(), 0, 'Testing Sheet has zero PHI input fields');
+  await page.locator('#testingSheetDialog').screenshot({path: `${out}/testing-sheet-dialog.png`});
+  await page.locator('#testingSheetDialog [data-sheet-close]').click();
+
   await page.setViewportSize({width: 390, height: 844});
   await page.locator('#territoryMap').screenshot({path: `${out}/testing-map-390.png`});
   await page.setViewportSize({width: 1440, height: 900});
-  report.checks.push('2D territory map renders Left/Right lateral & medial hotspots, selects on click & Enter, and syncs URL');
+  report.checks.push('2D HCP territory map (cortex/tract layer toggle, zero overlapping callouts), switcher, and Testing Sheet dialog verified');
 
   await page.goto(new URL('/labs/lesion-lab?test=1', base).href, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => window.__lesionLabTest?.ready, null, {timeout: 60000});
@@ -159,6 +204,12 @@ try {
   assert(labState.blindSpotProtocols.includes('fat-left'));
   assert(await page.locator('#storyTesting').isVisible());
   assert.match(await page.locator('#storyTesting').innerText(), /blind spot/);
+  assert((await page.locator('#labLabels .lab-tract-label').count()) >= 1, 'Expected 3D tract callout labels on desktop');
+  const railScroll = await page.evaluate(() => {
+    const el = document.getElementById('lesionControls');
+    return {scrollHeight: el.scrollHeight, clientHeight: el.clientHeight};
+  });
+  assert(railScroll.scrollHeight <= railScroll.clientHeight + 2, `Expected zero-scroll right rail at 1440x900: ${JSON.stringify(railScroll)}`);
   await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-sma-mep-blindspot.png`});
 
   await page.locator('[data-preset="left-occipitotemporal"]').click();
@@ -168,6 +219,33 @@ try {
   assert(labState.blindSpotProtocols.includes('ilf-vof-left-reading'));
   assert(labState.blindSpotProtocols.includes('or-bilateral'));
   await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-ot-naming-blindspot.png`});
+
+  await page.locator('.lab-battery summary').click();
+  await page.locator('[data-battery-task="dulip-object-naming"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.lens === 'custom' && window.__lesionLabTest.customTasks.includes('dulip-object-naming'));
+  labState = await page.evaluate(() => window.__lesionLabTest);
+  assert(labState.interrogatedProtocols.includes('ifof-left'), 'Object naming dims ifof-left in left occipitotemporal');
+  assert(labState.blindSpotProtocols.includes('ilf-vof-left-reading'), 'Object naming alone leaves ilf-vof-left-reading blind');
+
+  await page.locator('[data-preset="left-temporoparietal"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.preset === 'left-temporoparietal');
+  await page.locator('[data-battery-task="dulip-object-naming"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.lens === 'custom' && window.__lesionLabTest.customTasks.includes('dulip-object-naming'));
+  labState = await page.evaluate(() => window.__lesionLabTest);
+  assert(labState.blindSpotProtocols.includes('af-left'), 'Object naming alone must leave af-left blind');
+  await page.locator('[data-battery-task="dulip-repetition"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.customTasks.includes('dulip-repetition'));
+  labState = await page.evaluate(() => window.__lesionLabTest);
+  assert(labState.interrogatedProtocols.includes('af-left'), 'Adding word repetition dims af-left');
+  await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-battery-builder.png`});
+
+  await page.locator('#openTestingSheet').click();
+  await page.locator('#labTestingSheet[open]').waitFor({state: 'visible'});
+  assert.equal(await page.locator('#labTestingSheet thead th').count(), 3);
+  assert.match(await page.locator('#labTestingSheet [data-sheet-watermark]').innerText(), /Group reference.*Educational draft/);
+  assert.equal(await page.locator('#labTestingSheet input').count(), 0, 'Lab Testing Sheet has zero PHI inputs');
+  await page.locator('#labTestingSheet').screenshot({path: `${out}/lesion-lab-sheet-dialog.png`});
+  await page.locator('#labTestingSheet [data-sheet-close]').click();
 
   await page.locator('[data-preset="right-parietal"]').click();
   await page.waitForFunction(() => window.__lesionLabTest.hemi === 'R' && !window.__lesionLabTest.loading && window.__lesionLabTest.preset === 'right-parietal');
