@@ -62,6 +62,8 @@ const supportingFiles=[
   'media/lesson-previews/plate-default-mode-network-20260928.jpg',
   'media/lesson-previews/README.md',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
+  'brand/og/atlas.jpg','brand/og/lesion-lab.jpg','brand/og/mips.jpg','brand/og/case-conference.jpg','brand/og/connections.jpg',
+  ...lessonIdsInCurriculum().map(id=>`brand/og/lesson-${id}.jpg`),
   'vendor/LICENSE.md','vendor/three-mesh-bvh-LICENSE.md','vendor/camera-controls-LICENSE.md','vendor/VENDOR.json',
   'vendor/fonts/archivo-latin.woff2','vendor/fonts/Archivo-OFL.txt',
   

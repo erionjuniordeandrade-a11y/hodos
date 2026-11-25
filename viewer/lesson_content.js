@@ -20,9 +20,23 @@ import * as W3_controlNetwork from './lessons/control-network.js';
 import * as W3_readingRoute from './lessons/reading-route.js';
 import {DISSECTION_PLATES} from './dissection_references.js';
 export const CONTENT_VERSION='2026-10-10.1';
+export const REVIEW_STATUSES=Object.freeze(['draft','author-reviewed','peer-reviewed']);
 export const EVIDENCE_CLASSES=Object.freeze(['atlas','reconstruction','association',
   'schematic','recovery_overlay','functional_measurement','model_metric',
   'experimental_anatomy','conceptual_model']);
+
+export function lessonStatusNotice(lesson){
+  if(!lesson||lesson.reviewStatus==='draft')return 'Lesson text is an educational draft awaiting anatomical review.';
+  if(lesson.reviewStatus==='author-reviewed'){
+    const when=lesson.reviewedAt?` (${lesson.reviewedAt})`:'';
+    return `Educational reference reviewed by Dr. Erion de Andrade${when}; awaiting independent peer review. Group anatomy, not for surgical navigation.`;
+  }
+  if(lesson.reviewStatus==='peer-reviewed'){
+    const who=lesson.reviewedBy?`${lesson.reviewedBy}${lesson.reviewedAt?`, ${lesson.reviewedAt}`:''}`:(lesson.reviewedAt||'');
+    return `Peer-reviewed educational reference${who?` (${who})`:''}. Group anatomy, not for surgical navigation.`;
+  }
+  throw new Error(`Unknown reviewStatus: ${lesson.reviewStatus}`);
+}
 
 export const SOURCES=Object.freeze({...REFERENCE_SOURCES,...RESIDENT_SOURCES,...CORPUS_CALLOSUM_SOURCES,...INTERNAL_CAPSULE_SOURCES,...VENTRAL_SOURCES,...BRAINSTEM_SOURCES,...NETWORK_SOURCES,...W3_limen.SOURCES,...W3_insularFloor.SOURCES,...W3_medialSystem.SOURCES,...W3_motorBeyondM1.SOURCES,...W3_controlNetwork.SOURCES,...W3_readingRoute.SOURCES});
 // Wave-3 modules carry their own region cards; ids must not collide with the base set.
@@ -121,7 +135,9 @@ export function validateLessons(lessons=LESSONS,{sources=SOURCES,regions=REGIONS
     if(r.sources.some(source=>!sources[source]))throw new Error(`Unresolved source in region card ${id}`);
   }
   for(const l of lessons){
-    if(ids.has(l.id)||!l.version||l.reviewStatus!=='draft'||!l.steps.length)throw new Error('Invalid lesson identity or review state');
+    if(ids.has(l.id)||!l.version||!REVIEW_STATUSES.includes(l.reviewStatus)||!l.steps.length)throw new Error('Invalid lesson identity or review state');
+    if(l.reviewStatus!=='draft'&&!(typeof l.reviewedAt==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(l.reviewedAt)))throw new Error(`Reviewed lesson ${l.id} requires ISO reviewedAt date`);
+    if(l.reviewStatus==='peer-reviewed'&&!(typeof l.reviewedBy==='string'&&l.reviewedBy.trim()))throw new Error(`Peer-reviewed lesson ${l.id} requires reviewedBy`);
     ids.add(l.id);
     for(const s of l.steps){
       if(s.referencePlate!=null&&!Object.hasOwn(DISSECTION_PLATES,s.referencePlate))throw new Error(`Unknown dissection reference in ${l.id}`);

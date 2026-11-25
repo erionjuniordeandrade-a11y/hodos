@@ -50,7 +50,7 @@ function sourceLookupFor(sourceIds, sourcesById) {
 // chosen by EXCLUSION: any field not listed here as structural or already printed
 // is rendered generically, including fields added to the content later.
 const STEP_SHOWN_OR_STRUCTURAL = new Set(['title', 'text', 'sources', 'scene', 'regions', 'targets']);
-const LESSON_SHOWN_OR_STRUCTURAL = new Set(['id', 'title', 'minutes', 'reviewStatus', 'steps', 'version', 'referenceOnly', 'category']);
+const LESSON_SHOWN_OR_STRUCTURAL = new Set(['id', 'title', 'minutes', 'reviewStatus', 'reviewedAt', 'reviewedBy', 'steps', 'version', 'referenceOnly', 'category']);
 const CASE_SHOWN_OR_STRUCTURAL = new Set(['id', 'fictional', 'title', 'location', 'number', 'prompt', 'debrief', 'sources']);
 
 function label(key) {
