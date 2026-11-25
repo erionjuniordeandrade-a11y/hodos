@@ -33,11 +33,16 @@
 .sheet-sources .sheet-meta{display:block;margin-top:2px}
 @media print{
   body:has(.testing-sheet-dialog[open])>*:not(.testing-sheet-dialog){display:none!important}
-  .testing-sheet-dialog[open]{position:static;width:100%;max-width:none;max-height:none;border:0;box-shadow:none;background:white;color:black;margin:0}
+  .testing-sheet-dialog::backdrop{display:none}
+  .testing-sheet-dialog[open]{position:static;width:100%;max-width:none;max-height:none;overflow:visible;border:0;box-shadow:none;background:var(--color-accent-strong);color:var(--legacy-media-black);margin:0}
   .testing-sheet-dialog[open] .sheet-actions,.testing-sheet-dialog[open] .sheet-copy-status{display:none!important}
-  .testing-sheet-dialog[open] .sheet-watermark{color:black;border-color:black}
-  .testing-sheet-dialog[open] .sheet-head h2,.testing-sheet-dialog[open] .sheet-section h3,.testing-sheet-dialog[open] .sheet-table th,.testing-sheet-dialog[open] .sheet-sources a{color:black}
-  .testing-sheet-dialog[open] .sheet-subtitle,.testing-sheet-dialog[open] .sheet-meta,.testing-sheet-dialog[open] .sheet-caveat,.testing-sheet-dialog[open] .sheet-note,.testing-sheet-dialog[open] .sheet-empty{color:dimgray}
-  .testing-sheet-dialog[open] .sheet-table thead th{background:whitesmoke}
-  .testing-sheet-dialog[open] .sheet-table-wrap,.testing-sheet-dialog[open] .sheet-table th,.testing-sheet-dialog[open] .sheet-table td,.testing-sheet-dialog[open] .sheet-head{border-color:silver}
+  .testing-sheet-dialog[open] .sheet-table-wrap{overflow:visible}
+  .testing-sheet-dialog[open] .sheet-table{min-width:0}
+  .testing-sheet-dialog[open] .sheet-snapshot{background:var(--color-stage);print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .testing-sheet-dialog[open] .sheet-snapshot figcaption{color:var(--color-ink)}
+  .testing-sheet-dialog[open] .sheet-watermark{color:var(--legacy-media-black);border-color:var(--legacy-media-black)}
+  .testing-sheet-dialog[open] .sheet-head h2,.testing-sheet-dialog[open] .sheet-section h3,.testing-sheet-dialog[open] .sheet-table th,.testing-sheet-dialog[open] .sheet-sources a{color:var(--legacy-media-black)}
+  .testing-sheet-dialog[open] .sheet-subtitle,.testing-sheet-dialog[open] .sheet-meta,.testing-sheet-dialog[open] .sheet-caveat,.testing-sheet-dialog[open] .sheet-note,.testing-sheet-dialog[open] .sheet-empty{color:var(--legacy-print-muted)}
+  .testing-sheet-dialog[open] .sheet-table thead th{background:var(--color-accent-strong)}
+  .testing-sheet-dialog[open] .sheet-table-wrap,.testing-sheet-dialog[open] .sheet-table th,.testing-sheet-dialog[open] .sheet-table td,.testing-sheet-dialog[open] .sheet-head{border-color:var(--legacy-print-rule)}
 }

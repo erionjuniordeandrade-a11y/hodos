@@ -289,12 +289,12 @@ _Seen in_: `viewer/testing_model.js`
 **Battery builder**:
 The interactive task-selection rehearsal in the Lesion lab where a learner toggles intraoperative mapping and monitoring tasks and observes which Cut Bundles dim as Interrogated and which remain Blind spots.
 _Avoid_: Protocol builder, surgical planner
-_Seen in_: planned for Wave 1 (`viewer/lesion_lab.js`)
+_Seen in_: `viewer/lesion_lab.js`, `viewer/testing_lens_model.js`
 
 **Testing sheet**:
 A printable, shareable summary generated from a Lesion lab position or Testing card listing focal mapping tasks, continuous monitoring tasks, blind spots, untestable pathways, and verified Sources, stamped as a group-reference educational draft with no patient fields.
 _Avoid_: Operative plan, clinical order sheet, patient chart
-_Seen in_: planned for Wave 1 (`viewer/testing.html`, `viewer/labs/lesion-lab.html`)
+_Seen in_: `viewer/testing.html`, `viewer/labs/lesion-lab.html`, `viewer/testing_sheet.js`
 
 ### Case Conference
 

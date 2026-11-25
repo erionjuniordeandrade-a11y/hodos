@@ -21,14 +21,14 @@ function taskColumnItems(tasks, emptyText) {
   );
 }
 
-function trapColumnItems(sheet) {
+function trapColumnItems(sheet, formatBundle) {
   const items = [];
   for (const b of sheet.blindSpots) {
     items.push(
       el(
         'li',
         {className: 'sheet-trap-item'},
-        el('strong', {textContent: `${b.name} (Blind spot)`}),
+        el('strong', {textContent: b.isBlindSpot ? `${b.name} (Blind spot)` : b.name}),
         el('span', {className: 'sheet-caveat', textContent: b.blindSpot}),
       ),
     );
@@ -49,7 +49,7 @@ function trapColumnItems(sheet) {
         'li',
         {},
         el('strong', {textContent: 'Uncurated atlas bundles (stay bright)'}),
-        el('span', {className: 'sheet-meta', textContent: sheet.uncurated.join(', ')}),
+        el('span', {className: 'sheet-meta', textContent: sheet.uncurated.map(formatBundle).join(', ')}),
       ),
     );
   }
@@ -57,7 +57,11 @@ function trapColumnItems(sheet) {
   return el('ul', {className: 'sheet-list'}, ...items);
 }
 
-export function renderTestingSheet(dialog, sheet, {snapshotUrl = '', thirdColTitle = 'False-reassurance trap & limits'} = {}) {
+export function renderTestingSheet(
+  dialog,
+  sheet,
+  {snapshotUrl = '', thirdColTitle = 'False-reassurance trap & limits', formatBundle = id => id} = {},
+) {
   const watermarkEl = dialog.querySelector('[data-sheet-watermark]');
   const titleEl = dialog.querySelector('[data-sheet-title]');
   const subtitleEl = dialog.querySelector('[data-sheet-subtitle]');
@@ -109,7 +113,7 @@ export function renderTestingSheet(dialog, sheet, {snapshotUrl = '', thirdColTit
           {},
           el('td', {}, taskColumnItems(sheet.mapTasks, 'No real-time focal mapping task.')),
           el('td', {}, taskColumnItems(sheet.monitorTasks, 'No continuous monitoring surrogate.')),
-          el('td', {}, trapColumnItems(sheet)),
+          el('td', {}, trapColumnItems(sheet, formatBundle)),
         ),
       ),
     ),

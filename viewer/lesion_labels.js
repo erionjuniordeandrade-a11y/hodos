@@ -37,18 +37,29 @@ export function createTractLabelOverlay(stageEl, {onHover, onClick} = {}) {
   let enabled = true;
   let dragging = false;
   let currentCount = 0;
+  let activeHoverIndex = -1;
+
+  function clearHover() {
+    if (activeHoverIndex < 0) return;
+    const prev = activeHoverIndex;
+    activeHoverIndex = -1;
+    onHover?.(-1, prev);
+  }
 
   function setEnabled(next) {
     enabled = Boolean(next);
     container.hidden = !enabled || dragging;
+    if (!enabled) clear();
   }
 
   function setDragging(next) {
     dragging = Boolean(next);
     container.hidden = !enabled || dragging;
+    if (dragging) clearHover();
   }
 
   function clear() {
+    clearHover();
     currentCount = 0;
     svg.replaceChildren();
     for (const node of [...container.querySelectorAll('.lab-tract-label')]) node.remove();
@@ -127,8 +138,14 @@ export function createTractLabelOverlay(stageEl, {onHover, onClick} = {}) {
       dot.className = 'lab-tract-dot';
       dot.setAttribute('aria-hidden', 'true');
       btn.append(dot, entryItem.text);
-      btn.addEventListener('pointerenter', () => onHover?.(entryItem.item.row.index));
-      btn.addEventListener('pointerleave', () => onHover?.(-1, entryItem.item.row.index));
+      btn.addEventListener('pointerenter', () => {
+        activeHoverIndex = entryItem.item.row.index;
+        onHover?.(activeHoverIndex);
+      });
+      btn.addEventListener('pointerleave', () => {
+        if (activeHoverIndex === entryItem.item.row.index) activeHoverIndex = -1;
+        onHover?.(-1, entryItem.item.row.index);
+      });
       btn.addEventListener('click', () => onClick?.(entryItem.item.row.id));
       container.append(btn);
       entryItem.node = btn;

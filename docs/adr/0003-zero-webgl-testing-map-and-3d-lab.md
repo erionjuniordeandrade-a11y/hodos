@@ -8,7 +8,7 @@ Surgeons and residents use Hodos across two distinct moments: rapid pre-op or OR
 
 ## Decision
 
-Keep `/` (pre-rendered hero) and `/testing` (2D anatomical brain territory map) strictly zero-WebGL, using static SVG anatomy pre-extracted from Hodos's own HCP S1200 cortical meshes, HCP-MMP1 parcel boundaries, and HCP1065 tract centerlines. Pair `/testing` and `/labs/lesion-lab` under one shared `Lesion & Testing` pillar with a header switcher (`2D Testing Map` ↔ `3D Lesion Lab`) and synchronized `?territory=` / `?target=` URL state so 3D WebGL loads only when the learner steps into the 3D lab.
+Keep `/` (pre-rendered hero) and `/testing` (2D anatomical brain territory map) strictly zero-WebGL, using static SVG anatomy pre-extracted from Hodos's own HCP S1200 cortical meshes, HCP-MMP1 parcel boundaries, and HCP1065 tract centerlines. Pair `/testing` and `/labs/lesion-lab` with direct cross-links (`2D Testing Map` ↔ `3D Lesion Lab`) carrying synchronized `?hemi=` and `?preset=`/`?territory=` URL state so 3D WebGL loads only when the learner steps into the 3D lab.
 
 ## Consequences
 

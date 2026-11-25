@@ -448,7 +448,6 @@ for(const card of [$('labStory'),$('lesionControls')].filter(Boolean)){
   card.addEventListener('scroll',()=>syncMore(card),{passive:true});
   new ResizeObserver(()=>syncMore(card)).observe(card);
 }
-// Opening any collapsible section grows the rail past its cap: scroll the section into the rail's view.
 for(const details of $('lesionControls')?.querySelectorAll('details')??[]){
   details.addEventListener('toggle',event=>{
     const target=event.currentTarget,rail=SHEET_LAYOUT.matches?dock:$('lesionControls');
@@ -891,9 +890,10 @@ function bindControls(){
   if(sheetDialog){
     bindTestingSheetDialog(sheetDialog,{getShareUrl:()=>{writeURL();return location.href;}});
     $('openTestingSheet')?.addEventListener('click',async()=>{
-      if(!lab.centre)return;
+      if(!lab.centre||sheetDialog.open)return;
       const evalLens=lab.evalLens??evaluateTestLens(lab.rows,lab.hemi,lab.lens);
       const snapshotUrl=await captureStagePng();
+      if(sheetDialog.open)return;
       const preset=lab.preset?presetOf(lab.preset):null;
       const coords=`MNI ${fmt(lab.centre[0])}, ${fmt(lab.centre[1])}, ${fmt(lab.centre[2])} mm, r=${lab.radius} mm`;
       const sheet=buildTestingSheetData({
@@ -908,7 +908,11 @@ function bindControls(){
           ?'Dimmed pathways are interrogated by the selected battery; bright pathways are blind spots, untestable, or uncurated.'
           :'All cut pathways shown without battery filtering.',
       });
-      renderTestingSheet(sheetDialog,sheet,{snapshotUrl,thirdColTitle:'Blind spots & Corridor only'});
+      renderTestingSheet(sheetDialog,sheet,{
+        snapshotUrl,
+        thirdColTitle:evalLens.active?'Blind spots & Corridor only':'False-reassurance trap & Corridor only',
+        formatBundle:id=>bundleLabel(id).replace(/ · (left|right)$/,''),
+      });
       sheetDialog.showModal();
     });
   }
@@ -941,7 +945,7 @@ function bindControls(){
   for(const button of document.querySelectorAll('[data-entry]'))button.addEventListener('click',()=>setPlacing(lab.placing===button.dataset.entry?null:button.dataset.entry));
   // escapeAction (lesion_model.js) owns the priority; one step per press.
   addEventListener('keydown',event=>{
-    if(event.key!=='Escape')return;
+    if(event.key!=='Escape'||$('labTestingSheet')?.open)return;
     switch(escapeAction({dragging:!!drag,placing:lab.placing,drawerOpen:!drawer.inert})){
       case 'cancel-placing':setPlacing(null);break;
       case 'close-drawer':closeDrawer();break;
@@ -978,7 +982,7 @@ function updateInsets(){
   }
   const next={top:Math.max(0,Math.round(insets.top)),left:Math.max(0,Math.round(insets.left)),
     right:Math.max(0,Math.round(insets.right)),bottom:Math.max(0,Math.round(insets.bottom))};
-  if(lastInsets&&['top','left','right','bottom'].every(side=>Math.max(0,Math.round(lastInsets[side]))===next[side]))return;
+  if(lastInsets&&['top','left','right','bottom'].every(side=>Math.max(0,Math.round(lastInsets[side]))===next[side])){updateTractLabels();return;}
   lastInsets=insets;
   // The midline note centres itself on the frame's top edge (lesion-lab.css .lab-stage-note).
   for(const side of ['top','left','right','bottom'])stageEl.style.setProperty(`--lab-frame-${side}`,`${next[side]}px`);

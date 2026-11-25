@@ -206,6 +206,11 @@ function renderLookup(mapHemi = null) {
   syncCurrentRow();
   renderDetail(active);
   territoryMap?.update({selectedId: state.selectedId, hemi: mapHemi});
+  const labLink = document.querySelector('.pillar-link[href*="lesion-lab"]');
+  if (labLink) {
+    const activeHemi = active?.hemi === 'R' ? 'R' : mapHemi === 'R' || state.hemi === 'R' ? 'R' : 'L';
+    labLink.href = activeHemi === 'R' ? './labs/lesion-lab.html?hemi=R' : './labs/lesion-lab.html';
+  }
 }
 
 function renderComparison() {

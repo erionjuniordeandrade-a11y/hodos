@@ -11,6 +11,7 @@ export const BATTERY_TASK_BY_ID = nullMap(BATTERY_TASKS.map(t => [t.id, t]));
 const familyOf = id => (/_[LR]$/.test(id) ? id.slice(0, -2) : id);
 
 export function tractProtocolsForCutBundles(rows = [], hemi = 'L') {
+  if (!Array.isArray(rows)) return {protocols: [], unmatchedCutIds: []};
   const side = hemi === 'R' ? 'R' : 'L';
   const cutRows = [];
   const cutByFamily = new Map();
@@ -95,6 +96,7 @@ function interrogatedTractIdsForTasks(hemi, validTaskIds) {
 }
 
 function validBatteryTaskIds(taskIds = []) {
+  if (!Array.isArray(taskIds)) return [];
   const seen = new Set();
   const out = [];
   for (const id of taskIds) {

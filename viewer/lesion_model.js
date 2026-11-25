@@ -234,7 +234,7 @@ export function parseLabParams(search){
   const centre=xyz.every(numeric)?xyz.map(Number):null;
   const marginOn=numeric(params.get('margin'));
   const rawLens=params.get('lens');
-  const rawPreset=params.get('preset');
+  const rawPreset=params.get('preset')??params.get('territory');
   const rawTasks=(params.get('tasks')??'').split(',').map(s=>s.trim()).filter(Boolean);
   const tasks=[...new Set(rawTasks.filter(id=>VALID_BATTERY_TASKS.has(id)))];
   return {hemi,centre,radius:clampStep(params.get('r'),RADIUS,RADIUS.initial),marginOn,

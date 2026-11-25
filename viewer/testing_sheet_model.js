@@ -1,11 +1,8 @@
 import {TESTING_SOURCES} from './testing_sources_data.js';
 import {TESTING_MODES, TESTING_TASKS} from './testing_protocol_data.js';
 
-export const TESTING_SHEET_WATERMARK = [
-  'Group reference',
-  'Educational draft awaiting clinical review',
-  'Not patient-specific navigation or an institutional protocol.',
-].join(' \u00b7 ');
+export const TESTING_SHEET_WATERMARK =
+  'Group reference \u00b7 Educational draft awaiting clinical review, not patient-specific navigation or an institutional protocol.';
 
 const MODE_BY_ID = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(TESTING_MODES.map(m => [m.id, m]))));
 const TASK_BY_ID = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(TESTING_TASKS.map(t => [t.id, t]))));
@@ -75,6 +72,7 @@ export function buildTestingSheetData({
         blindSpot: p.blindSpot,
         mode: p.mode,
         badge,
+        isBlindSpot: lensActive && blindSet.has(p.id),
       });
     }
     if (interrogatedSet.has(p.id)) {
@@ -97,6 +95,7 @@ export function buildTestingSheetData({
     subtitle: String(subtitle || ''),
     hemi: hemi === 'R' || hemi === 'both' || hemi === 'all' ? hemi : 'L',
     note: String(note || ''),
+    lensActive,
     watermark: TESTING_SHEET_WATERMARK,
     mapTasks,
     monitorTasks,

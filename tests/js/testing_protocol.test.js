@@ -188,11 +188,24 @@ test('testing.css has zero raw hex colors, testing.html obeys strict CSP, and UI
   assert.doesNotMatch(html, /[\u2013\u2014]/, 'testing.html must contain zero em/en dashes');
   assert.doesNotMatch(js, /[\u2013\u2014]/, 'testing.js must contain zero em/en dashes');
 
-  const [mapJs, presetsJs] = await Promise.all([
+  const [mapJs, presetsJs, sheetCss, sheetModelJs, sheetJs, lensModelJs, labelsJs] = await Promise.all([
     readFile(path.join(root, 'viewer/testing_map.js'), 'utf8'),
     readFile(path.join(root, 'viewer/testing_presets_data.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_sheet.css'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_sheet_model.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_sheet.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_lens_model.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/lesion_labels.js'), 'utf8'),
   ]);
-  for (const [label, src] of [['testing_map.js', mapJs], ['testing_presets_data.js', presetsJs]]) {
+  assert.doesNotMatch(sheetCss, /#[0-9a-fA-F]{3,8}\b/, 'testing_sheet.css must use tokens only, zero raw hex');
+  for (const [label, src] of [
+    ['testing_map.js', mapJs],
+    ['testing_presets_data.js', presetsJs],
+    ['testing_sheet_model.js', sheetModelJs],
+    ['testing_sheet.js', sheetJs],
+    ['testing_lens_model.js', lensModelJs],
+    ['lesion_labels.js', labelsJs],
+  ]) {
     assert.doesNotMatch(src, /#[0-9a-fA-F]{3,8}\b/, `${label} must use CSS tokens, zero raw hex`);
     assert.doesNotMatch(src, /\bstyle\s*=/i, `${label} must not emit inline style attributes`);
     assert.doesNotMatch(src, /[\u2013\u2014]/, `${label} must contain zero em/en dashes`);
@@ -362,6 +375,8 @@ test('custom battery builder isolates task-specific blind spots and never dims u
 
   const emptyEval = evaluateCustomBattery(sampleRows, 'L', ['constructor']);
   assert.equal(emptyEval.active, false);
+  assert.deepEqual(tractProtocolsForCutBundles(null, 'L'), {protocols: [], unmatchedCutIds: []});
+  assert.equal(evaluateCustomBattery(sampleRows, 'L', null).active, false);
 });
 
 test('buildTestingSheetData builds deduplicated 3-column sheet with watermark and zero PHI fields', () => {
@@ -383,13 +398,19 @@ test('buildTestingSheetData builds deduplicated 3-column sheet with watermark an
   });
   assert.equal(
     sheet.watermark,
-    'Group reference · Educational draft awaiting clinical review · Not patient-specific navigation or an institutional protocol.',
+    'Group reference · Educational draft awaiting clinical review, not patient-specific navigation or an institutional protocol.',
   );
+  assert.equal((sheet.watermark.match(/·/g) ?? []).length, 1);
+  assert.equal(sheet.lensActive, true);
   assert(sheet.mapTasks.length >= 2);
   assert(sheet.monitorTasks.length >= 2);
   assert.equal(new Set(sheet.mapTasks.map(t => t.id)).size, sheet.mapTasks.length);
   assert.equal(new Set(sheet.monitorTasks.map(t => t.id)).size, sheet.monitorTasks.length);
   assert.deepEqual(sheet.blindSpots.map(b => b.id), ['af-left']);
+  assert.equal(sheet.blindSpots[0].isBlindSpot, true);
+  const singleCard = buildTestingSheetData({title: 'Single card', protocols: [ev.protocols[0]]});
+  assert.equal(singleCard.lensActive, false);
+  assert.equal(singleCard.blindSpots[0].isBlindSpot, false);
   assert.deepEqual(sheet.untestable.map(u => u.id), ['fornix-bilateral']);
   assert.deepEqual(sheet.uncurated, ['EMC_L']);
   assert(sheet.sources.length >= 3 && sheet.sources.every(s => s.url));

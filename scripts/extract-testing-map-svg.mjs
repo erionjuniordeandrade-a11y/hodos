@@ -128,7 +128,6 @@ async function main() {
     }
   }
 
-  // Extract real HCP-MMP1 territory polygons for all 10 Left CORTEX_PROTOCOLS.
   const codeToIdL = new Map();
   for (const [idStr, roi] of Object.entries(surfMeta.sets.glasser.regions.L)) {
     const code = roi.replace(/^L_/, '').replace(/_ROI$/, '');
@@ -167,7 +166,6 @@ async function main() {
     };
   }
 
-  // Extract real HCP1065 projected tract centerlines for every bundle family needed.
   const tractsMeta = JSON.parse(fs.readFileSync(path.join(root, 'viewer/atlas/tracts.json'), 'utf8'));
   const tractsBin = fs.readFileSync(path.join(root, 'viewer/atlas/tracts.bin'));
   const tractsBuf = tractsBin.buffer.slice(tractsBin.byteOffset, tractsBin.byteOffset + tractsBin.byteLength);
@@ -198,8 +196,7 @@ async function main() {
     };
   }
 
-  const outJs = `// Generated from HCP S1200 cortex meshes, HCP-MMP1 labels, and HCP1065 tracts via scripts/extract-testing-map-svg.mjs.
-export const MAP_VIEWBOX = Object.freeze({width: ${VIEW_W}, height: ${VIEW_H}});
+  const outJs = `export const MAP_VIEWBOX = Object.freeze({width: ${VIEW_W}, height: ${VIEW_H}});
 export const BRAIN_OUTLINES = Object.freeze(${JSON.stringify(outlines, null, 2)});
 export const MEDIAL_WALLS = Object.freeze(${JSON.stringify(medialWalls, null, 2)});
 export const SULCAL_CREASES = Object.freeze(${JSON.stringify(sulci, null, 2)});
