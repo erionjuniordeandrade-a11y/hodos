@@ -223,11 +223,15 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     }
   }
   function onDblClick(){cameraTransition=null;onInteraction();setView(view);}
-  if(scrollZoom==='modifier')mount.addEventListener('wheel',onMountWheel,{capture:true,passive:false});
-  renderer.domElement.addEventListener('dblclick',onDblClick);
+  if(scrollZoom==='modifier'){
+    mount.addEventListener('wheel',onMountWheel,{capture:true,passive:false});
+    renderer.domElement.addEventListener('dblclick',onDblClick);
+  }
   function disposeBase(){disposed=true;cameraTransition=null;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
-    if(scrollZoom==='modifier')mount.removeEventListener('wheel',onMountWheel,{capture:true});
-    renderer.domElement.removeEventListener('dblclick',onDblClick);
+    if(scrollZoom==='modifier'){
+      mount.removeEventListener('wheel',onMountWheel,{capture:true});
+      renderer.domElement.removeEventListener('dblclick',onDblClick);
+    }
     reduced.removeEventListener('change',requestDraw);reduced.removeEventListener('change',motionChanged);document.removeEventListener('visibilitychange',requestDraw);
     pipeline.dispose();renderer.dispose();renderer.domElement.remove();annotationLayer.remove();leaders.remove();orientation.remove();}
   resize();

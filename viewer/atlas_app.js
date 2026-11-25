@@ -82,7 +82,7 @@ function inspectTract(bundleId){
   if(isSelected&&selectedBundles.length>1){
     const isolate=document.createElement('button');isolate.type='button';isolate.textContent='Isolate tract';
     isolate.addEventListener('click',()=>{
-      pauseForExploration();applyBundles([bundleId]);inspectTract(bundleId);
+      pauseForExploration();applyBundles([bundleId]);
       ($('tractQuickActions').querySelector('button, a')||$('atlasCanvas').querySelector(':scope>canvas'))?.focus({preventScroll:true});
     });
     actions.append(isolate);
@@ -190,7 +190,10 @@ function revealInterior(){
  * v1 pathway-summary text. Owns `selectedBundles` (pick order = tint order) and syncs the chips. */
 function applyBundles(ids,ghostIds=[]){
   selectedBundles=[...new Set(ids)].slice(0,MAX_BUNDLES);currentGhosts=[...new Set(ghostIds)].filter(id=>!selectedBundles.includes(id));
-  if(currentTract&&!selectedBundles.includes(currentTract)){if(!currentLesson)clearPick();else clearTractActions();}
+  if(currentTract){
+    if(!selectedBundles.includes(currentTract)){if(!currentLesson)clearPick();else clearTractActions();}
+    else if(!currentLesson)inspectTract(currentTract);
+  }
   ids=selectedBundles;ghostIds=currentGhosts;
   scene.setBundles(ids,{ghost:ghostIds});
   syncPicker();syncURL();
