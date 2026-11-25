@@ -102,9 +102,14 @@ The reference 3D scene of cortical surface, parcels, deep structures and Bundles
 _Avoid_: Viewer, brain model, TractLab (a separate product)
 _Seen in_: `viewer/atlas_scene.js`
 
+**Tract**:
+A clinical or neuroanatomical white-matter pathway in learner-facing UI and teaching prose, such as the left arcuate fasciculus or corticospinal tract.
+_Avoid_: Fiber, track (when naming a pathway)
+_Seen in_: `viewer/testing_tracts_data.js`
+
 **Bundle**:
-One named white-matter pathway in the Atlas, with a hemisphere suffix, for example `CST_L`.
-_Avoid_: Tract (in code and ids), fiber, pathway, fasciculus (as a generic word)
+One hemisphere's sampled HCP1065 streamline set in Atlas data and geometric counts, carrying a hemisphere suffix such as `CST_L` or `AF_L`.
+_Avoid_: Fiber, axon, fasciculus (as a generic data term)
 _Seen in_: `viewer/atlas_glossary.js`
 
 **Bundle family**:
@@ -234,6 +239,63 @@ The plain-language summary the Lesion lab composes from the cut counts and the m
 _Avoid_: Report, result text, interpretation
 _Seen in_: `viewer/lesion_story.js`
 
+**Territory preset**:
+A named surgical territory in the Lesion lab (such as `Left SMA` or `Right parietal`) that places the Lesion at verified group-atlas coordinates and selects a default Test lens. Displayed under "Surgical territories".
+_Avoid_: Tumor territory, tumor preset, pathology location
+_Seen in_: `viewer/testing_presets_data.js`
+
+**Test lens**:
+A visual filter in the Lesion lab that dims Cut Bundles interrogated by a chosen intraoperative battery (`Asleep MEP`, `Awake naming`, `Tailored`) while keeping non-interrogated Cut Bundles bright. Dimming means interrogated, never spared.
+_Avoid_: Coverage filter, safety lens, protected view
+_Seen in_: `viewer/lesion_lab.js`
+
+### Intraoperative testing
+
+**Testing guide**:
+The `/testing` destination comparing intraoperative monitoring and mapping across white-matter pathways and cortical territories. It is an educational draft, not an institutional protocol.
+_Avoid_: Protocol manual, clinical guideline
+_Seen in_: `viewer/testing.html`
+
+**Testing card**:
+One anatomical entry in the Testing guide pairing a Structure with its primary testing mode, focal mapping tasks, continuous monitoring tasks, error signature, false-reassurance trap, and verified Sources.
+_Avoid_: Protocol, testing protocol, target protocol
+_Seen in_: `viewer/testing_targets_data.js`
+
+**Structure**:
+One anatomical unit indexed by a Testing card: either a Bundle family or a Cortical territory.
+_Avoid_: Target (reserved for MIPS), region (generic)
+_Seen in_: `viewer/testing_model.js`
+
+**Interrogated**:
+A Cut Bundle whose pathway is directly probed by the active Test lens battery. Interrogated does not mean spared or safe.
+_Avoid_: Covered, protected, safe
+_Seen in_: `viewer/testing_model.js`
+
+**Blind spot**:
+A Cut Bundle with a validated intraoperative testing method that the active Test lens battery omits (for example, left FAT under `Asleep MEP`, or left ILF/VOF under `Awake naming`).
+_Avoid_: Silent tract, uncovered bundle
+_Seen in_: `viewer/testing_model.js`
+
+**Untestable pathway**:
+A pathway with no validated real-time intraoperative DES or IOM warning probe (such as fornix, anterior thalamic peduncle, or proximal DRTT), protected through corridor geometry alone.
+_Avoid_: Non-eloquent tract, silent pathway
+_Seen in_: `viewer/testing_tracts_data.js`
+
+**Uncurated bundle**:
+A Cut Bundle in the HCP1065 atlas sample that has no Testing card yet; it stays bright under any active Test lens so absence of a card is never mistaken for coverage.
+_Avoid_: Unmapped bundle, safe bundle
+_Seen in_: `viewer/testing_model.js`
+
+**Battery builder**:
+The interactive task-selection rehearsal in the Lesion lab where a learner toggles intraoperative mapping and monitoring tasks and observes which Cut Bundles dim as Interrogated and which remain Blind spots.
+_Avoid_: Protocol builder, surgical planner
+_Seen in_: planned for Wave 1 (`viewer/lesion_lab.js`)
+
+**Testing sheet**:
+A printable, shareable summary generated from a Lesion lab position or Testing card listing focal mapping tasks, continuous monitoring tasks, blind spots, untestable pathways, and verified Sources, stamped as a group-reference educational draft with no patient fields.
+_Avoid_: Operative plan, clinical order sheet, patient chart
+_Seen in_: planned for Wave 1 (`viewer/testing.html`, `viewer/labs/lesion-lab.html`)
+
 ### Case Conference
 
 **Case Conference**:
@@ -307,8 +369,7 @@ _Seen in_: `scripts/build-hodos.mjs`
 
 ## Open questions
 
-1. **Bundle vs tract.** Code and ids say "bundle" while the owner's prose, the review sheets and the file names (`tract_ranges.js`, `tracts.bin`) say "tract". Which is canonical?
-2. **Phase vs Stage vs Step.** The MIPS exercise uses Phase, Case Conference uses Stage, Lessons use Step, and all three are ordered screens. Should one word cover them? Lessons also have a Lesson phase inside each Step (`viewer/lesson_state.js`).
-3. **Relationship counts and "lesson" counts.** `README.md` says 10 lessons and 58 relationships; `CLAUDE.md` says 14 lessons and 85 relationships. Which count is current, and does a Relationship mean a graph row or a lesson-cited pair?
-4. **Teach-back vs "Explain it".** The code and tests say teachback; the interface says "Explain it", and the MIPS Phase called "explain" is a different thing. What is the canonical name for the learner-explains exercise?
-5. **Lesion vs Target vs Case lesion.** Three illustrative spheres share one shape but have three names across the Lesion lab, MIPS and Case Conference. Are they one concept?
+1. **Phase vs Stage vs Step.** The MIPS exercise uses Phase, Case Conference uses Stage, Lessons use Step, and all three are ordered screens. Should one word cover them? Lessons also have a Lesson phase inside each Step (`viewer/lesson_state.js`).
+2. **Relationship counts and "lesson" counts.** `README.md` says 10 lessons and 58 relationships; `CLAUDE.md` says 14 lessons and 85 relationships. Which count is current, and does a Relationship mean a graph row or a lesson-cited pair?
+3. **Teach-back vs "Explain it".** The code and tests say teachback; the interface says "Explain it", and the MIPS Phase called "explain" is a different thing. What is the canonical name for the learner-explains exercise?
+4. **Lesion vs Target vs Case lesion.** Three illustrative spheres share one shape but have three names across the Lesion lab, MIPS and Case Conference. Are they one concept?

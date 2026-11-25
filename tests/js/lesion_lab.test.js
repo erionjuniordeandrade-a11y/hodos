@@ -139,7 +139,7 @@ test('bundle anchors are real sample points; centres stay in the chosen hemisphe
 });
 
 test('lab links restore allowed values and discard malformed ones',()=>{
-  const base=s=>{const {lens,preset,...rest}=parseLabParams(s);return rest;};
+  const base=s=>{const {lens,preset,tasks,...rest}=parseLabParams(s);return rest;};
   assert.deepEqual(base('?hemi=R&x=12.5&y=-30&z=20&r=15&margin=8'),{hemi:'R',centre:[12.5,-30,20],radius:15,marginOn:true,margin:8,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
   assert.deepEqual(base(''),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
   assert.deepEqual(base('?hemi=X&x=1&y=2&r=&margin=abc'),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
