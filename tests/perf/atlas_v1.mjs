@@ -231,7 +231,7 @@ try{
   assert.match(await touch.locator('.learning-save-note').innerText(),/session/);
   await touch.locator('#lessonStart').click();await touch.locator('#lessonNext').click();
   const touchMetrics=await touch.evaluate(()=>({pageWidth:document.documentElement.scrollWidth,width:innerWidth,
-    controls:[...document.querySelectorAll('.studio-header button,.stage-tools button,.learning-phases button,.lesson-nav button')]
+    controls:[...document.querySelectorAll('.studio-header button,.stage-tools button,.readout-head #lessonProfile,.learning-phases button,.lesson-nav button')]
       .filter(e=>e.getClientRects().length).map(e=>({id:e.id||e.textContent,height:e.getBoundingClientRect().height}))}));
   report.touch=touchMetrics;
   assert(touchMetrics.pageWidth<=touchMetrics.width);

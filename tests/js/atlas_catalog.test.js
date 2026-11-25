@@ -28,7 +28,7 @@ test('parcel names map high-yield codes present in surface.json and return empty
     const codes=new Set(Object.entries(surface.sets.glasser.regions[hemi]).filter(([id])=>Number(id)!==0).map(([,raw])=>raw.replace(/^[LR]_/, '').replace(/_ROI$/, '')));
     for(const code of Object.keys(PARCEL_NAMES))assert(codes.has(code),`${code} must exist in ${hemi} hemisphere of surface.json`);
   }
-  assert.equal(parcelDisplayName('44'),"Broca's area, pars opercularis");
+  assert.equal(parcelDisplayName('44'),'Inferior frontal gyrus, pars opercularis');
   assert.equal(parcelDisplayName('nonexistent'),'');
   assert.equal(parcelDisplayName('toString'),'');
   assert.match(parcelSearchTerms('44'),/\bBroca\b/);

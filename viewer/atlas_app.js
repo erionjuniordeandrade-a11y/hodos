@@ -61,8 +61,6 @@ function viewName(hemisphere,view){
   return VIEW_NAMES[view]||`${view} view`;
 }
 function syncMedialLabel(){document.querySelector('[data-view="medial"]').textContent=$('atlasHemisphere').value==='R'?'Right medial':'Left medial';}
-/** Show a picked parcel. hemi is 'L' | 'R' | 'both' — 'both' is the paired label lit in
- * both hemispheres and is what a 'follow' lesson step means under the Both control. */
 function clearTractActions(){currentTract=null;const actions=$('tractQuickActions');actions.replaceChildren();actions.hidden=true;}
 function tractTestingProtocol(bundleId){
   const family=bundleId.replace(/_[LR]$/,''),side=bundleId.endsWith('_L')?'L':bundleId.endsWith('_R')?'R':null;
@@ -80,14 +78,23 @@ function inspectTract(bundleId){
   const countText=selectedBundles.length>1?` (${selectedBundles.length} tracts shown)`:'';
   $('pickedDescription').textContent=`${linesText}${groupText}${countText}.`;
   const actions=$('tractQuickActions');actions.replaceChildren();
-  if(selectedBundles.length>1){
+  const isSelected=selectedBundles.includes(bundleId);
+  if(isSelected&&selectedBundles.length>1){
     const isolate=document.createElement('button');isolate.type='button';isolate.textContent='Isolate tract';
-    isolate.addEventListener('click',()=>{pauseForExploration();applyBundles([bundleId]);inspectTract(bundleId);});
+    isolate.addEventListener('click',()=>{
+      pauseForExploration();applyBundles([bundleId]);inspectTract(bundleId);
+      ($('tractQuickActions').querySelector('button, a')||$('atlasCanvas').querySelector(':scope>canvas'))?.focus({preventScroll:true});
+    });
     actions.append(isolate);
   }
-  const remove=document.createElement('button');remove.type='button';remove.textContent='Remove tract';
-  remove.addEventListener('click',()=>{togglePathway(bundleId);clearPick();});
-  actions.append(remove);
+  if(isSelected){
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove tract';
+    remove.addEventListener('click',()=>{
+      togglePathway(bundleId);clearPick();
+      $('atlasCanvas').querySelector(':scope>canvas')?.focus({preventScroll:true});
+    });
+    actions.append(remove);
+  }
   const protocol=tractTestingProtocol(bundleId);
   if(protocol){
     const link=document.createElement('a');
@@ -95,7 +102,7 @@ function inspectTract(bundleId){
     link.href=`${base}?target=${encodeURIComponent(protocol.id)}`;link.textContent='Testing card';
     actions.append(link);
   }
-  actions.hidden=false;syncURL();
+  actions.hidden=!actions.children.length;syncURL();
 }
 function readRegion(hemi,id,vertex=null){
   if(!['L','R','both'].includes(hemi))return clearPick();
@@ -110,7 +117,7 @@ function readRegion(hemi,id,vertex=null){
   $('pickedClass').textContent='Cortex · HCP-MMP1';
   const sideWord=hemi==='L'?'Left':hemi==='R'?'Right':'Both';
   const display=id===0?'':parcelDisplayName(region.code);
-  $('pickedName').textContent=id===0?`${sideWord} · medial wall`:display?`${sideWord} · ${display} (${region.code})`:`${sideWord} · area ${region.code}`;
+  $('pickedName').textContent=id===0?`${sideWord} · medial wall`:display?`${sideWord} · ${region.code}, ${display}`:`${sideWord} · area ${region.code}`;
   $('pickedDescription').textContent=id===0?'Unlabelled medial wall in this atlas.':
     hemi==='both'
       ? `Area ${region.code} in both hemispheres · Group reference boundary. Individual function and tract endpoints require separate evidence.`
@@ -144,7 +151,7 @@ function applyWash(next){
   }
   const chip=$('sceneNetwork');chip.hidden=!view.chip;
   if(view.chip){chip.querySelector('span').textContent=view.chip;chip.querySelector('i').style.background=view.swatch;}
-  if(!currentPick&&!currentDeep)[$('pickedClass').textContent,$('pickedName').textContent,$('pickedDescription').textContent]=view.picked;
+  if(!currentPick&&!currentDeep&&!currentTract)[$('pickedClass').textContent,$('pickedName').textContent,$('pickedDescription').textContent]=view.picked;
   document.body.dataset.wash=wash.kind;
   syncURL();
 }
@@ -452,7 +459,7 @@ function showWheelHint(){
   tip.textContent='Pinch or Ctrl + scroll to zoom';
   tip.style.left='';tip.style.top='';tip.hidden=false;wheelHintActive=true;
   clearTimeout(wheelHintTimer);
-  wheelHintTimer=setTimeout(()=>{wheelHintActive=false;if(!scene?.state.hover)tip.hidden=true;},1600);
+  wheelHintTimer=setTimeout(()=>{wheelHintActive=false;tip.hidden=true;},1600);
 }
 try{
   scene=await createAtlasScene($('atlasCanvas'),{scrollZoom:'modifier',onWheelHint:showWheelHint,
@@ -610,7 +617,7 @@ try{
     applyScene:sceneInput=>applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...sceneInput}},currentHemisphere()),{authored:true}),
     togglePathway,projectBundleVertex:scene.projectBundleVertex,setGhost:scene.setGhost,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase,
     workspace:{...workspace,drawer:drawerOf(workspace,drawerOverlay())}})});
-  window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
+  window.addEventListener('pagehide',()=>{clearTimeout(wheelHintTimer);scene.dispose();player.dispose();},{once:true});
 }catch(error){
   $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`;
   $('tracePlay').disabled=true;console.error(error);

@@ -211,12 +211,19 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   }
   const observer=new ResizeObserver(resize);observer.observe(mount);
   function onMountWheel(event){
-    if(!(event.ctrlKey||event.metaKey)&&document.documentElement.scrollHeight>window.innerHeight+8){
+    if(event.target!==renderer.domElement)return;
+    if(event.ctrlKey){
+      event.preventDefault();event.stopPropagation();
+      const step=Math.max(-60,Math.min(60,-event.deltaY*0.45));
+      if(step){cameraTransition=null;frameEvent({type:'user',source:'wheel'});onInteraction();controls.dolly(step,!reduced.matches);requestDraw();}
+      return;
+    }
+    if(!event.metaKey&&document.documentElement.scrollHeight>window.innerHeight+8){
       event.stopPropagation();onWheelHint();
     }
   }
   function onDblClick(){cameraTransition=null;onInteraction();setView(view);}
-  if(scrollZoom==='modifier')mount.addEventListener('wheel',onMountWheel,{capture:true,passive:true});
+  if(scrollZoom==='modifier')mount.addEventListener('wheel',onMountWheel,{capture:true,passive:false});
   renderer.domElement.addEventListener('dblclick',onDblClick);
   function disposeBase(){disposed=true;cameraTransition=null;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
     if(scrollZoom==='modifier')mount.removeEventListener('wheel',onMountWheel,{capture:true});
@@ -784,7 +791,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     if(includeBundles){
       const lines=[...bundles.values()].map(bundle=>bundle.group.children[0]);
       const lineHit=ray.intersectObjects(lines,false)[0];
-      if(lineHit&&(!cortexHit||!opaque||lineHit.distance<=cortexHit.distance)){
+      if(lineHit&&(!cortexHit||!opaque||lineHit.distance<=cortexHit.distance)&&(!deepHit||lineHit.distance<=deepHit.distance)){
         const [id,bundle]=[...bundles].find(([,value])=>value.group.children[0]===lineHit.object);
         return {bundle:id,streamline:bundle.segmentToStreamline[lineHit.faceIndex],total:bundle.lineCount};
       }

@@ -711,7 +711,6 @@ main{padding-top:var(--space-md)}
 .atlas-parcel-label{font:600 var(--text-xs)/1.3 var(--font-outlier);background:var(--color-paper-2);border-radius:var(--radius)}
 .atlas-parcel-label small{font:400 var(--text-xs)/1.3 var(--font-body);color:var(--color-muted)}
 .atlas-orientation text{font:11px var(--font-outlier)}
-/* Readout band: one line for the name, one for its role, the key inline below. */
 .scene-readout{padding:var(--space-sm) var(--space-md);padding-right:var(--space-md);border-top:1px solid var(--color-rule);min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"class key" "name key" "status key" "actions actions" "details details";align-items:center;column-gap:var(--space-md)}
 .tract-quick-actions{grid-area:actions;display:flex;flex-wrap:wrap;gap:var(--space-xs);margin-top:var(--space-xs);pointer-events:auto}
 .tract-quick-actions[hidden]{display:none}
@@ -1014,7 +1013,7 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 #lessonPanel select,#lessonPanel .lesson-nav button,.atlas-controls select,
 .lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,
 .node-list .node-link,.case-row>a,.lesson-navigation a,
-.stage-tools>button,.atlas-view-menu>summary,.scene-details>summary,.scene-footer button,.tract-quick-actions button,.tract-quick-actions a{min-height:var(--control-height)}
+.stage-tools>button,.atlas-view-menu>summary,.scene-details>summary,.scene-footer button,.readout-head #lessonProfile,.tract-quick-actions button,.tract-quick-actions a{min-height:var(--control-height)}
 .brand,.skip-link,.case-row>a,.node-list .node-link,.lesson-navigation a{display:inline-flex;align-items:center}
 .lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary{display:flex;align-items:center}
 }
@@ -1036,7 +1035,7 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 .studio-header nav{flex-wrap:wrap;row-gap:0}
 @media(max-width:760px){
   .studio-header{row-gap:0}
-  .studio-header nav{width:100%;justify-content:flex-start;column-gap:var(--space-2xs)}
+  .studio-header nav{width:100%;justify-content:flex-start;column-gap:var(--space-xs)}
   .studio-header nav a,.studio-header nav button{padding:0 var(--space-xs);font-size:var(--text-sm)}
   .hero .studio-header nav a{padding:0 var(--space-sm)}
   .studio-header nav .header-sources{margin-left:0}
