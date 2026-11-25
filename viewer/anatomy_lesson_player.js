@@ -50,14 +50,19 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
   function progressNote(){return el('p',{class:'learning-save-note'},readOnlyProgress?'Case reference: lesson progress is session-only; your saved lessons are unchanged.':progress.persistent?'Progress saved on this device · no account needed.':'Progress is available for this session; device storage is unavailable.');}
   function renderLibrary(state){
     onMode('library');lastScene='';onStep(null,null);
-    root.append(el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},'Choose a relationship to understand.'));
+    root.append(el('h2',{id:'lessonCurrentTitle',tabindex:'-1'},'Learn the white matter you operate through.'));
     if(state.error)root.append(el('p',{role:'status',class:'lesson-error'},state.error));
     const entry=el('div',{class:'library-entry'});
-    if(progress.lastLesson){const lesson=LESSONS.find(l=>l.id===progress.lastLesson),saved=progress.get(lesson.id);
-      const resume=button(`Resume lesson ${moduleNumber(lesson.id)}`,'lessonResume',()=>start(lesson.id,{resume:true}));
-      resume.append(el('small',{},`relationship ${saved.step+1} of ${lesson.steps.length}`));entry.append(resume);
-    }else entry.append(button(`Begin lesson ${moduleNumber(ORDERED_IDS[0])}`,'lessonStart',()=>start(ORDERED_IDS[0])));
-    entry.append(button('Explore','lessonExplore',explore));root.append(entry);
+    if(progress.lastLesson){const lesson=LESSONS.find(l=>l.id===progress.lastLesson),guide=TEACHING_GUIDES[lesson.id],saved=progress.get(lesson.id);
+      const resume=button(`Continue: ${guide.shortTitle}`,'lessonResume',()=>start(lesson.id,{resume:true}));
+      resume.append(el('small',{},`step ${saved.step+1} of ${lesson.steps.length} · ~${lesson.minutes} min`));entry.append(resume);
+    }else{const firstId=ORDERED_IDS[0],first=LESSONS.find(l=>l.id===firstId),guide=TEACHING_GUIDES[firstId];
+      const begin=button(`Start: ${guide.shortTitle}`,'lessonStart',()=>start(firstId));
+      begin.append(el('small',{},`${first.steps.length} steps · ~${first.minutes} min`));entry.append(begin);
+    }
+    entry.append(button('Explore the 3D atlas','lessonExplore',explore));root.append(entry);
+    const syllabus=el('details',{class:'lesson-syllabus',id:'lessonSyllabus'});
+    syllabus.append(el('summary',{},`All ${ORDERED_IDS.length} lessons`));
     const catalog=el('div',{class:'lesson-catalog'});
     let number=0;
     for(const group of CURRICULUM){const section=el('section',{'aria-label':group.title});
@@ -69,7 +74,8 @@ export function mountAnatomyLessons(root,{onStep=()=>{},onInspect=()=>{},onResto
         row.append(title);section.append(row);
       }catalog.append(section);
     }
-    root.append(catalog,progressNote());
+    syllabus.append(catalog);
+    root.append(syllabus,progressNote());
   }
   function teachbackResult(lesson,guide,record){
     const out=el('div',{id:'teachbackResult',role:'status','aria-live':'polite'});

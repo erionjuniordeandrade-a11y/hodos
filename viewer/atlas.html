@@ -31,7 +31,9 @@
 <link rel="modulepreload" data-document-preload href="./atlas_scene.js">
 <link rel="modulepreload" data-document-preload href="./atlas_data.js">
 <link rel="modulepreload" data-document-preload href="./atlas_catalog.js">
+<link rel="modulepreload" data-document-preload href="./atlas_parcel_names.js">
 <link rel="modulepreload" data-document-preload href="./atlas_glossary.js">
+<link rel="modulepreload" data-document-preload href="./testing_tracts_data.js">
 <link rel="modulepreload" data-document-preload href="./atlas_networks.js">
 <link rel="modulepreload" data-document-preload href="./atlas_arterial.js">
 <link rel="modulepreload" data-document-preload href="./atlas_deeplink.js">
@@ -69,12 +71,11 @@
   <nav aria-label="Workspace"><button id="learnHome" type="button">Learn</button><button id="toggleLesson" type="button" aria-controls="lessonPanel" aria-expanded="true">Explore</button><a href="./labs/lesion-lab.html">Lesion &amp; testing</a><a href="./case-conference.html" id="caseConferenceLink"><span class="nav-long">Case Conference</span><span class="nav-short">Cases</span></a></nav>
 </header>
 <main>
-  <div class="intro"><h1>The reference atlas.</h1>
-    <p>A coursebook for neurosurgical residents. Orient the structure, compare its neighbours, explain the surgical relationship.</p></div>
+  <h1 class="sr-only">Learn the white matter you operate through.</h1>
   <section id="anatomySearch" class="anatomy-search" aria-label="Find anatomy" hidden>
     <label for="pathwayFilter">Find anatomy</label>
-    <div class="search-field"><input id="pathwayFilter" type="search" placeholder="Search parcels, pathways or deep structures…" aria-controls="anatomyResults" autocomplete="off" disabled><button type="button" id="clearAnatomySearch">Clear search</button></div>
-    <p id="anatomySearchStatus" role="status">Search by name or atlas code, for example V1, thalamus or arcuate.</p>
+    <div class="search-field"><input id="pathwayFilter" type="search" placeholder="Search tract, parcel, network, or artery (e.g. arcuate, 44, Broca, MCA, default mode)" aria-controls="anatomyResults" autocomplete="off" disabled><button type="button" id="clearAnatomySearch">Clear search</button></div>
+    <p id="anatomySearchStatus" role="status">Search by name or code, for example arcuate, 44, Broca, MCA or default mode.</p>
     <div id="anatomyResults" hidden></div>
   </section>
   <div id="atlasWorkspace">
@@ -92,14 +93,15 @@
           <p class="slice-readout" data-slice-readout aria-live="polite"></p>
           <p class="slice-note">Radiological view: the subject's right is on screen left. Surface, pathways and template share MNI coordinates but come from different group constructions; the overlay is illustrative, not registered to any patient.</p>
         </section></div>
-      <div class="scene-readout" aria-live="polite"><div class="readout-head"><span id="pickedClass">Atlas parcel</span><label class="sr-only" for="lessonProfile">Display profile</label><select id="lessonProfile" title="Study: reading size, fibre animation available. Present: larger type for a projector, animation off."><option value="teaching">Study</option><option value="presenter">Present</option></select></div>
-        <h2 id="pickedName">Choose a relationship</h2><p id="lessonSceneStatus" role="status" hidden></p><p id="explorationStatus" role="status" hidden></p>
-        <details class="scene-details"><summary>Scene key & details</summary><div class="scene-details-body"><p id="pickedDescription">Select cortex to inspect its HCP-MMP1 label.</p>
+      <div class="scene-readout" aria-live="polite"><div class="readout-head"><span id="pickedClass">Explore</span><label class="sr-only" for="lessonProfile">Display profile</label><select id="lessonProfile" title="Study: reading size, fibre animation available. Present: larger type for a projector, animation off."><option value="teaching">Study</option><option value="presenter">Present</option></select></div>
+        <h2 id="pickedName">Tap any structure</h2><p id="lessonSceneStatus" role="status" hidden></p><p id="explorationStatus" role="status" hidden></p>
+        <div id="tractQuickActions" class="tract-quick-actions" hidden></div>
+        <details class="scene-details"><summary>Details &amp; controls</summary><div class="scene-details-body"><p id="pickedDescription">Click cortex, a deep structure, or a displayed tract to inspect it.</p>
         <p id="pickedNetwork" class="picked-network"></p>
         <p class="parcel-legend"><span class="focus-key">● Focus</span> <span class="context-key">● Context</span> · separate atlas parcels. Dashed leaders mark covered anchors.</p>
       <div class="scene-footer"><span id="pathwaySummary">Sampled atlas pathways</span><button type="button" id="tracePlay" aria-pressed="false">Animate fibre paths</button></div>
       <p class="trace-note" id="traceNote">Paused · fibre paths are illustrative: no direction or conduction speed is implied.</p>
-      <p class="canvas-help" id="canvasHelp">Drag to rotate, scroll to zoom, click cortex to identify · Keyboard: arrows rotate, Shift + arrows pan, + / − zoom, Home fits.</p>
+      <p class="canvas-help" id="canvasHelp">Drag to rotate, Pinch or Ctrl + scroll to zoom, double-click to fit, click to inspect · Keyboard: arrows rotate, Shift + arrows pan, + / − zoom, Home fits.</p>
       </div></details></div>
     </section>
     <aside id="lessonPanel" aria-label="Guided anatomy lesson"><p>Preparing guided lessons…</p></aside>
@@ -111,7 +113,7 @@
     <div class="network-control"><label for="atlasNetworks">Resting-state networks <span class="picker-count">Yeo-7 group labels</span></label><select id="atlasNetworks" disabled><option value="off">Off</option></select><ul id="networkLegend" class="network-legend" hidden></ul></div>
     <div class="network-control"><label for="atlasArterial">Arterial territories <span class="picker-count">Liu 2023 group template</span></label><select id="atlasArterial" disabled><option value="off">Off</option></select><ul id="arterialLegend" class="network-legend" hidden></ul></div>
     <div><label for="surfaceLevel">Cortical surface</label><input id="surfaceLevel" type="range" min="8" max="95" value="60"><span class="range-caption">Transparent <span>Defined</span></span></div>
-    <div class="pathway-picker" id="atlasPathways" role="group" aria-labelledby="atlasPathwaysLabel"><div class="picker-head"><h2 id="atlasPathwaysLabel">Reference pathways <span id="pathwayCount" class="picker-count">loading…</span></h2><button type="button" id="pathwayClear" disabled>Clear pathways</button></div><p id="pathwayStatus" role="status"></p><div id="selectedPathways" role="group" aria-label="Displayed pathways"></div><p class="picker-help">L / R select each side. Names follow the <a href="https://brain.labsolver.org/hcp_trk_atlas.html" target="_blank" rel="noopener noreferrer">HCP1065 atlas glossary</a>; source codes remain searchable.</p><div id="pathwayGroups" class="picker-groups"></div></div>
+    <div class="pathway-picker" id="atlasPathways" role="group" aria-labelledby="atlasPathwaysLabel"><div class="picker-head"><h2 id="atlasPathwaysLabel">White matter tracts <span id="pathwayCount" class="picker-count">loading…</span></h2><button type="button" id="pathwayClear" disabled>Clear pathways</button></div><p id="pathwayStatus" role="status"></p><div id="selectedPathways" role="group" aria-label="Displayed pathways"></div><p class="picker-help">L / R select each side. Names follow the <a href="https://brain.labsolver.org/hcp_trk_atlas.html" target="_blank" rel="noopener noreferrer">HCP1065 atlas glossary</a>; source codes remain searchable.</p><div id="pathwayGroups" class="picker-groups"></div></div>
   </section>
   </details>
   </div>

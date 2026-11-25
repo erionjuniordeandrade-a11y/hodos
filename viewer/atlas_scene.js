@@ -67,7 +67,7 @@ function fatLine(positions,{arc=[],normals=[],color,opacity=1,linewidth,depthTes
 const CORTEX_TINTS={neutral:0xaaa09c,focus:0x9be1f0,context:0xdcc39a,hover:0xf6ede6};
 
 /** Owns one reference scene. Its inputs never include a case result or mask. */
-export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onStatus=()=>{},onInteraction=()=>{},onView=()=>{},hover=true}={}) {
+export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onStatus=()=>{},onInteraction=()=>{},onView=()=>{},hover=true,scrollZoom='always',onWheelHint=()=>{}}={}) {
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const scene=new THREE.Scene();
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
@@ -210,7 +210,17 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
     resize();
   }
   const observer=new ResizeObserver(resize);observer.observe(mount);
+  function onMountWheel(event){
+    if(!(event.ctrlKey||event.metaKey)&&document.documentElement.scrollHeight>window.innerHeight+8){
+      event.stopPropagation();onWheelHint();
+    }
+  }
+  function onDblClick(){cameraTransition=null;onInteraction();setView(view);}
+  if(scrollZoom==='modifier')mount.addEventListener('wheel',onMountWheel,{capture:true,passive:true});
+  renderer.domElement.addEventListener('dblclick',onDblClick);
   function disposeBase(){disposed=true;cameraTransition=null;cancelAnimationFrame(frame);observer.disconnect();controls.dispose();
+    if(scrollZoom==='modifier')mount.removeEventListener('wheel',onMountWheel,{capture:true});
+    renderer.domElement.removeEventListener('dblclick',onDblClick);
     reduced.removeEventListener('change',requestDraw);reduced.removeEventListener('change',motionChanged);document.removeEventListener('visibilitychange',requestDraw);
     pipeline.dispose();renderer.dispose();renderer.domElement.remove();annotationLayer.remove();leaders.remove();orientation.remove();}
   resize();
@@ -792,7 +802,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   renderer.domElement.addEventListener('pointerdown',e=>{cameraTransition=null;clearHover();down=[e.clientX,e.clientY];});
   renderer.domElement.addEventListener('pointerup',e=>{
     if(!down||e.button!==0||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5){down=null;return;}down=null;
-    const pick=pickAt(e);if(pick)onPick(pick);
+    const pick=pickAt(e,hover);if(pick)onPick(pick);
   });
   if(hover)renderer.domElement.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch'||controlsActive)return;
     cancelAnimationFrame(hoverFrame);hoverFrame=requestAnimationFrame(()=>{hoverFrame=0;if(disposed||controlsActive)return;const pick=pickAt(e,true);

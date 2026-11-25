@@ -37,5 +37,5 @@ export function washReadout(wash,rows=[]){
     chip:wash.mode==='all'?'Arterial territories · Liu 2023 group template':`${arterialLabel(rows,wash.focus)} territory · Liu 2023 group template`,
     swatch:wash.mode==='focus'?rgbCss(rows.find(r=>r.id===wash.focus).rgb):gradient(rows),
     picked:['Vascular context, arterial atlas',wash.mode==='all'?'Four supply territories':`${arterialLabel(rows,wash.focus)} territory`,ARTERIAL_NOTE]};
-  return {chip:null,swatch:null,picked:['Atlas parcel','No parcel selected','Select cortex to inspect its HCP-MMP1 label.']};
+  return {chip:null,swatch:null,picked:['Explore','Tap any structure','Click cortex, a deep structure, or a displayed tract to inspect it.']};
 }
