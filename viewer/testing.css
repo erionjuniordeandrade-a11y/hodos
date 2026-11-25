@@ -3,7 +3,7 @@
 .testing-page *{box-sizing:border-box}
 .testing-page a{color:var(--color-ink);text-underline-offset:0.2em;text-decoration-color:var(--color-rule-2)}
 .testing-page a:hover{text-decoration-color:var(--color-ink)}
-.testing-page :is(a,button,input,select,summary,[tabindex]:not(.map-hotspot)):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+.testing-page :is(a,button,input,select,summary,[tabindex]):focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
 
 .skip-link{position:absolute;left:var(--space-sm);top:var(--space-sm);padding:var(--space-xs) var(--space-sm);border-radius:var(--radius);transform:translateY(-200%);z-index:var(--z-modal)}
 .skip-link:focus{transform:none}
@@ -48,7 +48,8 @@
 .map-orient{fill:var(--color-faint);font:600 10px/1 var(--font-outlier);text-anchor:middle}
 .map-hotspot{cursor:pointer}
 .map-hotspot,.map-hotspot *{transition-property:none}
-.testing-page .map-hotspot[tabindex]:focus{outline:none}
+.testing-page .map-hotspot[tabindex]:focus:not(:focus-visible){outline:none}
+.testing-page .map-hotspot[tabindex]:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
 .map-hotspot:focus-visible .map-shape{stroke:var(--color-focus);stroke-width:4.5}
 .map-hotspot:focus-visible[data-kind="cortex"] .map-shape{stroke:var(--color-focus);stroke-width:2.5}
 .map-hotspot:focus-visible .map-pill{stroke:var(--color-focus);stroke-width:2.5}

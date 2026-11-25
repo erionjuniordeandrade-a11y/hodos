@@ -94,8 +94,8 @@
 .lab-options [aria-pressed=true],.lab-toggle[aria-pressed=true],.lab-presets [aria-pressed=true],.lab-lens-options [aria-pressed=true]{border-color:var(--color-accent);color:var(--color-ink);
   background:var(--color-accent-soft)}
 .lab-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2xs)}
-.lab-presets button,.lab-lens-options button{min-height:36px;padding:var(--space-2xs) var(--space-2xs);font-size:0.72rem;
-  line-height:1.25;white-space:normal;overflow-wrap:normal;word-break:normal;text-align:center}
+.lab-presets button,.lab-lens-options button{min-height:var(--control-height);padding:var(--space-2xs) 4px;font-size:0.72rem;
+  line-height:1.25;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-align:center}
 .lab-lens-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2xs)}
 .lab-check{display:flex;align-items:center;gap:var(--space-xs);min-height:var(--control-height)}
 .lab-check input{margin:0;flex:none;appearance:none;-webkit-appearance:none;display:grid;place-content:center;width:var(--control-height);height:var(--control-height);cursor:pointer;background:none;border:0}
@@ -305,7 +305,8 @@
   .lab-sheet-handle::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:2.25rem;height:4px;border-radius:2px;background:var(--color-rule-2)}
   .lab-story{order:2;position:static;width:auto;background:none;border:0;padding:0 0 var(--space-sm)}
-  .lab-story p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lab-story #storyText,.lab-story #storyTesting{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .lab-story .lab-story-testing{margin:0 0 var(--space-2xs);padding-bottom:var(--space-2xs)}
   .lab-dock[data-sheet=expanded] #storyText,.lab-dock[data-sheet=expanded] #storyTesting{display:block;-webkit-line-clamp:unset;overflow:visible}
   /* The console's own links column is P2/P3 (contract 4.1); until it exists, the story card is
      the one reachable place for them on phone too, so the drawer stays reachable without a mouse. */

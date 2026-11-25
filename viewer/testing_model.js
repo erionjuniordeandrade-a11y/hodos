@@ -232,6 +232,39 @@ export function tractProtocolsForCutBundles(rows = [], hemi = 'L') {
   return {protocols: matched, unmatchedCutIds};
 }
 
+function partitionMatchedBundleIds(interrogatedProtocols, blindSpotProtocols) {
+  const blindSpotBundleSet = new Set();
+  for (const protocol of blindSpotProtocols) {
+    for (const b of protocol.matchedBundles) blindSpotBundleSet.add(b.id);
+  }
+  const interrogatedOnlyBundleSet = new Set();
+  for (const protocol of interrogatedProtocols) {
+    for (const b of protocol.matchedBundles) {
+      if (!blindSpotBundleSet.has(b.id)) interrogatedOnlyBundleSet.add(b.id);
+    }
+  }
+  return {
+    interrogatedBundleIds: [...interrogatedOnlyBundleSet],
+    blindSpotBundleIds: [...blindSpotBundleSet],
+  };
+}
+
+export function interrogatedFamiliesForLens(hemi = 'L', lensId = 'all') {
+  const side = hemi === 'R' ? 'R' : 'L';
+  const lens = lensOf(lensId) ?? LENS_BY_ID.all;
+  if (!lens.interrogates) return new Set();
+  const interrogatedIds = new Set(lens.interrogates);
+  const blindFamilies = new Set();
+  const interrogatedFamilies = new Set();
+  for (const protocol of TRACT_PROTOCOLS) {
+    if (protocol.hemi !== 'both' && protocol.hemi !== side) continue;
+    const target = interrogatedIds.has(protocol.id) ? interrogatedFamilies : blindFamilies;
+    for (const fam of protocol.families) target.add(fam);
+  }
+  for (const fam of blindFamilies) interrogatedFamilies.delete(fam);
+  return interrogatedFamilies;
+}
+
 export function evaluateTestLens(rows = [], hemi = 'L', lensId = 'all') {
   const {protocols, unmatchedCutIds} = tractProtocolsForCutBundles(rows, hemi);
   const lens = lensOf(lensId) ?? LENS_BY_ID.all;
@@ -254,25 +287,15 @@ export function evaluateTestLens(rows = [], hemi = 'L', lensId = 'all') {
     if (interrogatedSet.has(protocol.id)) interrogatedProtocols.push(protocol);
     else blindSpotProtocols.push(protocol);
   }
-  // A bundle shared by an interrogated and a blind-spot protocol stays bright (blind-spot wins).
-  const blindSpotBundleSet = new Set();
-  for (const protocol of blindSpotProtocols) {
-    for (const b of protocol.matchedBundles) blindSpotBundleSet.add(b.id);
-  }
-  const interrogatedBundleSet = new Set();
-  for (const protocol of interrogatedProtocols) {
-    for (const b of protocol.matchedBundles) {
-      if (!blindSpotBundleSet.has(b.id)) interrogatedBundleSet.add(b.id);
-    }
-  }
+  const {interrogatedBundleIds, blindSpotBundleIds} = partitionMatchedBundleIds(interrogatedProtocols, blindSpotProtocols);
   return {
     lens,
     active: true,
     protocols,
     interrogatedProtocols,
     blindSpotProtocols,
-    interrogatedBundleIds: [...interrogatedBundleSet],
-    blindSpotBundleIds: [...blindSpotBundleSet],
+    interrogatedBundleIds,
+    blindSpotBundleIds,
     unmatchedCutIds,
   };
 }

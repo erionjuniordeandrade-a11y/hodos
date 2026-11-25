@@ -1,18 +1,20 @@
 import {PROTOCOL_BY_ID} from './testing_model.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const W = 360;
-const H = 250;
+const CANVAS_WIDTH = 360;
+const CANVAS_HEIGHT = 250;
 
-const mx = (x, flip) => (flip ? W - x : x);
+const shouldMirrorHorizontally = (view, hemi) =>
+  (view === 'lateral' && hemi === 'R') || (view === 'medial' && hemi === 'L');
+const mirrorX = (x, mirror) => (mirror ? CANVAS_WIDTH - x : x);
 
-function flipPath(d, flip) {
-  if (!flip) return d;
+function mirrorPathX(d, mirror) {
+  if (!mirror) return d;
   return d.replace(/([MLQC])([^MLQCZ]*)/gi, (_, cmd, nums) => {
     const vals = nums.trim().split(/[\s,]+/).filter(Boolean).map(Number);
     const out = [];
     for (let i = 0; i < vals.length; i += 2) {
-      out.push(mx(vals[i], true), vals[i + 1]);
+      out.push(mirrorX(vals[i], true), vals[i + 1]);
     }
     return `${cmd} ${out.join(' ')} `;
   });
@@ -47,10 +49,7 @@ const tract = (id, view, hemi, targetId, group, untestable, shortLabel, d, label
     labelPos,
   });
 
-// Canonical Lateral geometry (A left, P right) and Medial geometry (A left, P right).
-// Right Lateral and Left Medial mirror horizontally across x = W / 2.
 export const MAP_REGIONS = Object.freeze([
-  // Left Lateral: 9 cortical territories + 7 white matter tracts
   cortex('ll-pmfg', 'lateral', 'L', 'ctx-pmfg-left', 'pMFG 55b', [68, 50, 58, 26], [97, 63]),
   cortex('ll-precentral', 'lateral', 'L', 'ctx-precentral-left', 'M1 / vPMC', [134, 42, 36, 64], [152, 74], ['M1', 'vPMC']),
   cortex('ll-ifg', 'lateral', 'L', 'ctx-ifg-left', 'IFG 44/45', [60, 90, 60, 26], [90, 103]),
@@ -67,8 +66,6 @@ export const MAP_REGIONS = Object.freeze([
   tract('ll-uf', 'lateral', 'L', 'uf-left', 'Association', false, 'UF', 'M 92 120 Q 104 146 120 154', [82, 146]),
   tract('ll-ilf-vof', 'lateral', 'L', 'ilf-vof-left-reading', 'Association', false, 'ILF/VOF', 'M 146 176 L 268 174 M 278 100 L 278 168', [272, 162]),
   tract('ll-or', 'lateral', 'L', 'or-bilateral', 'Projection', false, 'OR', 'M 152 162 Q 230 144 314 140', [314, 134]),
-
-  // Left Medial: 1 cortical territory + 6 white matter tracts
   cortex('lm-sma', 'medial', 'L', 'ctx-sma-psfg-left', 'SMA / pSFG', [112, 40, 62, 26], [143, 53]),
   tract('lm-cst', 'medial', 'L', 'cst-bilateral', 'Projection', false, 'CST', 'M 182 46 Q 186 138 192 222', [192, 210]),
   tract('lm-fat', 'medial', 'L', 'fat-left', 'Association', false, 'FAT', 'M 124 66 Q 112 94 100 112', [92, 92]),
@@ -76,15 +73,11 @@ export const MAP_REGIONS = Object.freeze([
   tract('lm-fornix', 'medial', 'L', 'fornix-bilateral', 'Projection', true, 'Fornix', 'M 142 134 Q 178 104 218 128', [182, 108]),
   tract('lm-tra', 'medial', 'L', 'tra-bilateral', 'Projection', true, 'TR_A', 'M 176 138 Q 134 128 92 118', [108, 134]),
   tract('lm-drtt', 'medial', 'L', 'drtt-bilateral', 'Projection', true, 'DRTT', 'M 262 204 Q 214 176 186 142', [262, 206]),
-
-  // Right Lateral: 5 white matter tracts
   tract('rl-cst', 'lateral', 'R', 'cst-bilateral', 'Projection', false, 'CST', 'M 152 50 Q 168 140 190 222', [188, 210]),
   tract('rl-slf2', 'lateral', 'R', 'slf2-right', 'Association', false, 'Right SLF II', 'M 98 72 Q 182 60 258 82', [244, 72]),
   tract('rl-af', 'lateral', 'R', 'af-right', 'Association', false, 'Right AF', 'M 98 104 C 134 38 220 40 244 120', [212, 46]),
   tract('rl-ifof', 'lateral', 'R', 'ifof-right', 'Association', false, 'Right IFOF', 'M 78 122 C 136 134 228 144 294 134', [142, 144]),
   tract('rl-or', 'lateral', 'R', 'or-bilateral', 'Projection', false, 'OR', 'M 152 162 Q 230 144 314 140', [306, 152]),
-
-  // Right Medial: 6 white matter tracts
   tract('rm-cst', 'medial', 'R', 'cst-bilateral', 'Projection', false, 'CST', 'M 182 46 Q 186 138 192 222', [192, 210]),
   tract('rm-fat', 'medial', 'R', 'fat-right', 'Association', false, 'Right FAT', 'M 124 66 Q 112 94 100 112', [98, 86]),
   tract('rm-slf1', 'medial', 'R', 'slf1-bilateral', 'Association', false, 'SLF I', 'M 148 68 Q 204 54 258 78', [224, 56]),
@@ -119,71 +112,71 @@ function svgEl(tag, attrs = {}, text = null) {
 }
 
 function drawBrainBackground(svg, view, hemi) {
-  const flip = (view === 'lateral' && hemi === 'R') || (view === 'medial' && hemi === 'L');
+  const mirror = shouldMirrorHorizontally(view, hemi);
   const bg = svgEl('g', {'aria-hidden': 'true'});
 
   if (view === 'lateral') {
     bg.append(
       svgEl('path', {
         class: 'map-brain-outline',
-        d: flipPath(
+        d: mirrorPathX(
           'M 42 126 C 38 66 96 28 184 28 C 272 28 326 70 326 126 C 326 164 294 176 254 178 C 234 190 198 192 162 184 C 120 192 84 178 86 148 C 60 148 44 142 42 126 Z',
-          flip,
+          mirror,
         ),
       }),
       svgEl('path', {
         class: 'map-brain-stem',
-        d: flipPath('M 232 178 C 254 182 286 190 294 212 C 282 224 248 224 224 214 L 204 234 L 178 234 L 182 184', flip),
+        d: mirrorPathX('M 232 178 C 254 182 286 190 294 212 C 282 224 248 224 224 214 L 204 234 L 178 234 L 182 184', mirror),
       }),
       svgEl('path', {
         class: 'map-brain-landmark',
-        d: flipPath('M 174 32 Q 164 76 154 112', flip),
+        d: mirrorPathX('M 174 32 Q 164 76 154 112', mirror),
       }),
       svgEl('path', {
         class: 'map-brain-landmark',
-        d: flipPath('M 98 132 Q 168 122 232 104', flip),
+        d: mirrorPathX('M 98 132 Q 168 122 232 104', mirror),
       }),
       svgEl('path', {
         class: 'map-brain-landmark',
-        d: flipPath('M 272 48 L 262 82', flip),
+        d: mirrorPathX('M 272 48 L 262 82', mirror),
       }),
     );
   } else {
     bg.append(
       svgEl('path', {
         class: 'map-brain-outline',
-        d: flipPath(
+        d: mirrorPathX(
           'M 42 122 C 42 62 100 28 184 28 C 268 28 324 72 324 128 C 324 166 286 176 244 172 C 208 166 170 156 124 164 C 76 170 44 152 42 122 Z',
-          flip,
+          mirror,
         ),
       }),
       svgEl('path', {
         class: 'map-brain-stem',
-        d: flipPath('M 232 172 C 264 176 294 192 290 214 C 274 226 240 222 214 212 L 204 234 L 176 234 L 178 164', flip),
+        d: mirrorPathX('M 232 172 C 264 176 294 192 290 214 C 274 226 240 222 214 212 L 204 234 L 176 234 L 178 164', mirror),
       }),
       svgEl('path', {
         class: 'map-brain-landmark',
-        d: flipPath('M 120 124 C 122 92 176 86 226 106 C 240 112 246 128 232 132 C 204 116 148 114 128 134 Z', flip),
+        d: mirrorPathX('M 120 124 C 122 92 176 86 226 106 C 240 112 246 128 232 132 C 204 116 148 114 128 134 Z', mirror),
       }),
       svgEl('path', {
         class: 'map-brain-landmark',
-        d: flipPath('M 172 32 L 176 74 M 266 56 L 244 102 M 264 140 L 316 128', flip),
+        d: mirrorPathX('M 172 32 L 176 74 M 266 56 L 244 102 M 264 140 L 316 128', mirror),
       }),
     );
   }
 
-  const antX = flip ? W - 18 : 18;
-  const postX = flip ? 18 : W - 18;
+  const antX = mirror ? CANVAS_WIDTH - 18 : 18;
+  const postX = mirror ? 18 : CANVAS_WIDTH - 18;
   bg.append(
     svgEl('text', {class: 'map-orient', x: antX, y: 20}, 'A'),
     svgEl('text', {class: 'map-orient', x: postX, y: 20}, 'P'),
-    svgEl('text', {class: 'map-orient', x: W / 2, y: 14}, 'S'),
-    svgEl('text', {class: 'map-orient', x: W / 2, y: H - 8}, 'I'),
+    svgEl('text', {class: 'map-orient', x: CANVAS_WIDTH / 2, y: 14}, 'S'),
+    svgEl('text', {class: 'map-orient', x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 8}, 'I'),
   );
   svg.append(bg);
 }
 
-function buildHotspot(region, flip, onSelect) {
+function buildHotspot(region, mirror, onSelect) {
   const protocol = PROTOCOL_BY_ID[region.targetId];
   const g = svgEl('g', {
     class: 'map-hotspot',
@@ -202,7 +195,7 @@ function buildHotspot(region, flip, onSelect) {
     g.append(
       svgEl('rect', {
         class: 'map-shape',
-        x: flip ? W - x - w : x,
+        x: mirror ? CANVAS_WIDTH - x - w : x,
         y,
         width: w,
         height: h,
@@ -210,12 +203,12 @@ function buildHotspot(region, flip, onSelect) {
       }),
     );
   } else {
-    const d = flipPath(region.shape.d, flip);
+    const d = mirrorPathX(region.shape.d, mirror);
     g.append(svgEl('path', {class: 'map-hit-area', d}));
     g.append(svgEl('path', {class: 'map-shape', d}));
   }
 
-  const lx = mx(region.labelPos[0], flip);
+  const lx = mirrorX(region.labelPos[0], mirror);
   const ly = region.labelPos[1];
   const pillW = Math.max(26, region.shortLabel.length * 6.2 + 10);
   if (region.kind === 'tract') {
@@ -316,17 +309,16 @@ export function mountTerritoryMap(container, {onSelect, onHemiChange} = {}) {
       cap.textContent = label;
       const svg = svgEl('svg', {
         class: 'territory-map-svg',
-        viewBox: `0 0 ${W} ${H}`,
+        viewBox: `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`,
         role: 'img',
         'aria-label': `${label} anatomical testing map`,
       });
       drawBrainBackground(svg, view, activeHemi);
-      const flip = (view === 'lateral' && activeHemi === 'R') || (view === 'medial' && activeHemi === 'L');
+      const mirror = shouldMirrorHorizontally(view, activeHemi);
       const regions = MAP_REGIONS.filter(r => r.view === view && r.hemi === activeHemi);
-      // Draw tracts first, cortical territories on top so labels stay clear.
-      const ordered = [...regions.filter(r => r.kind === 'tract'), ...regions.filter(r => r.kind === 'cortex')];
-      for (const region of ordered) {
-        svg.append(buildHotspot(region, flip, id => onSelect?.(id)));
+      const tractsBeneathCortex = [...regions.filter(r => r.kind === 'tract'), ...regions.filter(r => r.kind === 'cortex')];
+      for (const region of tractsBeneathCortex) {
+        svg.append(buildHotspot(region, mirror, id => onSelect?.(id)));
       }
       fig.append(cap, svg);
       return fig;

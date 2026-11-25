@@ -22,6 +22,7 @@ import {
   tractProtocolsForCutBundles,
   evaluateTestLens,
   hudTestingSummary,
+  interrogatedFamiliesForLens,
   filterProtocols,
   testingStateFromSearch,
   testingStep,
@@ -213,11 +214,10 @@ test('select-map clears narrowing filters so any clicked map region becomes visi
   assert.equal(s.selectedId, 'slf2-right');
   assert.equal(s.hemi, 'R');
 
-  // Bilateral protocol preserves current L/R hemisphere filter.
   s = testingStep(s, {type: 'set-hemi', hemi: 'R'});
   s = testingStep(s, {type: 'select-map', targetId: 'fornix-bilateral'});
-  assert.equal(s.selectedId, 'fornix-bilateral');
-  assert.equal(s.hemi, 'R');
+  assert.equal(s.selectedId, 'fornix-bilateral', 'Bilateral map selection keeps selected target');
+  assert.equal(s.hemi, 'R', 'Bilateral map selection preserves current hemisphere filter');
 });
 
 test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partition blind spots under test lenses', async () => {
@@ -245,13 +245,11 @@ test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partitio
     };
   };
 
-  // All cut lens is inactive.
   const allLens = runPreset('left-sma', 'all').evalResult;
   assert.equal(allLens.active, false);
   assert.equal(allLens.interrogatedProtocols.length, 0);
   assert.equal(allLens.blindSpotProtocols.length, 0);
 
-  // Left SMA under asleep-mep: CST interrogated, FAT in blind spots.
   const smaMep = runPreset('left-sma', 'asleep-mep');
   assert.deepEqual(smaMep.evalResult.interrogatedProtocols.map(p => p.id), ['cst-bilateral']);
   assert(smaMep.evalResult.blindSpotProtocols.some(p => p.id === 'fat-left'));
@@ -259,7 +257,6 @@ test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partitio
   assert(smaMep.evalResult.blindSpotBundleIds.includes('FAT_L'));
   assert(smaMep.hud.mapCount >= 1 && smaMep.hud.blindCount >= 1);
 
-  // Left insula: blind under asleep-mep, IFOF/UF interrogated under awake-naming while TR_A stays blind.
   const insulaMep = runPreset('left-insula', 'asleep-mep').evalResult;
   assert.equal(insulaMep.interrogatedProtocols.length, 0);
   assert(insulaMep.blindSpotProtocols.some(p => p.id === 'ifof-left'));
@@ -269,31 +266,36 @@ test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partitio
   assert(insulaNaming.interrogatedProtocols.some(p => p.id === 'uf-left'));
   assert(insulaNaming.blindSpotProtocols.some(p => p.id === 'tra-bilateral'));
 
-  // Left temporoparietal under awake-naming: AF interrogated, SLF III in blind spots.
   const tpNaming = runPreset('left-temporoparietal', 'awake-naming').evalResult;
   assert(tpNaming.interrogatedProtocols.some(p => p.id === 'af-left'));
   assert(tpNaming.blindSpotProtocols.some(p => p.id === 'slf3-left'));
 
-  // Left occipitotemporal under awake-naming: IFOF interrogated, ILF/VOF and OR in blind spots.
   const otNaming = runPreset('left-occipitotemporal', 'awake-naming').evalResult;
   assert(otNaming.interrogatedProtocols.some(p => p.id === 'ifof-left'));
   assert(otNaming.blindSpotProtocols.some(p => p.id === 'ilf-vof-left-reading'));
   assert(otNaming.blindSpotProtocols.some(p => p.id === 'or-bilateral'));
 
-  // Right parietal under asleep-mep and awake-naming: SLF II and right AF in blind spots.
   for (const lensId of ['asleep-mep', 'awake-naming']) {
     const rp = runPreset('right-parietal', lensId).evalResult;
     assert(rp.blindSpotProtocols.some(p => p.id === 'slf2-right'), `${lensId}: slf2-right blind`);
     assert(rp.blindSpotProtocols.some(p => p.id === 'af-right'), `${lensId}: af-right blind`);
   }
 
-  // Third ventricle under tailored battery: fornix, TR_A, and proximal DRTT all stay blind spots.
   const tvTailored = runPreset('third-ventricle', 'tailored').evalResult;
   assert.equal(tvTailored.interrogatedProtocols.length, 0);
   const tvBlindIds = tvTailored.blindSpotProtocols.map(p => p.id);
   assert(tvBlindIds.includes('fornix-bilateral'));
   assert(tvBlindIds.includes('tra-bilateral'));
   assert(tvBlindIds.includes('drtt-bilateral'));
+
+  assert.deepEqual([...interrogatedFamiliesForLens('L', 'all')], []);
+  assert.deepEqual([...interrogatedFamiliesForLens('L', 'asleep-mep')], ['CST']);
+  assert.deepEqual([...interrogatedFamiliesForLens('L', 'awake-naming')].sort(), ['AF', 'IFOF', 'UF']);
+  assert.deepEqual([...interrogatedFamiliesForLens('R', 'awake-naming')], []);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('F'), false);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('TR_A'), false);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('DRTT'), false);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('EMC'), false);
 
   assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').lens, 'asleep-mep');
   assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').preset, 'left-sma');

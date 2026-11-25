@@ -139,17 +139,19 @@ try {
   await page.goto(new URL('/labs/lesion-lab?test=1', base).href, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => window.__lesionLabTest?.ready, null, {timeout: 60000});
 
-  const clippedLabButtons = await page.evaluate(() =>
-    [...document.querySelectorAll('.lab-presets button, .lab-lens-options button')]
-      .filter(btn => {
-        const r = btn.getBoundingClientRect();
-        return r.width > 0 && (btn.scrollWidth > btn.clientWidth + 1 || r.right > document.documentElement.clientWidth + 1);
-      })
-      .map(btn => btn.textContent.trim()),
-  );
-  assert.deepEqual(clippedLabButtons, [], `Clipped Lesion Lab buttons: ${clippedLabButtons.join(', ')}`);
+  for (const vw of [1024, 1440]) {
+    await page.setViewportSize({width: vw, height: 900});
+    const clippedLabButtons = await page.evaluate(() =>
+      [...document.querySelectorAll('.lab-presets button, .lab-lens-options button')]
+        .filter(btn => {
+          const r = btn.getBoundingClientRect();
+          return r.width > 0 && (btn.scrollWidth > btn.clientWidth + 1 || r.right > document.documentElement.clientWidth + 1);
+        })
+        .map(btn => btn.textContent.trim()),
+    );
+    assert.deepEqual(clippedLabButtons, [], `Clipped Lesion Lab buttons at ${vw}px: ${clippedLabButtons.join(', ')}`);
+  }
 
-  // Left SMA preset -> asleep-mep lens, CST interrogated, FAT blind spot.
   await page.locator('[data-preset="left-sma"]').click();
   await page.waitForFunction(() => window.__lesionLabTest.preset === 'left-sma' && window.__lesionLabTest.lens === 'asleep-mep');
   let labState = await page.evaluate(() => window.__lesionLabTest);
@@ -159,7 +161,6 @@ try {
   assert.match(await page.locator('#storyTesting').innerText(), /blind spot/);
   await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-sma-mep-blindspot.png`});
 
-  // Left occipitotemporal preset -> awake-naming lens, IFOF interrogated, ILF/VOF & OR blind spots.
   await page.locator('[data-preset="left-occipitotemporal"]').click();
   await page.waitForFunction(() => window.__lesionLabTest.preset === 'left-occipitotemporal' && window.__lesionLabTest.lens === 'awake-naming');
   labState = await page.evaluate(() => window.__lesionLabTest);
@@ -168,14 +169,12 @@ try {
   assert(labState.blindSpotProtocols.includes('or-bilateral'));
   await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-ot-naming-blindspot.png`});
 
-  // Right parietal preset -> switches hemisphere to R, SLF II blind spot under asleep-mep.
   await page.locator('[data-preset="right-parietal"]').click();
   await page.waitForFunction(() => window.__lesionLabTest.hemi === 'R' && !window.__lesionLabTest.loading && window.__lesionLabTest.preset === 'right-parietal');
   labState = await page.evaluate(() => window.__lesionLabTest);
   assert(labState.blindSpotProtocols.includes('slf2-right'));
   await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-right-parietal.png`});
 
-  // Third ventricle preset -> tailored lens leaves fornix, TR_A, and DRTT as blind spots.
   await page.locator('[data-preset="third-ventricle"]').click();
   await page.waitForFunction(() => window.__lesionLabTest.hemi === 'L' && !window.__lesionLabTest.loading && window.__lesionLabTest.preset === 'third-ventricle' && window.__lesionLabTest.lens === 'tailored');
   labState = await page.evaluate(() => window.__lesionLabTest);

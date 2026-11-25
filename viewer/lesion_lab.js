@@ -9,7 +9,7 @@ import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
 import {VERBS} from './connections_graph.js';
 import {composeStory} from './lesion_story.js';
-import {evaluateTestLens,hudTestingSummary,lensOf,presetOf} from './testing_model.js';
+import {evaluateTestLens,hudTestingSummary,interrogatedFamiliesForLens,lensOf,presetOf} from './testing_model.js';
 
 const $=id=>document.getElementById(id);
 const testMode=new URLSearchParams(location.search).has('test');
@@ -104,7 +104,7 @@ function buildLayer(pack){
   geometry.setAttribute('arc',new THREE.BufferAttribute(arc,1));
   geometry.setAttribute('sid',new THREE.BufferAttribute(sid,1));
   geometry.setIndex(new THREE.BufferAttribute(index,1));geometry.computeBoundingSphere();
-  // Per streamline: R = state, G = DEC family, B = bundle index. Read with texelFetch, never filtered.
+  // Per streamline: R = state, G = DEC family, B = bundle index, A = lens visibility (255 bright, 46 dimmed). Read with texelFetch, never filtered.
   const rows=Math.ceil(pack.count/TEX_WIDTH),data=new Uint8Array(TEX_WIDTH*rows*4);
   for(let s=0;s<pack.count;s++){const bundle=pack.bundles[pack.bundleOf[s]];data[s*4+1]=GROUPS.indexOf(bundle.group);data[s*4+2]=pack.bundleOf[s];data[s*4+3]=255;}
   const texture=new THREE.DataTexture(data,TEX_WIDTH,rows,THREE.RGBAFormat,THREE.UnsignedByteType);texture.needsUpdate=true;
@@ -124,13 +124,13 @@ function buildLayer(pack){
           vec3 tint=vGroup<.5?uTint[0]:vGroup<1.5?uTint[1]:uTint[2];float alpha=uAlpha;
           if(uShow>2.5)tint=uShow<3.5?uCorridor[0]:uShow<4.5?uCorridor[1]:uCorridor[2];
           if(uShow<.5){if(vFocus>.5)alpha=.16;else tint=uGhost;}
+          else if(uFocus>-.5&&vFocus>.5){alpha*=1.6;}
           else{
-            if(uLensActive>.5&&uShow>1.5&&uShow<2.5){
-              if(vLens>.8)alpha=min(uAlpha*1.28,.85);
-              else if(vLens>.35){tint=mix(uGhost,tint,.45);alpha=uAlpha*.38;}
-              else{tint=mix(uGhost,tint,.2);alpha=uAlpha*.16;}
+            if(uLensActive>.5&&uShow>.5&&uShow<2.5){
+              if(vLens<.5){tint=mix(uGhost,tint,.2);alpha*=0.16;}
+              else if(uShow>1.5){alpha=min(uAlpha*1.25,.85);}
             }
-            if(uFocus>-.5)alpha*=vFocus>.5?1.6:.35;
+            if(uFocus>-.5)alpha*=.35;
           }
           gl_FragColor=vec4(tint,min(alpha,1.)*feather);}`,
       transparent:true,depthWrite:false,blending:THREE.NormalBlending,toneMapped:false});
@@ -529,18 +529,20 @@ function bundleBody(bundle,applying,other){
   return body;
 }
 
-function applyTestLensTexture(entry,evaluation){
+const familyOfBundle=id=>(/_[LR]$/.test(id)?id.slice(0,-2):id);
+function applyTestLensTexture(entry,hemi,lensId){
   if(!entry)return;
+  const lens=lensOf(lensId);
+  const active=Boolean(lens&&lens.id!=='all');
   const data=entry.texture.image.data;
-  if(!evaluation?.active){
+  if(!active){
     for(let s=0;s<entry.pack.count;s++)data[s*4+3]=255;
     entry.shared.uLensActive.value=0;
   }else{
-    const blindSet=new Set(evaluation.blindSpotBundleIds);
-    const interrogatedSet=new Set(evaluation.interrogatedBundleIds);
+    const interrogatedFamilies=interrogatedFamiliesForLens(hemi,lens.id);
     for(let s=0;s<entry.pack.count;s++){
-      const bundleId=entry.pack.bundles[entry.pack.bundleOf[s]].id;
-      data[s*4+3]=blindSet.has(bundleId)?255:interrogatedSet.has(bundleId)?46:128;
+      const fam=familyOfBundle(entry.pack.bundles[entry.pack.bundleOf[s]].id);
+      data[s*4+3]=interrogatedFamilies.has(fam)?46:255;
     }
     entry.shared.uLensActive.value=1;
   }
@@ -552,7 +554,7 @@ function syncLensUI(){
   const lens=lensOf(lab.lens);
   const note=$('lensNote');
   if(!note||!lens)return;
-  note.textContent=lens.id==='all'?lens.summary:`Dimmed = interrogated by this battery, not guaranteed spared. Bright = blind spot. ${lens.summary}`;
+  note.textContent=lens.id==='all'?lens.summary:`Dimmed = interrogated by this battery, not guaranteed spared. Bright = not interrogated (blind spot or uncurated). ${lens.summary}`;
 }
 function syncPresetUI(){
   setPressed('[data-preset]',lab.preset??'','preset');
@@ -562,22 +564,27 @@ function setLens(lensId,{announceNow=true}={}){
   if(next===lab.lens)return;
   lab.lens=next;
   syncLensUI();
+  applyTestLensTexture(layer(),lab.hemi,lab.lens);
   renderTestingProtocols(lab.rows,lab.hemi);
   clearTimeout(urlTimer);urlTimer=setTimeout(writeURL,250);
   if(announceNow){clearTimeout(announceTimer);announceTimer=setTimeout(announce,ANNOUNCE_MS);}
 }
-async function applyPreset(presetId){
-  const preset=presetOf(presetId);
-  if(!preset)return;
+function commitPresetState(preset){
   lab.preset=preset.id;
-  syncPresetUI();
   lab.radius=preset.radius;
   $('radius').value=String(lab.radius);$('radiusValue').textContent=`${lab.radius} mm`;
   lab.lens=preset.defaultLens;
+  syncPresetUI();
   syncLensUI();
+}
+async function applyPreset(presetId){
+  const preset=presetOf(presetId);
+  if(!preset)return;
   if(preset.hemi!==lab.hemi){
-    await switchHemisphere(preset.hemi,{centre:[...preset.centre],source:'preset'});
+    await switchHemisphere(preset.hemi,{centre:[...preset.centre],source:'preset',onLoaded:()=>commitPresetState(preset)});
   }else{
+    commitPresetState(preset);
+    applyTestLensTexture(layer(),lab.hemi,lab.lens);
     const prev=lab.centre;
     setCentre([...preset.centre],{source:'preset'});
     if(prev&&lab.centre===prev)applyGeometry();
@@ -589,19 +596,20 @@ const protocolTag=p=>p.id==='fornix-bilateral'?'Fornix':p.id==='slf2-right'?'Rig
 
 function formatHudTestingText(evalLens,hud){
   if(!evalLens.protocols.length&&!evalLens.unmatchedCutIds.length)return '';
+  const extra=evalLens.unmatchedCutIds.length?` + ${evalLens.unmatchedCutIds.length} uncurated`:'';
   if(!evalLens.active){
-    if(!evalLens.protocols.length)return `Testing: ${hud.unmatchedCount} unmapped cut bundle${hud.unmatchedCount===1?'':'s'}`;
+    if(!evalLens.protocols.length)return `Testing: ${hud.unmatchedCount} uncurated cut bundle${hud.unmatchedCount===1?'':'s'}`;
     return `Testing: ${hud.mapCount} map, ${hud.monitorCount} monitor${hud.untestableCount?` · ${hud.untestableCount} corridor only`:''}`;
   }
   const blindTags=evalLens.blindSpotProtocols.map(protocolTag);
   const dimTags=evalLens.interrogatedProtocols.map(protocolTag);
   const cap=(list,n=3)=>list.length>n?`${list.slice(0,n).join(', ')}, more`:list.join(', ');
   if(blindTags.length&&dimTags.length){
-    return `${evalLens.lens.shortLabel}: ${blindTags.length} blind spot${blindTags.length===1?'':'s'} (${cap(blindTags)}) · ${dimTags.length} dimmed (${cap(dimTags)})`;
+    return `${evalLens.lens.shortLabel}: ${blindTags.length} blind spot${blindTags.length===1?'':'s'} (${cap(blindTags)})${extra} · ${dimTags.length} dimmed (${cap(dimTags)})`;
   }
-  if(blindTags.length)return `${evalLens.lens.shortLabel}: ${blindTags.length} blind spot${blindTags.length===1?'':'s'} (${cap(blindTags)}) · 0 dimmed`;
-  if(dimTags.length)return `${evalLens.lens.shortLabel}: 0 blind spots · ${dimTags.length} dimmed (${cap(dimTags)})`;
-  return `${evalLens.lens.shortLabel}: ${evalLens.unmatchedCutIds.length} unmapped cut bundle${evalLens.unmatchedCutIds.length===1?'':'s'}`;
+  if(blindTags.length)return `${evalLens.lens.shortLabel}: ${blindTags.length} blind spot${blindTags.length===1?'':'s'} (${cap(blindTags)})${extra} · 0 dimmed`;
+  if(dimTags.length)return `${evalLens.lens.shortLabel}: 0 blind spots${extra} · ${dimTags.length} dimmed (${cap(dimTags)})`;
+  return `${evalLens.lens.shortLabel}: ${evalLens.unmatchedCutIds.length} uncurated cut bundle${evalLens.unmatchedCutIds.length===1?'':'s'} (bright)`;
 }
 
 function renderTestingProtocols(rows,hemi){
@@ -609,7 +617,6 @@ function renderTestingProtocols(rows,hemi){
   const evalLens=evaluateTestLens(rows,hemi,lab.lens);
   const hud=hudTestingSummary(rows,hemi,lab.lens);
   lab.evalLens=evalLens;
-  applyTestLensTexture(layer(),evalLens);
   const hudText=formatHudTestingText(evalLens,hud);
   lab.hudTestingText=hudText;
   if(storyTesting){storyTesting.textContent=hudText;storyTesting.hidden=!hudText;}
@@ -712,9 +719,10 @@ function anchorFor(entry,id){
 }
 function setPressed(selector,value,attribute){for(const button of document.querySelectorAll(selector))button.setAttribute('aria-pressed',String(button.dataset[attribute]===value));}
 
-async function showHemisphere(hemi,{first=false,centre=null,source='control'}={}){
+async function showHemisphere(hemi,{first=false,centre=null,source='control',onLoaded=null}={}){
   const entry=await loadLayer(hemi);
   if(tornDown())return;
+  onLoaded?.();
   const previous=layer();
   if(previous&&previous!==entry){
     for(const object of previous.objects)stage.scene.remove(object);
@@ -724,6 +732,7 @@ async function showHemisphere(hemi,{first=false,centre=null,source='control'}={}
   if(lab.hemi!==hemi)for(const id of CORRIDOR_IDS)if(lab.entries[id]){const [x,y,z]=lab.entries[id];lab.entries[id]=[-x,y,z];}
   for(const id of CORRIDOR_IDS)lab.corridors[id]=null;
   lab.hemi=hemi;
+  applyTestLensTexture(entry,hemi,lab.lens);
   for(const object of entry.objects)if(!object.parent)stage.scene.add(object);
   scene.setHemisphere(hemi);
   $('stageLabel').textContent=`${HEMI_NAME[hemi][0].toUpperCase()}${HEMI_NAME[hemi].slice(1)} hemisphere · Grid 10 mm`;
@@ -739,8 +748,8 @@ async function showHemisphere(hemi,{first=false,centre=null,source='control'}={}
 }
 // A switch is refused while one is in flight; success or failure ends it.
 async function switchHemisphere(hemi,opts={}){
-  if(!sendLoad('switch'))return;
-  try{await showHemisphere(hemi,opts);sendLoad('loaded');}catch(error){sendLoad('error',error);}
+  if(!sendLoad('switch'))return false;
+  try{await showHemisphere(hemi,opts);sendLoad('loaded');return true;}catch(error){sendLoad('error',error);return false;}
 }
 
 function bindControls(){
@@ -1004,12 +1013,15 @@ addEventListener('pagehide',event=>{
 
 // ---- Start --------------------------------------------------------------------------------------
 
-const initialPreset=initial.preset&&!initial.centre?presetOf(initial.preset):null;
+const startParams=new URLSearchParams(location.search);
+const candidatePreset=initial.preset&&!initial.centre?presetOf(initial.preset):null;
+const initialPreset=candidatePreset&&(!startParams.has('hemi')||candidatePreset.hemi===initial.hemi)?candidatePreset:null;
 if(initialPreset){
-  const sp=new URLSearchParams(location.search);
-  if(!sp.has('hemi'))lab.hemi=initialPreset.hemi;
-  if(!sp.has('r'))lab.radius=initialPreset.radius;
-  if(!sp.has('lens'))lab.lens=initialPreset.defaultLens;
+  if(!startParams.has('hemi'))lab.hemi=initialPreset.hemi;
+  if(!startParams.has('r'))lab.radius=initialPreset.radius;
+  if(!startParams.has('lens'))lab.lens=initialPreset.defaultLens;
+}else{
+  lab.preset=null;
 }
 fillNotes();
 syncLensUI();syncPresetUI();

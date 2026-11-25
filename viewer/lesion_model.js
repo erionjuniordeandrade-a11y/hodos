@@ -226,10 +226,6 @@ const parseEntry=value=>{
 };
 const VALID_LENS_IDS=new Set(TEST_LENSES.map(l=>l.id));
 const VALID_PRESET_IDS=new Set(LESION_PRESETS.map(p=>p.id));
-/**
- * Reads ?hemi=L&x=&y=&z=&r=&margin=&a=x,y,z&b=x,y,z&cd=&lens=&preset= ; anything missing or
- * malformed falls back to the defaults (no corridor, an 8 mm diameter, 'all' lens, null preset).
- */
 export function parseLabParams(search){
   const params=new URLSearchParams(search);
   const hemi=params.get('hemi')==='R'?'R':'L';
