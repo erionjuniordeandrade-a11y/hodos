@@ -112,22 +112,23 @@ function buildLayer(pack){
     uCorridor:{value:[CORRIDOR_COLOR.A,CORRIDOR_COLOR.B,BOTH_COLOR].map(hex=>new THREE.Color(hex))}};
   const objects=PASSES.map(pass=>{
     const material=new THREE.ShaderMaterial({uniforms:{...shared,uShow:{value:pass.show},uAlpha:{value:pass.alpha}},
-      vertexShader:`attribute float arc;attribute float sid;uniform highp sampler2D uState;uniform float uShow;uniform float uFocus;
-        varying float vArc;varying float vGroup;varying float vFocus;varying float vLens;
+      vertexShader:`attribute float arc;attribute float sid;uniform highp sampler2D uState;uniform float uShow;uniform float uFocus;uniform float uLensActive;
+        varying float vArc;varying float vGroup;varying float vFocus;
         void main(){int id=int(sid+.5);vec4 v=texelFetch(uState,ivec2(id%${TEX_WIDTH},id/${TEX_WIDTH}),0);
           if(abs(floor(v.r*255.+.5)-uShow)>.5){gl_Position=vec4(2.,2.,2.,1.);return;}
-          vArc=arc;vGroup=floor(v.g*255.+.5);vFocus=uFocus>-.5&&abs(floor(v.b*255.+.5)-uFocus)<.5?1.:0.;vLens=v.a;
+          vArc=arc;vGroup=floor(v.g*255.+.5)+(uLensActive>.5&&v.a<.5?4.:0.);vFocus=uFocus>-.5&&abs(floor(v.b*255.+.5)-uFocus)<.5?1.:0.;
           gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
       fragmentShader:`uniform vec3 uTint[3];uniform vec3 uGhost;uniform vec3 uCorridor[3];uniform float uShow;uniform float uAlpha;uniform float uFocus;uniform float uLensActive;
-        varying float vArc;varying float vGroup;varying float vFocus;varying float vLens;
+        varying float vArc;varying float vGroup;varying float vFocus;
         void main(){float feather=smoothstep(0.,.06,min(vArc,1.-vArc));
-          vec3 tint=vGroup<.5?uTint[0]:vGroup<1.5?uTint[1]:uTint[2];float alpha=uAlpha;
+          float dim=step(3.5,vGroup);float grp=vGroup-dim*4.;
+          vec3 tint=grp<.5?uTint[0]:grp<1.5?uTint[1]:uTint[2];float alpha=uAlpha;
           if(uShow>2.5)tint=uShow<3.5?uCorridor[0]:uShow<4.5?uCorridor[1]:uCorridor[2];
           if(uShow<.5){if(vFocus>.5)alpha=.16;else tint=uGhost;}
           else if(uFocus>-.5&&vFocus>.5){alpha*=1.6;}
           else{
             if(uLensActive>.5&&uShow>.5&&uShow<2.5){
-              if(vLens<.5){tint=mix(uGhost,tint,.2);alpha*=0.16;}
+              if(dim>.5){tint=mix(uGhost,tint,.2);alpha*=0.16;}
               else if(uShow>1.5){alpha=min(uAlpha*1.25,.85);}
             }
             if(uFocus>-.5)alpha*=.35;
@@ -442,7 +443,7 @@ $('lesionControls')?.querySelector('.lab-precise')?.addEventListener('toggle',ev
 });
 if($('labStory')){
   new MutationObserver(syncStoryMore).observe($('storyText'),{childList:true,subtree:true,characterData:true});
-  new MutationObserver(syncStoryMore).observe($('storyTesting'),{childList:true,subtree:true,characterData:true,attributes:true});
+  new MutationObserver(syncStoryMore).observe($('storyTesting'),{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden']});
 }
 function updateChips(bundles,linesCut,linesTotal){
   $('chipRadius').textContent=`${lab.radius} mm`;
@@ -817,9 +818,12 @@ function updateInsets(){
       bottom:stageRect.bottom-Math.min(labelRect.top,scopeRect.top)+8,
       right:drawer.inert?stageRect.right-controlsRect.left+8:drawer.getBoundingClientRect().width};
   }
+  const next={top:Math.max(0,Math.round(insets.top)),left:Math.max(0,Math.round(insets.left)),
+    right:Math.max(0,Math.round(insets.right)),bottom:Math.max(0,Math.round(insets.bottom))};
+  if(lastInsets&&['top','left','right','bottom'].every(side=>Math.max(0,Math.round(lastInsets[side]))===next[side]))return;
   lastInsets=insets;
   // The midline note centres itself on the frame's top edge (lesion-lab.css .lab-stage-note).
-  for(const side of ['top','left','right','bottom'])stageEl.style.setProperty(`--lab-frame-${side}`,`${Math.max(0,Math.round(insets[side]))}px`);
+  for(const side of ['top','left','right','bottom'])stageEl.style.setProperty(`--lab-frame-${side}`,`${next[side]}px`);
   scene.setFrameInsets(insets);
 }
 function openDrawer(){
