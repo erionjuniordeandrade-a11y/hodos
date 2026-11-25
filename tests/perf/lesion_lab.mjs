@@ -23,7 +23,7 @@ const arg=name=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.len
 const out=path.resolve(arg('out')||'output/lesion-lab');
 const ciMode=process.argv.includes('--ci');
 const record=!ciMode&&!process.argv.includes('--no-record');
-const FPS_MIN=58,DRAG_SECONDS=ciMode?1.8:3,VIDEO_SECONDS=30;
+const FPS_MIN=58,DRAG_SECONDS=ciMode?2.5:3,VIDEO_SECONDS=30;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 await mkdir(out,{recursive:true});
 const report={started:new Date().toISOString(),url:null,renderer:null,fps:{},checks:[],errors:[],expectedErrors:0,video:null};
@@ -190,11 +190,12 @@ async function measureDrag(page,label){
   });
   await page.mouse.move(x,y);await page.mouse.down();
   const started=Date.now();let moves=0,middle=null;
-  while(Date.now()-started<DRAG_SECONDS*1000){
-    const t=(Date.now()-started)/1000;
+  while(Date.now()-started<DRAG_SECONDS*1000||moves<3){
+    const t=(Date.now()-started)/1000+0.25;
     await page.mouse.move(x+ax*Math.sin(2*Math.PI*t/1.6),y+ay*Math.sin(2*Math.PI*t/1.1));moves++;
     if(!middle&&t>DRAG_SECONDS/2)middle=await lab(page);
   }
+  await page.mouse.move(x+ax*.5,y-ay*.5);moves++;
   if(!middle)middle=await lab(page);
   await page.mouse.up();
   const times=await page.evaluate(()=>{const times=window.__frameTimes;window.__frameTimes=null;return times;});
