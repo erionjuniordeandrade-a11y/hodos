@@ -30,6 +30,7 @@ import {
 } from '../../viewer/testing_model.js';
 import {decodeAtlasBundle} from '../../viewer/atlas_data.js';
 import {labBundles, packStreamlines, classify, summarize, parseLabParams} from '../../viewer/lesion_model.js';
+import {MAP_REGIONS, validateMapCoverage} from '../../viewer/testing_map.js';
 import {LESSONS} from '../../viewer/lesson_content.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -180,6 +181,21 @@ test('testing.css has zero raw hex colors, testing.html obeys strict CSP, and UI
   assert.equal(inlineScripts.length, 0, 'testing.html must not contain executable inline scripts');
   assert.doesNotMatch(html, /[\u2013\u2014]/, 'testing.html must contain zero em/en dashes');
   assert.doesNotMatch(js, /[\u2013\u2014]/, 'testing.js must contain zero em/en dashes');
+
+  const [mapJs, presetsJs] = await Promise.all([
+    readFile(path.join(root, 'viewer/testing_map.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_presets_data.js'), 'utf8'),
+  ]);
+  for (const [label, src] of [['testing_map.js', mapJs], ['testing_presets_data.js', presetsJs]]) {
+    assert.doesNotMatch(src, /#[0-9a-fA-F]{3,8}\b/, `${label} must use CSS tokens, zero raw hex`);
+    assert.doesNotMatch(src, /\bstyle\s*=/i, `${label} must not emit inline style attributes`);
+    assert.doesNotMatch(src, /[\u2013\u2014]/, `${label} must contain zero em/en dashes`);
+    for (const line of src.split('\n')) {
+      assert((line.match(/·/g) ?? []).length <= 1, `${label} max 1 middle dot per line: ${line}`);
+    }
+  }
+  assert.equal(validateMapCoverage(TARGET_PROTOCOLS), true);
+  assert(MAP_REGIONS.length >= 26);
 });
 
 test('select-map clears narrowing filters so any clicked map region becomes visible and selected', () => {

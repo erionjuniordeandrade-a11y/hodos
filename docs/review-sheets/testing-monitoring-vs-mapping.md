@@ -785,6 +785,22 @@ During an interhemispheric transcallosal approach to a third-ventricle lesion, t
 - **aggleton2000** — Aggleton JP et al., 2000 · Differential cognitive effects of third-ventricle lesions involving the fornix (PMID 10734011) — association
 - **serra2021** — Serra C et al., 2021 · Thalamic lesions and thalamic peduncle surgical series (PMID 33007756) — experimental_anatomy
 
+## Lesion lab test lenses and tumor territory presets
+
+All 26 anatomical protocols are mapped onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) across 6 verified HCP1065 MNI tumor territories.
+
+- **All cut** (`all`): Show every cut bundle at standard brightness. (Interrogates: all cut protocols (no dimming))
+- **Asleep MEP only** (`asleep-mep`): Dims corticospinal conduction (CST) only; leaves language, initiation, spatial, reading, visual, and deep memory pathways bright as blind spots. (Interrogates: cst-bilateral)
+- **Awake naming only** (`awake-naming`): Dims left spoken object-naming core (AF, IFOF, UF); leaves reading (VOF/ILF), initiation (FAT), articulatory (SLF III), spatial (right SLF II), motor (CST), visual (OR), and deep corridors bright. (Interrogates: af-left, ifof-left, uf-left)
+- **Tailored battery** (`tailored`): Dims every pathway with a real-time DES or IOM probe; untestable deep corridors (Fornix, TR_A, proximal DRTT) remain bright. (Interrogates: af-left, af-right, ifof-left, ifof-right, ilf-vof-left-reading, uf-left, fat-left, fat-right, slf1-bilateral, slf2-right, slf3-left, cst-bilateral, or-bilateral)
+
+- **Left SMA** (`left-sma`): hemi L, MNI [-20, 2, 50], radius 14 mm, default lens `asleep-mep` — Medial frontal corridor crossing FAT and CST.
+- **Left insula** (`left-insula`): hemi L, MNI [-30, 8, -4], radius 12 mm, default lens `asleep-mep` — Limen insulae crossroads over IFOF and UF.
+- **Left temporoparietal** (`left-temporoparietal`): hemi L, MNI [-44, -36, 26], radius 13 mm, default lens `awake-naming` — Dorsal perisylvian arc crossing AF and SLF III.
+- **Left occipitotemporal** (`left-occipitotemporal`): hemi L, MNI [-34, -72, -2], radius 14 mm, default lens `awake-naming` — Basal reading and optic corridor crossing VOF, ILF, IFOF, and OR.
+- **Right parietal** (`right-parietal`): hemi R, MNI [34, -44, 34], radius 14 mm, default lens `asleep-mep` — Right spatial attention and prosody hub crossing SLF II and right AF.
+- **Third ventricle** (`third-ventricle`): hemi L, MNI [-8, -6, 8], radius 11 mm, default lens `tailored` — Deep medial corridor crossing fornix, TR_A, and proximal DRTT.
+
 ## Full source list
 
 - **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
