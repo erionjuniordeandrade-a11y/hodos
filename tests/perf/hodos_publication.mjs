@@ -120,6 +120,7 @@ try{
   assert.equal(await creator.locator('a').getAttribute('href'),'https://www.dreriondeandrade.com.br/');
   assert.equal(await page.getByRole('link',{name:'Case reconstruction',exact:true}).count(),0);
   for(const lesson of LESSONS){
+    if (await page.locator('#lessonSyllabus').count() && !(await page.locator('#lessonSyllabus').evaluate(el => el.open))) await page.locator('#lessonSyllabus > summary').click();
     await page.locator(`#lessonStart-${lesson.id}`).click();
     assert(await page.locator('.lesson-case').isVisible());
     await page.locator('#lessonNext').click();

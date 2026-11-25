@@ -47,8 +47,8 @@ try{
    await page.locator('.stage-body .reference-links button').filter({hasNot:page.getByText('Lesion marker')}).first().click();
    const frame=page.frameLocator('#referenceDialog iframe');await frame.locator('#phase-compare').waitFor();await frame.locator('#phase-compare').click();
    await frame.locator('#lessonNext').click();assert.equal(await savedLearning(),learning);
-   await frame.getByRole('link',{name:'Sources',exact:true}).click();
-   await frame.getByRole('link',{name:'Return to atlas'}).click();
+   await frame.getByRole('link',{name:'Atlas sources and use terms',exact:true}).click();
+   await frame.getByRole('link',{name:'Atlas & lessons'}).click();
    await frame.locator('#caseConferenceLink').waitFor({state:'hidden'});
    assert.match(await page.locator('#referenceDialog iframe').evaluate(f=>f.contentWindow.location.search),/caseReference=1/);
    assert.equal(await savedLearning(),learning);

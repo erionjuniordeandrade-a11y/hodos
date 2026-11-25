@@ -31,7 +31,7 @@ test('the URL keys net and art read as one Wash; art is ignored when the arteria
 
 test('the chip and an empty picked panel always describe the Wash on screen, including none',()=>{
   const none=washReadout(NO_WASH,ROWS);
-  assert.equal(none.chip,null);assert.deepEqual(none.picked,['Atlas parcel','No parcel selected','Select cortex to inspect its HCP-MMP1 label.']);
+  assert.equal(none.chip,null);assert.deepEqual(none.picked,['Explore','Tap any structure','Click cortex, a deep structure, or a displayed tract to inspect it.']);
   const arterial=washReadout(arterialWash(arterialSelection('all')),ROWS);
   assert.match(arterial.chip,/Arterial territories/);assert.equal(arterial.picked[1],'Four supply territories');assert.match(arterial.swatch,/linear-gradient/);
   const focused=washReadout(arterialWash(arterialSelection('focus',2,ROWS)),ROWS);

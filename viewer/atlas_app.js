@@ -9,6 +9,8 @@ import {DEFAULT_SCENE} from './lesson_content.js';
 import {toggleBundle,MAX_BUNDLES,tintForIndex,tintCss,filterBundles,selectionCaption,cinematicEntryBundles} from './bundle_picker.js';
 import {YEO7,networkLabel,networkToSearchValue,networkSelection,rgbCss} from './atlas_networks.js';
 import {anatomyCatalog,searchAnatomy,pathwayFamilies} from './atlas_catalog.js';
+import {parcelDisplayName} from './atlas_parcel_names.js';
+import {TRACT_PROTOCOLS} from './testing_tracts_data.js';
 import {bundleLabel,bundleAliases} from './atlas_glossary.js';
 import {caseReference} from './case_reference.js';
 import {CASE_LESIONS,lesionScene,LESION_NOTE} from './case_lesions.js';
@@ -29,7 +31,7 @@ let selectedBundles=[],currentGhosts=[];
 // CONTEXT.md: never invent L or R. 'both' (or anything else) is null, not L.
 const currentHemisphere=()=>{const v=$('atlasHemisphere').value;return v==='L'||v==='R'?v:null;};
 let currentPick=null; // {hemi:'L'|'R'|'both',id} once a parcel has actually been picked
-let currentDeep=null,catalog=[],cinematic=false;
+let currentDeep=null,currentTract=null,catalog=[],cinematic=false;
 const option=(value,text)=>{const n=document.createElement('option');n.value=value;n.textContent=text;return n;};
 function syncURL(){const p=new URLSearchParams(location.search);p.set('profile',profile);
   const view=viewToSearchValue(cinematic);if(view)p.set('view',view);else p.delete('view');
@@ -59,10 +61,52 @@ function viewName(hemisphere,view){
   return VIEW_NAMES[view]||`${view} view`;
 }
 function syncMedialLabel(){document.querySelector('[data-view="medial"]').textContent=$('atlasHemisphere').value==='R'?'Right medial':'Left medial';}
-/** Show a picked parcel. hemi is 'L' | 'R' | 'both' — 'both' is the paired label lit in
- * both hemispheres and is what a 'follow' lesson step means under the Both control. */
+function clearTractActions(){currentTract=null;const actions=$('tractQuickActions');actions.replaceChildren();actions.hidden=true;}
+function tractTestingProtocol(bundleId){
+  const family=bundleId.replace(/_[LR]$/,''),side=bundleId.endsWith('_L')?'L':bundleId.endsWith('_R')?'R':null;
+  return TRACT_PROTOCOLS.find(p=>p.families.includes(family)&&(p.hemi==='both'||(side&&p.hemi===side)))||null;
+}
+function inspectTract(bundleId){
+  currentPick=null;currentDeep=null;currentTract=bundleId;scene.select(null);scene.setDeepHighlight([]);
+  $('deepRegion').value='';$('atlasArea').value='';
+  document.querySelector('.parcel-legend').hidden=true;$('pickedNetwork').textContent='';
+  $('pickedClass').textContent='White matter tract';
+  $('pickedName').textContent=bundleLabel(bundleId);
+  const meta=scene.tractMeta.bundles.find(b=>b.id===bundleId);
+  const linesText=meta?`${meta.lines} sampled atlas streamlines`:'Sampled atlas tract';
+  const groupText=meta?.group?`, ${meta.group.toLowerCase()} group`:'';
+  const countText=selectedBundles.length>1?` (${selectedBundles.length} tracts shown)`:'';
+  $('pickedDescription').textContent=`${linesText}${groupText}${countText}.`;
+  const actions=$('tractQuickActions');actions.replaceChildren();
+  const isSelected=selectedBundles.includes(bundleId);
+  if(isSelected&&selectedBundles.length>1){
+    const isolate=document.createElement('button');isolate.type='button';isolate.textContent='Isolate tract';
+    isolate.addEventListener('click',()=>{
+      pauseForExploration();applyBundles([bundleId]);
+      ($('tractQuickActions').querySelector('button, a')||$('atlasCanvas').querySelector(':scope>canvas'))?.focus({preventScroll:true});
+    });
+    actions.append(isolate);
+  }
+  if(isSelected){
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove tract';
+    remove.addEventListener('click',()=>{
+      togglePathway(bundleId);clearPick();
+      $('atlasCanvas').querySelector(':scope>canvas')?.focus({preventScroll:true});
+    });
+    actions.append(remove);
+  }
+  const protocol=tractTestingProtocol(bundleId);
+  if(protocol){
+    const link=document.createElement('a');
+    const base=location.pathname.endsWith('.html')?'./testing.html':'./testing';
+    link.href=`${base}?target=${encodeURIComponent(protocol.id)}`;link.textContent='Testing card';
+    actions.append(link);
+  }
+  actions.hidden=!actions.children.length;syncURL();
+}
 function readRegion(hemi,id,vertex=null){
   if(!['L','R','both'].includes(hemi))return clearPick();
+  clearTractActions();
   currentDeep=null;$('deepRegion').value='';scene.setDeepHighlight([]);
   if($('atlasHemisphere').value!=='both'&&$('atlasHemisphere').value!==hemi){
     $('atlasHemisphere').value=hemi;scene.setHemisphere(hemi);syncMedialLabel();
@@ -70,9 +114,10 @@ function readRegion(hemi,id,vertex=null){
   const region=regionIdentity(scene.surfaceMeta,hemi==='both'?'L':hemi,id);scene.select(hemi,id);
   currentPick={hemi,id};
   document.querySelector('.parcel-legend').hidden=id===0;
-  $('pickedClass').textContent='Atlas parcel, HCP-MMP1';
+  $('pickedClass').textContent='Cortex · HCP-MMP1';
   const sideWord=hemi==='L'?'Left':hemi==='R'?'Right':'Both';
-  $('pickedName').textContent=`${sideWord} · ${id===0?'medial wall':`area ${region.code}`}`;
+  const display=id===0?'':parcelDisplayName(region.code);
+  $('pickedName').textContent=id===0?`${sideWord} · medial wall`:display?`${sideWord} · ${region.code}, ${display}`:`${sideWord} · area ${region.code}`;
   $('pickedDescription').textContent=id===0?'Unlabelled medial wall in this atlas.':
     hemi==='both'
       ? `Area ${region.code} in both hemispheres · Group reference boundary. Individual function and tract endpoints require separate evidence.`
@@ -106,12 +151,13 @@ function applyWash(next){
   }
   const chip=$('sceneNetwork');chip.hidden=!view.chip;
   if(view.chip){chip.querySelector('span').textContent=view.chip;chip.querySelector('i').style.background=view.swatch;}
-  if(!currentPick&&!currentDeep)[$('pickedClass').textContent,$('pickedName').textContent,$('pickedDescription').textContent]=view.picked;
+  if(!currentPick&&!currentDeep&&!currentTract)[$('pickedClass').textContent,$('pickedName').textContent,$('pickedDescription').textContent]=view.picked;
   document.body.dataset.wash=wash.kind;
   syncURL();
 }
 /** No parcel asserted (S-5): nothing is lit and the readout does not name a side. */
 function clearPick(){
+  clearTractActions();
   currentPick=null;currentDeep=null;scene.select(null);scene.setDeepHighlight([]);$('deepRegion').value='';
   document.querySelector('.parcel-legend').hidden=true;
   // An empty picked panel always describes the current Wash.
@@ -120,6 +166,7 @@ function clearPick(){
   $('atlasArea').value='';syncURL();
 }
 function showDeep(entry,{reveal=true}={}){
+  clearTractActions();
   currentPick=null;currentDeep=entry;scene.select(null);scene.setDeep(true);scene.setDeepHighlight([entry.id]);
   document.querySelector('.parcel-legend').hidden=true;
   if(reveal)revealInterior();
@@ -127,7 +174,7 @@ function showDeep(entry,{reveal=true}={}){
   if($('atlasHemisphere').value!=='both'&&$('atlasHemisphere').value!==entry.hemisphere){
     $('atlasHemisphere').value=entry.hemisphere;scene.setHemisphere(entry.hemisphere);syncMedialLabel();
   }
-  $('pickedClass').textContent='Atlas structure, Melbourne S1';
+  $('pickedClass').textContent='Deep structure · Melbourne S1';
   $('pickedName').textContent=`${entry.hemisphere==='L'?'Left':'Right'} · ${entry.name}`;
   $('pickedDescription').textContent=entry.name==='Thalamus'?'Merged thalamic atlas territory. No specific relay nucleus or circuit is identified.':
     'Group reference surface. Its appearance does not establish a functional state or connection.';
@@ -143,6 +190,10 @@ function revealInterior(){
  * v1 pathway-summary text. Owns `selectedBundles` (pick order = tint order) and syncs the chips. */
 function applyBundles(ids,ghostIds=[]){
   selectedBundles=[...new Set(ids)].slice(0,MAX_BUNDLES);currentGhosts=[...new Set(ghostIds)].filter(id=>!selectedBundles.includes(id));
+  if(currentTract){
+    if(!selectedBundles.includes(currentTract)){if(!currentLesson)clearPick();else clearTractActions();}
+    else if(!currentLesson)inspectTract(currentTract);
+  }
   ids=selectedBundles;ghostIds=currentGhosts;
   scene.setBundles(ids,{ghost:ghostIds});
   syncPicker();syncURL();
@@ -182,8 +233,7 @@ function syncPicker(){
   }
   $('pathwayCount').textContent=selectionCaption(selectedBundles.length);
   $('pathwayClear').disabled=!selectedBundles.length;
-  const status=$('pathwayStatus');status.replaceChildren(document.createTextNode(full?`${MAX_BUNDLES} of ${MAX_BUNDLES} pathways displayed. Remove a pathway to add another.`
-    :`${selectedBundles.length} of ${MAX_BUNDLES} pathways displayed. Select L or R to add a side.`));
+  const status=$('pathwayStatus');status.replaceChildren(document.createTextNode(full?`${MAX_BUNDLES} of ${MAX_BUNDLES} shown`:`${selectedBundles.length} of ${MAX_BUNDLES} shown`));
   syncFilterChip();
   const activeId=document.activeElement?.id;
   const selected=$('selectedPathways');selected.replaceChildren();
@@ -222,20 +272,22 @@ function applyPathwayFilter(){
   const results=$('anatomyResults');results.replaceChildren();results.hidden=!q.trim();
   $('clearAnatomySearch').disabled=!q;
   syncFilterChip();
-  if(!q.trim()){$('anatomySearchStatus').textContent='Search by name or atlas code, for example V1, thalamus or arcuate.';return;}
+  if(!q.trim()){$('anatomySearchStatus').textContent='Search by name or code, for example arcuate, 44, Broca, MCA or default mode.';return;}
   const matches=searchAnatomy(catalog,q);
   $('anatomySearchStatus').textContent=matches.length?`${matches.length} anatomy matches${matches.length>40?' · first 40 shown; refine your search':''}.`
-    :'No anatomy matches. Try a parcel code, pathway name or deep structure.';
-  for(const kind of ['Cortical parcels','Deep structures','Reference pathways']){
+    :'No anatomy matches. Try a tract, parcel, network or artery.';
+  for(const kind of ['Cortical parcels','Deep structures','White matter tracts','Resting-state networks','Arterial territories']){
     const group=matches.slice(0,40).filter(e=>e.kind===kind);if(!group.length)continue;
     const section=document.createElement('div'),heading=document.createElement('h3');heading.textContent=kind;section.append(heading);
     for(const entry of group){const b=document.createElement('button');b.type='button';b.textContent=entry.label;
       b.id=`anatomy-${kind.split(' ')[0]}-${entry.hemi||''}-${entry.id}`;
-      if(kind==='Reference pathways'){const on=selectedBundles.includes(entry.id);b.setAttribute('aria-pressed',String(on));
+      if(kind==='White matter tracts'){const on=selectedBundles.includes(entry.id);b.setAttribute('aria-pressed',String(on));
         b.disabled=!on&&selectedBundles.length>=MAX_BUNDLES;b.textContent=`${on?'✓ ':''}${entry.label}`;}
       b.addEventListener('click',()=>{pauseForExploration();
         if(kind==='Cortical parcels')readRegion(entry.hemi,entry.id);
         else if(kind==='Deep structures')showDeep(scene.subMeta.structures.find(d=>d.id===entry.id));
+        else if(kind==='Resting-state networks')applyWash(networkWash(networkSelection('focus',entry.id)));
+        else if(kind==='Arterial territories')applyWash(arterialWash(arterialSelection('focus',entry.id,scene.arterialRows)));
         else togglePathway(entry.id);
         // The result is now on the atlas; the popover must not keep covering it.
         closeSearch({refocus:false});$('atlasCanvas').querySelector(':scope>canvas')?.focus({preventScroll:true});
@@ -404,10 +456,22 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
   b.closest('details').open=false;
 }));
 
+let wheelHintTimer=0,wheelHintActive=false;
+function showWheelHint(){
+  const tip=$('atlasHover');
+  tip.textContent='Pinch or Ctrl + scroll to zoom';
+  tip.style.left='';tip.style.top='';tip.hidden=false;wheelHintActive=true;
+  clearTimeout(wheelHintTimer);
+  wheelHintTimer=setTimeout(()=>{wheelHintActive=false;tip.hidden=true;},1600);
+}
 try{
-  scene=await createAtlasScene($('atlasCanvas'),{onStatus:(text,{ready=false}={})=>{const status=$('atlasLoading');status.textContent=text;status.hidden=ready;},
-    onHover:(pick,pointer)=>{const tip=$('atlasHover');tip.hidden=!pick;if(!pick)return;
-      tip.textContent=pick.bundle?`${bundleLabel(pick.bundle)}, streamline ${pick.streamline+1} of ${pick.total}`
+  scene=await createAtlasScene($('atlasCanvas'),{scrollZoom:'modifier',onWheelHint:showWheelHint,
+    onStatus:(text,{ready=false}={})=>{const status=$('atlasLoading');status.textContent=text;status.hidden=ready;},
+    onHover:(pick,pointer)=>{const tip=$('atlasHover');
+      if(pick){clearTimeout(wheelHintTimer);wheelHintActive=false;}
+      else if(wheelHintActive)return;
+      tip.hidden=!pick;if(!pick)return;
+      tip.textContent=pick.bundle?`${bundleLabel(pick.bundle)}, streamline ${pick.streamline+1} of ${pick.total}, click to inspect`
         :pick.deep?`${pick.deep.name} · ${pick.deep.hemisphere==='L'?'left':'right'}`
         :`${regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code}, ${pick.hemi==='L'?'left':'right'} · click to select`;
       if(pointer){const rect=$('atlasCanvas').getBoundingClientRect();
@@ -415,8 +479,11 @@ try{
         tip.style.top=`${Math.max(8,Math.min(pointer.y-rect.top+14,rect.height-tip.offsetHeight-8))}px`;}
     },
     onPick:pick=>{
-      if(currentLesson){inspectLessonTarget(pick.deep?{kind:'deep',id:pick.deep.id.replace(/-(lh|rh)$/,''),label:pick.deep.name}:{kind:'parcel',id:pick.id,label:regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code});}
-      else{pick.deep?showDeep(pick.deep):readRegion(pick.hemi,pick.id,pick.vertex);}
+      if(currentLesson){inspectLessonTarget(
+        pick.bundle?{kind:'bundle',id:pick.bundle.replace(/_[LR]$/,''),label:bundleLabel(pick.bundle)}
+          :pick.deep?{kind:'deep',id:pick.deep.id.replace(/-(lh|rh)$/,''),label:pick.deep.name}
+          :{kind:'parcel',id:pick.id,label:regionIdentity(scene.surfaceMeta,pick.hemi,pick.id).code});}
+      else{pick.bundle?inspectTract(pick.bundle):pick.deep?showDeep(pick.deep):readRegion(pick.hemi,pick.id,pick.vertex);}
     },onInteraction:()=>{playing=false;motionUI();},
     onView:({hemisphere,view})=>{$('sceneOrientation').textContent=`${hemisphere==='both'?'Both hemispheres':hemisphere==='L'?'Left hemisphere':'Right hemisphere'}, ${viewName(hemisphere,view)}`;}});
   $('atlasLoading').hidden=true;
@@ -482,7 +549,8 @@ try{
     chip.addEventListener('click',()=>togglePathway(b.id));row.append(chip);
     }pathwayGroups.get(family.group).append(row);
   }
-  catalog=anatomyCatalog(scene.surfaceMeta,scene.tractMeta,scene.subMeta,bundleLabel,bundleAliases);
+  catalog=anatomyCatalog(scene.surfaceMeta,scene.tractMeta,scene.subMeta,bundleLabel,bundleAliases,
+    {networks:scene.hasNetworks()?YEO7:[],arterial:scene.hasArterial()?scene.arterialRows:[]});
   $('pathwayFilter').disabled=false;$('pathwayFilter').addEventListener('input',applyPathwayFilter);
   $('clearAnatomySearch').addEventListener('click',()=>{$('pathwayFilter').value='';applyPathwayFilter();$('pathwayFilter').focus();});applyPathwayFilter();
   $('pathwayClear').addEventListener('click',()=>{pauseForExploration();applyBundles([],currentGhosts);});
@@ -552,7 +620,7 @@ try{
     applyScene:sceneInput=>applySceneEffects(resolveScene({scene:{...DEFAULT_SCENE,...sceneInput}},currentHemisphere()),{authored:true}),
     togglePathway,projectBundleVertex:scene.projectBundleVertex,setGhost:scene.setGhost,slicePanel:slicePanel.state,selectedBundles:[...selectedBundles],learningPhase:player.phase,
     workspace:{...workspace,drawer:drawerOf(workspace,drawerOverlay())}})});
-  window.addEventListener('pagehide',()=>{scene.dispose();player.dispose();},{once:true});
+  window.addEventListener('pagehide',()=>{clearTimeout(wheelHintTimer);scene.dispose();player.dispose();},{once:true});
 }catch(error){
   $('atlasLoading').hidden=false;$('atlasLoading').textContent=`Reference atlas unavailable: ${String(error.message).replace(/\.$/,'')}. Reload to retry.`;
   $('tracePlay').disabled=true;console.error(error);
