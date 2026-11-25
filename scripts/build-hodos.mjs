@@ -13,6 +13,7 @@ const modules=[
   'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'connections.js','connections_route.js','connections_graph.js','connections_data.js',
   'lesion_lab.js','lesion_model.js','lesion_evidence.js','lesion_story.js',
+  'testing_sources_data.js','testing_tasks_data.js','testing_protocol_data.js','testing_tracts_data.js','testing_cortex_data.js','testing_targets_data.js','testing_model.js','testing.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','atlas_arterial.js','cortex_wash.js','atlas_workspace.js','atlas_camera_frame.js','atlas_cinematic.js','atlas_labels.js','atlas_deeplink.js','atlas_slice.js','atlas_slice_panel.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',
@@ -29,7 +30,7 @@ const modules=[
 const supportingFiles=[
   'case-images/medial-frontal.webp','case-images/insular.webp','case-images/temporoparietal.webp','case-images/right-medial-frontal.webp',
   'case-images/medial-frontal-t1c.webp','case-images/insular-t1c.webp','case-images/temporoparietal-t1c.webp','case-images/right-medial-frontal-t1c.webp','case-images/README.md',
-  'case_conference.css','mips.css','connections.css','lesion-lab.css',
+  'case_conference.css','mips.css','connections.css','lesion-lab.css','testing.css',
   'vendor/vis-data.min.js','vendor/vis-network.min.js','vendor/vis-LICENSE.md',
   'tokens.css','hodos.css','landing.css','lesson-page.css',
   'media/landing/hero-blender-s1-1080-20261107.jpg','media/landing/hero-blender-s1-880-20261107.jpg',
@@ -62,7 +63,7 @@ const supportingFiles=[
   'media/lesson-previews/plate-default-mode-network-20260928.jpg',
   'media/lesson-previews/README.md',
   'brand/hodos-mark.svg','brand/hodos-mark-light.svg','brand/hodos-favicon.svg','brand/hodos-og.png',
-  'brand/og/atlas.jpg','brand/og/lesion-lab.jpg','brand/og/mips.jpg','brand/og/case-conference.jpg','brand/og/connections.jpg',
+  'brand/og/atlas.jpg','brand/og/lesion-lab.jpg','brand/og/mips.jpg','brand/og/case-conference.jpg','brand/og/connections.jpg','brand/og/testing.jpg',
   ...lessonIdsInCurriculum().map(id=>`brand/og/lesson-${id}.jpg`),
   'vendor/LICENSE.md','vendor/three-mesh-bvh-LICENSE.md','vendor/camera-controls-LICENSE.md','vendor/VENDOR.json',
   'vendor/fonts/archivo-latin.woff2','vendor/fonts/Archivo-OFL.txt',
@@ -101,6 +102,7 @@ function publicHTML(html){
   html=html.replaceAll('href="./mips.html"','href="./mips"');
   html=html.replaceAll('href="./connections.html"','href="./connections"');
   html=html.replaceAll('href="./labs/lesion-lab.html"','href="./labs/lesion-lab"');
+  html=html.replace(/href="\.\/testing\.html(\?[^"]*)?"/g,(m,q)=>`href="./testing${q||''}"`);
   if(!html.includes('name="description"'))html=html.replace('</head>','<meta name="description" content="Hodos: an interactive cortex and white matter atlas for neurosurgical residents. Explore anatomy, relationships and brain networks. Created by Dr. Erion de Andrade."></head>');
   if(/profile=clinical|Case reconstruction/.test(html))throw Error('Local case navigation remains in the public page');
   return html;
@@ -163,6 +165,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
     {entry:'lesion_lab.js',out:'lesion_lab.bundle.js'},
     {entry:'case_conference.js',out:'case_conference.bundle.js'},
     {entry:'connections.js',out:'connections.bundle.js'},
+    {entry:'testing.js',out:'testing.bundle.js'},
   ];
   const {outputs:bundledFiles,includedByEntry:bundleIncluded}=await bundleEntries(bundleSpecs,files);
   const bundleOutputs=new Map(bundleSpecs.map(({entry,out})=>[entry,out]));
@@ -174,7 +177,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   }
   const reEscape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   const processedPages=new Map();
-  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html','connections.html','labs/lesion-lab.html']){
+  for(const name of ['index.html','atlas.html','atlas-sources.html','case-conference.html','mips.html','connections.html','testing.html','labs/lesion-lab.html']){
     let html=publicHTML((await safeRead(viewer,name)).toString());
     for(const [entry,out] of bundleOutputs){
       const before=html;
@@ -245,7 +248,7 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // block is inert data, not a JavaScript/module/importmap MIME type, so CSP's script-src never
   // applies to it and it needs no hash; every other bare <script> still does.
   const isLdJson=attributes=>/\btype\s*=\s*(['"])application\/ld\+json\1/i.test(attributes);
-  for(const name of ['index.html','atlas-sources.html','case-conference.html','connections.html'])
+  for(const name of ['index.html','atlas-sources.html','case-conference.html','connections.html','testing.html'])
     for(const tag of files.get(name).toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>/gi))
       if(!isLdJson(tag[1]))throw Error(`Inline script in ${name} needs a CSP hash`);
   const inlineScripts=[...files.get('atlas.html').toString().matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)].filter(m=>!isLdJson(m[1])).map(m=>m[2]);

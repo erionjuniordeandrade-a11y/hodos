@@ -9,6 +9,7 @@ import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
 import {VERBS} from './connections_graph.js';
 import {composeStory} from './lesion_story.js';
+import {protocolsForBundles} from './testing_model.js';
 
 const $=id=>document.getElementById(id);
 const testMode=new URLSearchParams(location.search).has('test');
@@ -515,6 +516,26 @@ function bundleBody(bundle,applying,other){
   return body;
 }
 
+function renderTestingProtocols(rows,hemi){
+  const block=$('testingBlock'),listEl=$('testingList');
+  if(!block||!listEl)return;
+  const matched=protocolsForBundles(rows,hemi);
+  block.hidden=!matched.length;
+  if(!matched.length){listEl.replaceChildren();return;}
+  listEl.replaceChildren(...matched.map(item=>{
+    const primaryTasks=[...item.mappingTaskList,...item.monitoringTaskList].slice(0,3).map(t=>t.name);
+    const taskLine=primaryTasks.length?primaryTasks.join(', '):'No real-time probe; protect corridor geometry';
+    const badge=el('span',{className:'lab-testing-badge',textContent:item.modeInfo?.badge??item.mode});
+    badge.dataset.badge=item.modeInfo?.badge??'';
+    const head=el('div',{className:'lab-testing-head'},el('strong',{textContent:item.name}),badge);
+    const bundles=el('p',{className:'lab-testing-bundles',textContent:item.matchedBundles.map(b=>bundleLabel(b.id)).join(', ')});
+    const tasks=el('p',{className:'lab-testing-tasks',textContent:`Tasks: ${taskLine}`});
+    const warn=el('p',{className:'lab-testing-blindspot',textContent:item.blindSpot});
+    const link=el('a',{className:'lab-testing-link',href:`./testing.html?target=${item.id}`,textContent:'Open testing protocol'});
+    return el('li',{className:'lab-testing-item'},head,bundles,tasks,warn,link);
+  }));
+}
+
 function renderPanel(){
   panelAt=performance.now();
   const entry=layer();if(!entry||!lab.centre)return;
@@ -540,6 +561,7 @@ function renderPanel(){
   named.replaceChildren(...lab.named.map(n=>el('li',{},n.object,el('small',{textContent:
     [n.condition==='dominant'?'Dominant hemisphere':null,n.bundles.map(bundleLabel).join(', ')].filter(Boolean).join(' · ')}))));
   $('namedBlock').hidden=!lab.named.length;
+  renderTestingProtocols(lab.rows,lab.hemi);
   const items=reached.map(r=>{
     const row=rowFor(entry,r.index);
     row.counts.textContent=`${count(r.cut)} of ${count(r.total)} sampled streamlines cut (${percent(r.cut,r.total)})`+

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monitoring vs mapping · Hodos</title>
+<meta name="author" content="Dr. Erion de Andrade">
+<meta name="description" content="How to test white matter pathways and cortical territories intraoperatively: monitoring vs mapping, DuLIP tasks, modality blind spots and clinical trap drills.">
+<link rel="canonical" href="https://hodosatlas.com/testing">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Hodos"><meta property="og:title" content="Monitoring vs mapping · Hodos"><meta property="og:description" content="Match white matter pathways and cortical territories to awake DES tasks, asleep motor thresholds, or anatomy-only corridors."><meta property="og:url" content="https://hodosatlas.com/testing"><meta property="og:image" content="https://hodosatlas.com/brand/og/testing.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Hodos intraoperative testing guide comparing monitoring and mapping across tracts and cortex.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Monitoring vs mapping · Hodos">
+<meta name="twitter:description" content="Match pathways and cortex to awake DES tasks, asleep motor thresholds, or anatomy-only corridors.">
+<meta name="twitter:image" content="https://hodosatlas.com/brand/og/testing.jpg">
+<meta name="theme-color" content="#1E2227"><link rel="icon" href="./favicon.ico" sizes="32x32"><link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="manifest" href="./site.webmanifest">
+<link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/archivo-latin.woff2" crossorigin>
+<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./testing.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://hodosatlas.com/#erion","name":"Dr. Erion de Andrade","honorificPrefix":"Dr.","jobTitle":"Neurosurgeon","url":"https://www.dreriondeandrade.com.br/"},{"@type":"LearningResource","name":"Monitoring vs mapping · Hodos","url":"https://hodosatlas.com/testing","description":"An intraoperative testing guide matching white matter bundles and cortical territories to mapping tasks, continuous monitoring, and anatomy-only blind spots. Educational draft awaiting independent clinical review.","learningResourceType":"Clinical reference guide","isAccessibleForFree":true,"author":{"@id":"https://hodosatlas.com/#erion"}}]}</script>
+</head><body class="testing-page">
+<a class="skip-link" href="#testingMain">Skip to testing guide</a>
+<header class="studio-header"><a class="brand" href="./index.html" title="Brain networks and white matter tracts for intra-axial surgery"><svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true" focusable="false"><path d="M10 46 C 24 44, 30 30, 40 24 S 54 16, 56 14" fill="none" stroke-width="4" stroke-linecap="round"/><path class="f" d="M8 40 C 22 40, 28 26, 38 20 S 50 12, 54 10" fill="none" stroke-width="3" stroke-linecap="round"/><path class="f" d="M12 52 C 26 50, 34 36, 44 30 S 56 22, 58 20" fill="none" stroke-width="3" stroke-linecap="round"/><circle class="n" cx="10" cy="46" r="5"/><circle class="n" cx="40" cy="24" r="5"/><circle class="d" cx="56" cy="14" r="5"/></svg><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a><nav aria-label="Site"><a href="./atlas.html">Atlas &amp; lessons</a><a href="./case-conference.html"><span class="nav-long">Case Conference</span><span class="nav-short">Cases</span></a><a href="./mips.html" class="nav-long">MIPS</a><a href="./labs/lesion-lab.html">Lesion lab</a><a href="./connections.html" class="nav-long">Connections</a><a href="./atlas-sources.html" class="header-sources">Sources</a></nav></header>
+<main id="testingMain" class="testing-main" tabindex="-1">
+  <header class="testing-intro">
+    <p class="testing-eyebrow">Intraoperative testing guide · Educational draft</p>
+    <h1>How to test it. Monitoring vs mapping.</h1>
+    <p class="testing-lede">Mapping asks whether one specific site is essential for an active task right now. Monitoring asks whether a pathway is still conducting or systemic physiology is stable. Preoperative fMRI, DTI, and nTMS are planning priors, not intraoperative proof.</p>
+    <p class="testing-draft">Educational draft awaiting independent clinical review. Not an institutional protocol or surgical navigation.</p>
+  </header>
+
+  <section id="lookupSection" class="testing-section" aria-labelledby="lookupTitle">
+    <div class="section-head">
+      <h2 id="lookupTitle">Anatomical testing lookup</h2>
+      <p>Filter 16 white matter pathways and 10 left cortical territories to compare mapping tasks, continuous monitoring, error signatures, and false-reassurance traps.</p>
+    </div>
+    <div class="testing-filters" role="region" aria-label="Target filters">
+      <div class="filter-group"><span class="filter-label" id="kindLabel">Structure</span><div class="segmented" role="group" aria-labelledby="kindLabel"><button type="button" data-filter-kind="all" aria-pressed="true">All</button><button type="button" data-filter-kind="tract" aria-pressed="false">Tracts (16)</button><button type="button" data-filter-kind="cortex" aria-pressed="false">Cortex (10)</button></div></div>
+      <div class="filter-group"><span class="filter-label" id="hemiLabel">Hemisphere</span><div class="segmented" role="group" aria-labelledby="hemiLabel"><button type="button" data-filter-hemi="all" aria-pressed="true">All</button><button type="button" data-filter-hemi="L" aria-pressed="false">Left</button><button type="button" data-filter-hemi="R" aria-pressed="false">Right</button></div></div>
+      <div class="filter-group"><label class="filter-label" for="modeSelect">Testing mode</label><select id="modeSelect"><option value="all">All 5 modes</option></select></div>
+      <div class="filter-group filter-search"><label class="filter-label" for="targetSearch">Search target, parcel, or task</label><input id="targetSearch" type="search" autocomplete="off" placeholder="AF, IFOF, 55b, line bisection, alexia"></div>
+    </div>
+    <p id="lookupStatus" class="testing-status" role="status" aria-live="polite"></p>
+    <div class="lookup-workbench">
+      <div id="targetList" class="target-list" role="region" aria-label="Matching anatomical targets"></div>
+      <article id="targetDetail" class="target-detail" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <section id="comparisonSection" class="testing-section" aria-labelledby="comparisonTitle">
+    <div class="section-head">
+      <h2 id="comparisonTitle">Monitoring vs mapping</h2>
+      <p>Do not confuse asleep surgery with unmapped surgery, and never treat a monitoring signal as a focal map or vice versa.</p>
+    </div>
+    <div class="table-wrap"><table class="testing-table"><thead><tr><th scope="col">Dimension</th><th scope="col">Monitoring (surveillance)</th><th scope="col">Mapping (focal test)</th></tr></thead><tbody id="comparisonBody"></tbody></table></div>
+  </section>
+
+  <section id="tasksSection" class="testing-section" aria-labelledby="tasksTitle">
+    <div class="section-head">
+      <h2 id="tasksTitle">Task timing: 4-second DES vs continuous monitoring</h2>
+      <p>The DuLIP battery separates timed <=4 s stimulation trials with carrier phrases from unpaced resection monitoring. Tasks whose normative baseline delays exceed 4 s belong in continuous monitoring, not pass/fail DES.</p>
+    </div>
+    <div id="tasksGrid" class="tasks-grid"></div>
+  </section>
+
+  <section id="modalitiesSection" class="testing-section" aria-labelledby="modalitiesTitle">
+    <div class="section-head">
+      <h2 id="modalitiesTitle">Modalities: question, parameters, blind spot</h2>
+      <p>Each intraoperative signal answers one narrow question and leaves a specific blind spot.</p>
+    </div>
+    <div id="modalitiesGrid" class="cards-grid"></div>
+  </section>
+
+  <section id="drillSection" class="testing-section" aria-labelledby="drillTitle">
+    <div class="section-head">
+      <h2 id="drillTitle">Clinical trap drills</h2>
+      <p>Test five common false-reassurance traps across motor, reading, semantic, attention, and deep untestable corridors.</p>
+    </div>
+    <div id="drillsList" class="drills-list"></div>
+  </section>
+
+  <section id="sourcesSection" class="testing-section" aria-labelledby="sourcesTitle">
+    <div class="section-head">
+      <h2 id="sourcesTitle">Verified sources and scope</h2>
+      <p>Every source carries a verified PubMed ID or DOI and states the population and limits of transfer.</p>
+    </div>
+    <ol id="sourcesList" class="sources-list"></ol>
+  </section>
+</main>
+<footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p><p class="foot-role"><span>Neurosurgeon, CRM-RS 41.263, RQE 44841.</span> Skull base and neuro-oncology fellowships at Cleveland Clinic and Emory University. Residency preceptor, Hospital São José, Santa Casa de Porto Alegre.</p></div>
+  <div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP-MMP1 cortical parcels</p><p>HCP1065 sampled tractography</p><p>Melbourne subcortex atlas</p></div>
+  <div class="foot-terms"><p class="foot-label">Use</p><p>Reference atlas, not navigation.</p><p>Educational draft, research only.</p><p>No patient registration.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p><p><a href="./atlas-sources.html#privacy">Privacy</a></p><p><a href="./mips.html">MIPS</a></p><p><a href="./labs/lesion-lab.html">Lesion lab</a></p><p><a href="./connections.html">Connections</a></p><p><a href="./testing.html">Testing guide</a></p><p><a href="./lessons">Lessons</a></p><p><a href="mailto:erion.andrade@santacasa.org.br?subject=Hodos%20feedback">Email a correction</a></p><p><a href="https://github.com/erionjuniordeandrade-a11y/hodos/issues/new" target="_blank" rel="noopener">Report an error or suggest a correction</a></p></div></footer>
+<noscript><p class="testing-noscript">JavaScript is required for the interactive testing lookup and drills.</p></noscript>
+<script type="module" src="./testing.js"></script></body></html>
