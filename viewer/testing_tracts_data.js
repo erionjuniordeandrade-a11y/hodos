@@ -1,7 +1,3 @@
-// 16 subcortical white-matter tract testing protocols keyed to tracts.json family IDs.
-// Aligned with DuLIP Table 4 (De Witte et al., 2015) plus asleep motor IOM and non-dominant awake tasks.
-// Keep UI strings free of em/en dashes and with at most one middle dot per line.
-
 export const TRACT_PROTOCOLS = Object.freeze([
   Object.freeze({
     id: 'af-left',
@@ -18,7 +14,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Phonemic paraphasias, repetition breakdown, or reproducible speech arrest.',
     blindSpot: 'Object naming alone can miss pure phonological/repetition disconnection; asleep MEP/SSEP leaves AF completely blind.',
     lessonId: 'language-networks',
-    atlasBundle: 'AF_L',
     sourceIds: ['maldonado2011', 'dulip2015', 'trinh2013'],
   }),
   Object.freeze({
@@ -36,7 +31,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Aprosodia, impaired emotion recognition, or repetition arrest in atypical dominance.',
     blindSpot: 'Assuming left language dominance without checking prosody or atypical right-sided language risk.',
     lessonId: 'language-networks',
-    atlasBundle: 'AF_R',
     sourceIds: ['coello2013', 'aboelnour2024', 'dulip2015'],
   }),
   Object.freeze({
@@ -54,7 +48,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Semantic paraphasias or non-verbal semantic selection errors reproduced >=2-3 times.',
     blindSpot: 'Using DuLIP semantic association as a 4 s DES test fails due to >4 s normative delays (83.44% accuracy); move it to resection monitoring.',
     lessonId: 'ventral-stream',
-    atlasBundle: 'IFOF_L',
     sourceIds: ['moritz2013', 'dulip2015', 'trinh2013'],
   }),
   Object.freeze({
@@ -72,7 +65,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Impaired emotion/mental-state recognition or non-verbal semantic judgment.',
     blindSpot: 'Standard motor/naming screening leaves right ventral semantic and social cognition silent.',
     lessonId: 'limen-crossroads',
-    atlasBundle: 'IFOF_R',
     sourceIds: ['moritz2013', 'coello2013', 'aboelnour2024'],
   }),
   Object.freeze({
@@ -90,7 +82,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Reading arrest, letter-by-letter hesitation, or lexicalization errors with preserved spoken naming.',
     blindSpot: 'Oral object naming often passes at sites whose disconnection causes pure alexia.',
     lessonId: 'reading-route',
-    atlasBundle: 'ILF_L',
     sourceIds: ['moritz2013', 'dulip2015', 'coello2013'],
   }),
   Object.freeze({
@@ -108,7 +99,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Proper-name or famous-face retrieval pauses and semantic hesitation at the limen transition.',
     blindSpot: 'Confusing deeper IFOF semantic responses with superficial UF; both cross the limen insulae.',
     lessonId: 'limen-crossroads',
-    atlasBundle: 'UF_L',
     sourceIds: ['dulip2015', 'moritz2013', 'duffau2013'],
   }),
   Object.freeze({
@@ -126,7 +116,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Stuttering, speech initiation arrest, or loss of spontaneous phrasing with preserved comprehension.',
     blindSpot: 'Asleep TES-MEPs remain completely normal during FAT/SMA injury, and picture naming alone often misses initiation arrest.',
     lessonId: 'fat-language',
-    atlasBundle: 'FAT_L',
     sourceIds: ['dulip2015', 'catani2013', 'krainik2001', 'giampiccolo2021'],
   }),
   Object.freeze({
@@ -144,7 +133,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Slowing of contralateral limb initiation or breakdown under dual-task executive load.',
     blindSpot: 'Preserved asleep MEPs miss right SMA/FAT akinesia and executive initiation deficits.',
     lessonId: 'fat-language',
-    atlasBundle: 'FAT_R',
     sourceIds: ['garic2019', 'krainik2001', 'giampiccolo2021'],
   }),
   Object.freeze({
@@ -162,7 +150,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Optic ataxia (misreaching to peripheral targets) or degraded contralateral limb coordination.',
     blindSpot: 'Standard bedside strength and object naming appear normal despite visuomotor disconnection.',
     lessonId: 'control-network',
-    atlasBundle: 'SLF1_L',
     sourceIds: ['coello2013', 'giampiccolo2021'],
   }),
   Object.freeze({
@@ -180,7 +167,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Reproducible rightward deviation on horizontal line bisection.',
     blindSpot: 'Treating right hemisphere as non-eloquent under GA risks permanent left hemispatial neglect.',
     lessonId: 'attention-networks',
-    atlasBundle: 'SLF2_R',
     sourceIds: ['roux2011', 'aboelnour2024', 'coello2013'],
   }),
   Object.freeze({
@@ -198,7 +184,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Dysarthria, anarthria, or articulatory speech arrest.',
     blindSpot: 'Silent pauses without checking tongue/lip movement can confuse articulatory arrest with motor arrest.',
     lessonId: 'language-networks',
-    atlasBundle: 'SLF3_L',
     sourceIds: ['maldonado2011', 'vangeemen2013', 'dulip2015'],
   }),
   Object.freeze({
@@ -216,7 +201,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Falling subcortical mA threshold into declared stop-band (1-3 mA red zone), sustained >=50% MEP drop/loss, or dysarthria.',
     blindSpot: 'Treating 1 mA = 1 mm as exact, or assuming stable MEPs exclude SMA syndrome and delayed vascular ischemia.',
     lessonId: 'motor-cst',
-    atlasBundle: 'CST_L',
     sourceIds: ['seidel2013', 'asnm2013', 'mikuni2007', 'giampiccolo2021', 'dulip2015'],
   }),
   Object.freeze({
@@ -234,7 +218,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'Transient phosphenes, blurring, or shadowing reported in the contralateral visual quadrant.',
     blindSpot: 'Untestable under GA (VEP is unreliable for quadrantanopia); preoperative DTI varies widely on Meyer\'s loop.',
     lessonId: 'optic-radiation',
-    atlasBundle: 'OR_L',
     sourceIds: ['grascombe2012', 'yogarajah2009'],
   }),
   Object.freeze({
@@ -252,7 +235,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'No reliable intraoperative warning sign; injury manifests postoperatively as episodic amnesia.',
     blindSpot: 'Normal MEPs, SSEPs, and fluent awake speech give zero warning of forniceal memory injury.',
     lessonId: 'medial-system',
-    atlasBundle: 'F_L',
     sourceIds: ['aggleton2000'],
   }),
   Object.freeze({
@@ -270,7 +252,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'No direct DES/IOM threshold; injury risks delayed apathy, abulia, or thalamocapsular ischemia.',
     blindSpot: 'Quiet cortical/CST monitoring does not protect deep anterior thalamic peduncle fibers.',
     lessonId: 'internal-capsule',
-    atlasBundle: 'TR_A_L',
     sourceIds: ['serra2021'],
   }),
   Object.freeze({
@@ -288,7 +269,6 @@ export const TRACT_PROTOCOLS = Object.freeze([
     errorSignature: 'No direct real-time probe; proximal disruption associates with postoperative cerebellar mutism syndrome.',
     blindSpot: 'Brainstem MEPs and SSEPs remain stable while proximal DRTT is retracted or injured.',
     lessonId: 'brainstem-corridors',
-    atlasBundle: 'DRTT_L',
     sourceIds: ['morris2009'],
   }),
 ]);

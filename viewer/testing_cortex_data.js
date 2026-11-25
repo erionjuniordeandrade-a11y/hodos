@@ -1,6 +1,3 @@
-// 10 left cortical territory testing protocols matching DuLIP Table 3 (De Witte et al., 2015) and HCP-MMP1 parcels.
-// Keep UI strings free of em/en dashes and with at most one middle dot per line.
-
 export const CORTEX_PROTOCOLS = Object.freeze([
   Object.freeze({
     id: 'ctx-ifg-left',
@@ -17,7 +14,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Speech arrest, articulatory disruption, grammatical agreement error, or verb/noun anomia reproduced >=2-3 times.',
     blindSpot: 'Counting alone misses syntactic inflection and lexical selection sites in 45/47l.',
     lessonId: 'language-networks',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'lubrano2014', 'sanai2008'],
   }),
   Object.freeze({
@@ -35,7 +31,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Action-naming block, verb inflection error, or word-finding arrest.',
     blindSpot: 'Preoperative fMRI disagreed with DES in 3 of 4 stimulated DuLIP cases (Roux 2003: 66% correlation); negative fMRI never clears pMFG.',
     lessonId: 'fat-language',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'roux2003', 'lubrano2014'],
   }),
   Object.freeze({
@@ -53,7 +48,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Gradual speech or motor initiation slowdown and dynamic aphasia without primary motor twitches.',
     blindSpot: 'Asleep MEP monitoring misses SMA/pre-SMA initiation deficits completely.',
     lessonId: 'motor-beyond-m1',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'krainik2001', 'giampiccolo2021'],
   }),
   Object.freeze({
@@ -71,7 +65,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Contralateral muscle twitch/movement or dysarthric articulatory arrest.',
     blindSpot: 'Assuming adult cortex can always compensate for left ventral premotor (6v) resection.',
     lessonId: 'motor-cst',
-    atlasBundle: null,
     sourceIds: ['vangeemen2013', 'dulip2015', 'seidel2013'],
   }),
   Object.freeze({
@@ -80,7 +73,7 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     name: 'Left posterior STG (pSTG)',
     hemi: 'L',
     families: Object.freeze([]),
-    parcels: Object.freeze(['A4', 'A5', 'STGa', 'PBelt']),
+    parcels: Object.freeze(['A4', 'A5', 'PBelt']),
     mode: 'awake-mapping-des',
     secondaryModes: Object.freeze(['awake-monitoring-resection']),
     mappingTasks: Object.freeze(['dulip-semantic-odd-picture-out', 'dulip-object-naming']),
@@ -89,7 +82,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Semantic paraphasias, living-object anomia, or auditory semantic comprehension failure.',
     blindSpot: 'Automatic counting or isolated phonological repetition leaves temporal semantic comprehension untested.',
     lessonId: 'language-networks',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'moritz2013'],
   }),
   Object.freeze({
@@ -107,7 +99,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Phonological selection errors, non-word discrimination breakdown, or phonemic paraphasias.',
     blindSpot: 'Written transparent rhymes allow visual matching without phonology (DuLIP section 5.3); fMRI alone misses critical STS sites.',
     lessonId: 'language-networks',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'roux2003', 'maldonado2011'],
   }),
   Object.freeze({
@@ -125,7 +116,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Anomia (especially non-living objects), lexical-semantic errors, or reading arrest.',
     blindSpot: 'Object naming alone misses adjacent basal temporal reading cortex.',
     lessonId: 'reading-route',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'moritz2013', 'coello2013'],
   }),
   Object.freeze({
@@ -143,7 +133,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Proper-name or famous-face anomia, delayed word retrieval, or speech arrest.',
     blindSpot: 'Expecting anterior temporal cortex to always be silent; DuLIP Case 2 found positive naming sites in anterior MTG.',
     lessonId: 'ventral-stream',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'moritz2013', 'duffau2013'],
   }),
   Object.freeze({
@@ -161,7 +150,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Reading delay, naming arrest, phonological paraphasia, or semantic association breakdown.',
     blindSpot: 'Static naming without reading or repetition misses dorsal phonological and reading hubs.',
     lessonId: 'language-networks',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'maldonado2011'],
   }),
   Object.freeze({
@@ -179,7 +167,6 @@ export const CORTEX_PROTOCOLS = Object.freeze([
     errorSignature: 'Reading arrest or delay, acalculia, or impaired sentence completion.',
     blindSpot: 'Testing only object naming skips angular reading and calculation territories.',
     lessonId: 'reading-route',
-    atlasBundle: null,
     sourceIds: ['dulip2015', 'coello2013'],
   }),
 ]);

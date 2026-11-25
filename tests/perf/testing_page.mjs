@@ -31,24 +31,45 @@ try {
           return new Set([...r.getClientRects()].filter(x => x.width && x.height).map(x => Math.round(x.top))).size > 1;
         })
         .map(a => a.textContent.trim());
-      return {scrollWidth: doc.scrollWidth, clientWidth: doc.clientWidth, scrollHeight: doc.scrollHeight, wrappedLinks};
+      const clippedButtons = [...document.querySelectorAll('.drill-option, .target-row, .drill-jump')]
+        .filter(btn => {
+          const r = btn.getBoundingClientRect();
+          return r.width > 0 && (btn.scrollWidth > btn.clientWidth + 1 || r.right > doc.clientWidth + 1);
+        })
+        .map(btn => btn.textContent.trim().slice(0, 40));
+      return {
+        scrollWidth: doc.scrollWidth,
+        clientWidth: doc.clientWidth,
+        scrollHeight: doc.scrollHeight,
+        wrappedLinks,
+        clippedButtons,
+      };
     });
     assert(layout.scrollWidth <= layout.clientWidth, `Horizontal overflow at ${width}px: ${layout.scrollWidth} > ${layout.clientWidth}`);
     assert.deepEqual(layout.wrappedLinks, [], `Wrapped links at ${width}px: ${layout.wrappedLinks.join(', ')}`);
+    assert.deepEqual(layout.clippedButtons, [], `Clipped buttons at ${width}px: ${layout.clippedButtons.join(', ')}`);
     await page.screenshot({path: `${out}/testing-${width}.png`});
     if (layout.scrollHeight <= 12000) {
       await page.screenshot({path: `${out}/testing-${width}-full.png`, fullPage: true});
     }
     report.widths.push({width, ...layout});
   }
-  report.checks.push('Responsive 320/390/768/1440 layout with 0 overflow and 0 wrapped links');
+  report.checks.push('Responsive 320/390/768/1440 layout with 0 overflow, 0 wrapped links, and 0 clipped buttons');
 
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto(new URL('/testing?test=1', base).href, {waitUntil: 'networkidle'});
   assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 26);
 
+  await page.locator('[data-target="ifof-left"]').click();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset?.target), 'ifof-left', 'Selecting a target row preserves keyboard focus');
+
   await page.locator('[data-filter-kind="cortex"]').click();
   assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 10);
+  assert.equal(
+    await page.evaluate(() => new URLSearchParams(location.search).get('target')),
+    'ctx-ifg-left',
+    'URL target updates synchronously with filtered selection',
+  );
   await page.locator('[data-filter-kind="tract"]').click();
   assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 16);
   await page.locator('[data-filter-hemi="R"]').click();
@@ -61,22 +82,29 @@ try {
   await page.locator('#targetSearch').fill('55b');
   assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 1);
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-pmfg-left');
-  report.checks.push('Kind, hemisphere, mode, and search filters update lookup and selection');
+  report.checks.push('Kind, hemisphere, mode, and search filters update lookup, focus, and URL target');
 
   const drill = page.locator('[data-drill="drill-sma-fat-mep"]');
   await drill.locator('[data-option="a"]').click();
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.dataset?.option),
+    'a',
+    'Selecting a drill option preserves keyboard focus in place',
+  );
   const feedback = drill.locator('.drill-feedback');
   assert(await feedback.isVisible());
   assert.equal(await feedback.getAttribute('aria-live'), 'polite');
   assert.match(await feedback.innerText(), /Correct\./);
   await drill.locator('.drill-jump').click();
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'fat-left');
-  report.checks.push('Drill interaction grades answers in aria-live region and jumps to protocol');
+  assert.equal(await page.evaluate(() => document.activeElement?.id), 'targetDetail', 'Jump moves focus to detail panel');
+  report.checks.push('Drill interaction keeps focus, grades answers in mounted aria-live region, and jumps focus to detail');
 
   await page.goto(new URL('/testing?target=af-left&test=1', base).href, {waitUntil: 'networkidle'});
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'af-left');
   assert.match(await page.locator('#targetDetail h3').innerText(), /Left arcuate fasciculus/);
-  report.checks.push('Deep link ?target=af-left selects target');
+  assert.match(await page.locator('#targetDetail .detail-link').first().getAttribute('href'), /^\.\/atlas\?lesson=/);
+  report.checks.push('Deep link ?target=af-left selects target with clean atlas route');
 
   await page.goto(new URL('/labs/lesion-lab?test=1', base).href, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => window.__lesionLabTest?.ready, null, {timeout: 60000});
@@ -88,7 +116,7 @@ try {
   const firstHref = await page.locator('#testingList .lab-testing-link').first().getAttribute('href');
   assert.match(firstHref, /^\.\/testing\?target=/);
   await page.screenshot({path: `${out}/lesion-lab-testing-drawer.png`});
-  report.checks.push(`Lesion Lab #testingBlock renders ${labItems} matched protocol(s)`);
+  report.checks.push(`Lesion Lab #testingBlock renders ${labItems} matched protocol(s) with coverage note`);
 
   assert.deepEqual(report.errors, []);
   assert.deepEqual(report.consoleErrors, []);

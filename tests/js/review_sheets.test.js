@@ -35,12 +35,15 @@ test('writes one sheet per lesson, case, and testing guide (25 total) into the g
   });
 });
 
-test('known-positive: testing sheet includes all 25 verified sources and their scope notes', () => {
+test('known-positive: testing sheet includes all 25 verified sources, scope notes, task groups, secondary modes, and drill targets', () => {
   const sheet = buildTestingSheet();
   for (const src of Object.values(TESTING_SOURCES)) {
     assert.ok(sheet.includes(src.id), `expected testing source ${src.id}`);
     assert.ok(sheet.includes(src.scope), `expected testing scope of ${src.id}`);
   }
+  assert.ok(sheet.includes('**Group / mode:**'));
+  assert.ok(sheet.includes('(Secondary:'));
+  assert.ok(sheet.includes('**Target protocol:** `fat-left`'));
 });
 
 test('known-positive: every lesson sheet contains every source id used by that lesson', async () => {

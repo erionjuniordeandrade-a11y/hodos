@@ -160,6 +160,8 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   assert(!receipt.files.some(f=>/^(data\.json|app\.js|cases\/|api\/|handoff\/|\.env)/.test(f.path)));
   const repeated=await buildHodos({root,out});
   assert.deepEqual(repeated,receipt,'an unchanged build is repeatable');
+  assert.equal(await readFile(path.join(out,'lesion_lab.js'),'utf8'),await readFile(path.join(root,'viewer/lesion_lab.js'),'utf8'),'exported lesion_lab.js stays byte-identical to viewer/');
+  assert.equal(await readFile(path.join(out,'testing.js'),'utf8'),await readFile(path.join(root,'viewer/testing.js'),'utf8'),'exported testing.js stays byte-identical to viewer/');
 });
 
 test('extra private-looking files never enter the public export; changed output is preserved',async t=>{

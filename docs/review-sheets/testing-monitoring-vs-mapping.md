@@ -82,40 +82,291 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ## Tasks (DuLIP & specialized)
 
-- **Repetition of words** (Phonology, <=4 s DES train) — Repeat 2- or 3-syllable words (clusters and phonemic pairs). _Caveat:_ Probes phonological input-output route (left AF and inferior SMG); leaves ventral semantic route untested.
-- **Reading with phonological odd word out** (Phonology, <=4 s DES train) — Read aloud the non-rhyming word among 4 one-syllable words (25 slides). _Caveat:_ DuLIP section 5.3 caveat: transparent rhymes (bal, hal, val, weg) allow visual matching without phonological processing unless orthography is non-transparent or presented auditorily.
-- **Reading with semantic odd word out** (Semantics, <=4 s DES train) — Read aloud the unrelated word among 4 written nouns (25 items). _Caveat:_ Assesses lexical visual reading and semantic judgment across temporal, prefrontal, parietal, occipital cortex and UF, ILF, IFOF.
-- **Naming with semantic odd picture out** (Semantics, <=4 s DES train) — Name the unrelated drawing among 3 black-and-white pictures (25 items). _Caveat:_ Tests non-verbal semantic judgment and naming across temporal/prefrontal regions, IFOF, and ILF without requiring word reading.
-- **Sentence completion (closed context)** (Semantics, <=4 s DES train) — Read stem aloud and add one elicited noun ("The baker sells..." -> bread). _Caveat:_ Measures reading, speech initiation, and constrained lexical production across SMA, Broca area, insula, subcallosal fascicle/FAT, and ILF.
-- **Verb generation** (Syntax, <=4 s DES train) — Produce a semantically related verb for a presented noun (50 items). _Caveat:_ DuLIP section 5.3 notes verb generation blends lexical semantics and syntax; action naming tests grammatical inflection more directly.
-- **Action naming (3rd person singular)** (Syntax, <=4 s DES train) — Carrier phrase ("The man...") + conjugated finite verb (60 drawings). _Caveat:_ Tests person/number verb agreement in Broca area and posterior MFG; carrier phrase separates stimulation seizures from verb anomia.
-- **Verbal diadochokinesis (DDK)** (Articulation, <=4 s DES train) — Repeat 9 syllable sequences 5x fast (PAF PAF PAF and DAF PAF LAF). _Caveat:_ Sensitive to speech-motor planning in IFG, ventral premotor cortex (limited plasticity), anterior insula, SLF, and CST motor speech.
-- **Object naming (100 drawings)** (Naming, <=4 s DES train) — Carrier phrase ("This is a...") + 4 s beep (100 living/non-living drawings). _Caveat:_ Carrier phrase separates speech arrest or seizure from pure anomia; intact object naming never excludes reading, action, or initiation deficits.
-- **Semantic association (moved from 4 s DES)** (Semantics, Continuous resection monitoring (moved from 4 s DES)) — Add a related word to 2 written nouns (car, bike ... -> bus, 25 items). _Caveat:_ DuLIP section 5.3 caveat: healthy controls scored 83.44% within 4 s due to delayed answers; apply during subcortical IFOF resection rather than 4 s DES.
-- **Phonological fluency (D, A, T)** (Phonology, Unpaced (1 min per letter) during resection) — Generate as many words as possible starting with D, A, or T. _Caveat:_ Measures internally driven language initiation in frontal cortex and SMA/FAT; too slow for a 4 s DES pulse.
-- **Phonological sentence judgment** (Phonology, Unpaced during resection) — Judge 30 auditory sentences containing non-words ("The hokkel eats a gersie"). _Caveat:_ Probes phonological decoding and verbal short-term memory across middle posterior temporal cortex, AF, SLF, and ILF.
-- **Semantic fluency (animals and jobs)** (Semantics, Unpaced (1 min per category) during resection) — Generate as many animals or jobs as possible in one minute. _Caveat:_ Monitors conceptual semantic retrieval in temporal territories; sensitive to early postoperative decline.
-- **Semantic sentence judgment** (Semantics, Unpaced during resection) — Judge 50 auditory sentences for semantic violations ("The watering-can prepares a sandwich"). _Caveat:_ Monitors auditory semantic comprehension in temporal cortical and subcortical corridors without visual cards.
-- **Sentence completion (broad context)** (Semantics, Unpaced during resection) — Complete 25 open stems with a full conjugated phrase ("At 5 o'clock..."). _Caveat:_ Assesses language dynamics and grammatical phrase production across SMA, temporoparietal cortex, insula, FAT, and ILF.
-- **Syntactic fluency (verbs)** (Syntax, Unpaced (1 min) during resection) — Generate as many verbs as possible in one minute. _Caveat:_ Tests grammatical flexibility in inferior/middle frontal and parietal areas; requires more grammatical encoding than noun fluency.
-- **Syntactic sentence judgment** (Syntax, Unpaced during resection) — Judge 50 auditory sentences for word order, verb inflection, or pronoun errors. _Caveat:_ Probes receptive grammatical awareness in frontal regions when overt sentence production is paused.
-- **Automatic speech (counting)** (Articulation, <=4 s DES train) — Count 1 to 10 aloud in a steady rhythm. _Caveat:_ Screens motor-speech output and FAT/SMA initiation arrest; normal counting never clears phonological, semantic, or syntactic cortex.
-- **TES / DCS-MEP monitoring** (Motor conduction, Continuous surveillance) — Baseline train stimulation under stable TIVA. _Caveat:_ Protects primary CST conduction only; blind to SMA initiation and non-motor networks.
-- **HF monopolar subcortical threshold** (Motor proximity, Intermittent margin probing) — Train-of-five escalation 0-20 mA ahead of cut. _Caveat:_ Measures electrical proximity, not injury; 1 mA = 1 mm is a rough guide only.
-- **SSEP & central sulcus phase reversal** (Central localization, Cortical localization + continuous SSEP) — Median-nerve N20/P20 inversion across strip. _Caveat:_ Identifies central sulcus surface banks; provides no subcortical tract distance.
-- **Awake double task (motor + language)** (Dual network load, Continuous during resection) — Rhythmic contralateral arm flexion + naming or fluency. _Caveat:_ Fatigue, pain, or sedation can cause generalized slowing that mimics focal disconnection.
-- **Line bisection (spatial attention)** (Spatial attention, <=4 s DES or rapid trials) — Mark midpoint of horizontal lines on tablet or cards. _Caveat:_ Essential on right parietal / SLF II resections; untested cases risk left spatial neglect.
-- **Awake reading (orthographic / word-form)** (Reading, <=4 s DES train) — Read regular and irregular words aloud within 4 s. _Caveat:_ Object naming can stay intact while left ILF/VOF disconnection causes pure alexia.
-- **Visual field dual-quadrant task** (Vision, <=4 s DES train) — Name two items simultaneously (foveal + target quadrant). _Caveat:_ Prevents gaze cheating; requires strict fixation and awake patient cooperation.
-- **Vision-guided reaching (optic ataxia)** (Visuomotor, <=4 s DES train) — Reach to peripheral visual target with contralateral hand. _Caveat:_ Probes superior parietal / SLF I visuomotor integration missed by strength testing alone.
-- **Prosody & emotion recognition** (Social cognition, <=4 s DES or short block) — Affective prosody, distant semantic meaning, or emotion from eyes. _Caveat:_ Right frontoparietal and ventral network functions invisible to standard motor/naming batteries.
-- **Calculation (simple arithmetic)** (Calculation, <=4 s DES train) — Solve single-step arithmetic within 4 s. _Caveat:_ Probes inferior parietal / angular territory; fails if verbal working memory is overloaded.
+### Repetition of words
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Phonology, <=4 s DES train
+- **Prompt / protocol:** Repeat 2- or 3-syllable words (clusters and phonemic pairs)
+- **Caveat:** Probes phonological input-output route (left AF and inferior SMG); leaves ventral semantic route untested.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **maldonado2011** — Maldonado IL et al., 2011 · Left superior longitudinal fascicle and language electrostimulation (DOI 10.1007/s00429-011-0309-x) — functional_measurement
+
+### Reading with phonological odd word out
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Phonology, <=4 s DES train
+- **Prompt / protocol:** Read aloud the non-rhyming word among 4 one-syllable words (25 slides)
+- **Caveat:** DuLIP section 5.3 caveat: transparent rhymes (bal, hal, val, weg) allow visual matching without phonological processing unless orthography is non-transparent or presented auditorily.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **maldonado2011** — Maldonado IL et al., 2011 · Left superior longitudinal fascicle and language electrostimulation (DOI 10.1007/s00429-011-0309-x) — functional_measurement
+
+### Reading with semantic odd word out
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Semantics, <=4 s DES train
+- **Prompt / protocol:** Read aloud the unrelated word among 4 written nouns (25 items)
+- **Caveat:** Assesses lexical visual reading and semantic judgment across temporal, prefrontal, parietal, occipital cortex and UF, ILF, IFOF.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+
+### Naming with semantic odd picture out
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Semantics, <=4 s DES train
+- **Prompt / protocol:** Name the unrelated drawing among 3 black-and-white pictures (25 items)
+- **Caveat:** Tests non-verbal semantic judgment and naming across temporal/prefrontal regions, IFOF, and ILF without requiring word reading.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+
+### Sentence completion (closed context)
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Semantics, <=4 s DES train
+- **Prompt / protocol:** Read stem aloud and add one elicited noun ("The baker sells..." -> bread)
+- **Caveat:** Measures reading, speech initiation, and constrained lexical production across SMA, Broca area, insula, subcallosal fascicle/FAT, and ILF.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **krainik2001** — Krainik A et al., 2001 · Role of the supplementary motor area in motor deficit following medial frontal surgery (PMID 11552019) — association
+
+### Verb generation
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Syntax, <=4 s DES train
+- **Prompt / protocol:** Produce a semantically related verb for a presented noun (50 items)
+- **Caveat:** DuLIP section 5.3 notes verb generation blends lexical semantics and syntax; action naming tests grammatical inflection more directly.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **lubrano2014** — Lubrano V et al., 2014 · Category-specific cortical naming of objects and actions (DOI 10.1002/hbm.22189) — functional_measurement
+
+### Action naming (3rd person singular)
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Syntax, <=4 s DES train
+- **Prompt / protocol:** Carrier phrase ("The man...") + conjugated finite verb (60 drawings)
+- **Caveat:** Tests person/number verb agreement in Broca area and posterior MFG; carrier phrase separates stimulation seizures from verb anomia.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **lubrano2014** — Lubrano V et al., 2014 · Category-specific cortical naming of objects and actions (DOI 10.1002/hbm.22189) — functional_measurement
+
+### Verbal diadochokinesis (DDK)
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Articulation, <=4 s DES train
+- **Prompt / protocol:** Repeat 9 syllable sequences 5x fast (PAF PAF PAF and DAF PAF LAF)
+- **Caveat:** Sensitive to speech-motor planning in IFG, ventral premotor cortex (limited plasticity), anterior insula, SLF, and CST motor speech.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **vangeemen2013** — Van Geemen K et al., 2013 · Limited plastic potential of left ventral premotor cortex in speech articulation (DOI 10.1002/hbm.22275) — functional_measurement
+- **maldonado2011** — Maldonado IL et al., 2011 · Left superior longitudinal fascicle and language electrostimulation (DOI 10.1007/s00429-011-0309-x) — functional_measurement
+
+### Object naming (100 drawings)
+
+- **Group / mode:** dulip-part-a · Awake mapping (DES)
+- **Domain / timing:** Naming, <=4 s DES train
+- **Prompt / protocol:** Carrier phrase ("This is a...") + 4 s beep (100 living/non-living drawings)
+- **Caveat:** Carrier phrase separates speech arrest or seizure from pure anomia; intact object naming never excludes reading, action, or initiation deficits.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **sanai2008** — Sanai N et al., 2008 · Functional outcome after language mapping for glioma resection (PMID 18172171) — association
+- **lubrano2014** — Lubrano V et al., 2014 · Category-specific cortical naming of objects and actions (DOI 10.1002/hbm.22189) — functional_measurement
+
+### Semantic association (moved from 4 s DES)
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Semantics, Continuous resection monitoring (moved from 4 s DES)
+- **Prompt / protocol:** Add a related word to 2 written nouns (car, bike ... -> bus, 25 items)
+- **Caveat:** DuLIP section 5.3 caveat: healthy controls scored 83.44% within 4 s due to delayed answers; apply during subcortical IFOF resection rather than 4 s DES.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+
+### Phonological fluency (D, A, T)
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Phonology, Unpaced (1 min per letter) during resection
+- **Prompt / protocol:** Generate as many words as possible starting with D, A, or T
+- **Caveat:** Measures internally driven language initiation in frontal cortex and SMA/FAT; too slow for a 4 s DES pulse.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **catani2013** — Catani M et al., 2013 · Frontal aslant tract and verbal fluency (DOI 10.1093/brain/awt163) — association
+
+### Phonological sentence judgment
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Phonology, Unpaced during resection
+- **Prompt / protocol:** Judge 30 auditory sentences containing non-words ("The hokkel eats a gersie")
+- **Caveat:** Probes phonological decoding and verbal short-term memory across middle posterior temporal cortex, AF, SLF, and ILF.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **maldonado2011** — Maldonado IL et al., 2011 · Left superior longitudinal fascicle and language electrostimulation (DOI 10.1007/s00429-011-0309-x) — functional_measurement
+
+### Semantic fluency (animals and jobs)
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Semantics, Unpaced (1 min per category) during resection
+- **Prompt / protocol:** Generate as many animals or jobs as possible in one minute
+- **Caveat:** Monitors conceptual semantic retrieval in temporal territories; sensitive to early postoperative decline.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+
+### Semantic sentence judgment
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Semantics, Unpaced during resection
+- **Prompt / protocol:** Judge 50 auditory sentences for semantic violations ("The watering-can prepares a sandwich")
+- **Caveat:** Monitors auditory semantic comprehension in temporal cortical and subcortical corridors without visual cards.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+
+### Sentence completion (broad context)
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Semantics, Unpaced during resection
+- **Prompt / protocol:** Complete 25 open stems with a full conjugated phrase ("At 5 o'clock...")
+- **Caveat:** Assesses language dynamics and grammatical phrase production across SMA, temporoparietal cortex, insula, FAT, and ILF.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **krainik2001** — Krainik A et al., 2001 · Role of the supplementary motor area in motor deficit following medial frontal surgery (PMID 11552019) — association
+
+### Syntactic fluency (verbs)
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Syntax, Unpaced (1 min) during resection
+- **Prompt / protocol:** Generate as many verbs as possible in one minute
+- **Caveat:** Tests grammatical flexibility in inferior/middle frontal and parietal areas; requires more grammatical encoding than noun fluency.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+
+### Syntactic sentence judgment
+
+- **Group / mode:** dulip-part-b · Awake monitoring (resection)
+- **Domain / timing:** Syntax, Unpaced during resection
+- **Prompt / protocol:** Judge 50 auditory sentences for word order, verb inflection, or pronoun errors
+- **Caveat:** Probes receptive grammatical awareness in frontal regions when overt sentence production is paused.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+
+### Automatic speech (counting)
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Articulation, <=4 s DES train
+- **Prompt / protocol:** Count 1 to 10 aloud in a steady rhythm
+- **Caveat:** Screens motor-speech output and FAT/SMA initiation arrest; normal counting never clears phonological, semantic, or syntactic cortex.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **vangeemen2013** — Van Geemen K et al., 2013 · Limited plastic potential of left ventral premotor cortex in speech articulation (DOI 10.1002/hbm.22275) — functional_measurement
+- **catani2013** — Catani M et al., 2013 · Frontal aslant tract and verbal fluency (DOI 10.1093/brain/awt163) — association
+
+### TES / DCS-MEP monitoring
+
+- **Group / mode:** motor-asleep · Asleep monitoring
+- **Domain / timing:** Motor conduction, Continuous surveillance
+- **Prompt / protocol:** Baseline train stimulation under stable TIVA
+- **Caveat:** Protects primary CST conduction only; blind to SMA initiation and non-motor networks.
+**Sources:**
+- **asnm2013** — Macdonald DB et al., 2013 · ASNM position statement on intraoperative MEP monitoring (PMID 24055297) — conceptual_model
+- **giampiccolo2021** — Giampiccolo D et al., 2021 · Long-term motor deficit in brain tumour surgery with preserved MEPs (PMID 33615216) — association
+
+### HF monopolar subcortical threshold
+
+- **Group / mode:** motor-asleep · Asleep mapping
+- **Domain / timing:** Motor proximity, Intermittent margin probing
+- **Prompt / protocol:** Train-of-five escalation 0-20 mA ahead of cut
+- **Caveat:** Measures electrical proximity, not injury; 1 mA = 1 mm is a rough guide only.
+**Sources:**
+- **seidel2013** — Seidel K et al., 2013 · Subcortical motor mapping thresholds and MEP warning (PMID 23198802) — functional_measurement
+- **mikuni2007** — Mikuni N et al., 2007 · MEP recording and fiber tracking for estimating pyramidal tracts (PMID 17236498) — functional_measurement
+
+### SSEP & central sulcus phase reversal
+
+- **Group / mode:** motor-asleep · Asleep mapping
+- **Domain / timing:** Central localization, Cortical localization + continuous SSEP
+- **Prompt / protocol:** Median-nerve N20/P20 inversion across strip
+- **Caveat:** Identifies central sulcus surface banks; provides no subcortical tract distance.
+**Sources:**
+- **asnm2013** — Macdonald DB et al., 2013 · ASNM position statement on intraoperative MEP monitoring (PMID 24055297) — conceptual_model
+
+### Awake double task (motor + language)
+
+- **Group / mode:** awake-specialized · Awake monitoring (resection)
+- **Domain / timing:** Dual network load, Continuous during resection
+- **Prompt / protocol:** Rhythmic contralateral arm flexion + naming or fluency
+- **Caveat:** Fatigue, pain, or sedation can cause generalized slowing that mimics focal disconnection.
+**Sources:**
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **aboelnour2024** — Abo-Elnour DE et al., 2024 · Awake versus asleep mapped glioma resection meta-analysis (PMID 39560794) — association
+
+### Line bisection (spatial attention)
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Spatial attention, <=4 s DES or rapid trials
+- **Prompt / protocol:** Mark midpoint of horizontal lines on tablet or cards
+- **Caveat:** Essential on right parietal / SLF II resections; untested cases risk left spatial neglect.
+**Sources:**
+- **roux2011** — Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection (PMID 22067336) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+
+### Awake reading (orthographic / word-form)
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Reading, <=4 s DES train
+- **Prompt / protocol:** Read regular and irregular words aloud within 4 s
+- **Caveat:** Object naming can stay intact while left ILF/VOF disconnection causes pure alexia.
+**Sources:**
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+
+### Visual field dual-quadrant task
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Vision, <=4 s DES train
+- **Prompt / protocol:** Name two items simultaneously (foveal + target quadrant)
+- **Caveat:** Prevents gaze cheating; requires strict fixation and awake patient cooperation.
+**Sources:**
+- **grascombe2012** — Gras-Combe G et al., 2012 · Intraoperative subcortical electrical mapping of optic radiations (DOI 10.3171/2012.6.JNS111981) — functional_measurement
+- **yogarajah2009** — Yogarajah M et al., 2009 · Defining Meyer's loop, visual fields and tractography (PMID 19460796) — reconstruction
+
+### Vision-guided reaching (optic ataxia)
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Visuomotor, <=4 s DES train
+- **Prompt / protocol:** Reach to peripheral visual target with contralateral hand
+- **Caveat:** Probes superior parietal / SLF I visuomotor integration missed by strength testing alone.
+**Sources:**
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+
+### Prosody & emotion recognition
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Social cognition, <=4 s DES or short block
+- **Prompt / protocol:** Affective prosody, distant semantic meaning, or emotion from eyes
+- **Caveat:** Right frontoparietal and ventral network functions invisible to standard motor/naming batteries.
+**Sources:**
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+
+### Calculation (simple arithmetic)
+
+- **Group / mode:** awake-specialized · Awake mapping (DES)
+- **Domain / timing:** Calculation, <=4 s DES train
+- **Prompt / protocol:** Solve single-step arithmetic within 4 s
+- **Caveat:** Probes inferior parietal / angular territory; fails if verbal working memory is overloaded.
+**Sources:**
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
 
 ## Anatomical protocols
 
 ### Left arcuate fasciculus (AF)
 
-- **Kind / side:** tract (L) · Families: AF · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (L) · Families: AF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Repetition of words, Reading with phonological odd word out, Object naming (100 drawings)
 - **Monitoring tasks:** Phonological fluency (D, A, T), Phonological sentence judgment
 - **Execution:** Stimulate the advancing dorsal wall with LF bipolar DES in alternating order using word repetition, phonological odd word out, and naming; monitor auditory phonological judgment during removal.
@@ -129,7 +380,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Right arcuate fasciculus (AF)
 
-- **Kind / side:** tract (R) · Families: AF · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (R) · Families: AF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Prosody & emotion recognition, Repetition of words
 - **Monitoring tasks:** Awake double task (motor + language), Phonological fluency (D, A, T)
 - **Execution:** Test awake in right-dominant or prosody-at-risk cases with affective prosody, emotion recognition, and repetition checks.
@@ -143,7 +394,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left IFOF (ventral semantic route)
 
-- **Kind / side:** tract (L) · Families: IFOF · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (L) · Families: IFOF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Naming with semantic odd picture out, Reading with semantic odd word out, Object naming (100 drawings)
 - **Monitoring tasks:** Semantic association (moved from 4 s DES), Semantic sentence judgment, Semantic fluency (animals and jobs)
 - **Execution:** Map deep insular/temporal stem and frontal opercular floor with <=4 s semantic odd picture/word out and naming; run semantic association and semantic sentence judgment during resection.
@@ -157,7 +408,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Right IFOF (ventral semantic & social route)
 
-- **Kind / side:** tract (R) · Families: IFOF · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (R) · Families: IFOF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Prosody & emotion recognition, Naming with semantic odd picture out
 - **Monitoring tasks:** Semantic association (moved from 4 s DES), Awake double task (motor + language)
 - **Execution:** Test awake during right insular or temporal stem dissections using non-verbal semantics, emotion recognition, and dual task.
@@ -171,7 +422,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left ILF & VOF (reading route)
 
-- **Kind / side:** tract (L) · Families: ILF, VOF · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (L) · Families: ILF, VOF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Awake reading (orthographic / word-form), Sentence completion (closed context), Object naming (100 drawings)
 - **Monitoring tasks:** Sentence completion (broad context), Semantic fluency (animals and jobs), Semantic sentence judgment
 - **Execution:** Pair awake reading and reading-based sentence completion with object naming along basal occipitotemporal and lateral occipital walls.
@@ -185,7 +436,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left uncinate fasciculus (UF)
 
-- **Kind / side:** tract (L) · Families: UF · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (L) · Families: UF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Object naming (100 drawings), Naming with semantic odd picture out, Reading with semantic odd word out
 - **Monitoring tasks:** Semantic fluency (animals and jobs), Semantic association (moved from 4 s DES)
 - **Execution:** Check anterior temporal stem / limen insulae with naming and semantic odd picture out; recognize frequent functional compensation after anterior temporal resection.
@@ -199,7 +450,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left frontal aslant tract (FAT / subcallosal)
 
-- **Kind / side:** tract (L) · Families: FAT · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (L) · Families: FAT · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Sentence completion (closed context), Automatic speech (counting), Verb generation
 - **Monitoring tasks:** Phonological fluency (D, A, T), Syntactic fluency (verbs), Sentence completion (broad context), Awake double task (motor + language)
 - **Execution:** Test speech initiation with closed sentence completion and counting during DES, and track fluency and broad sentence completion continuously during medial frontal removal.
@@ -214,7 +465,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Right frontal aslant tract (FAT)
 
-- **Kind / side:** tract (R) · Families: FAT · **Mode:** Awake monitoring (resection)
+- **Kind / side:** tract (R) · Families: FAT · **Mode:** Awake monitoring (resection) (Secondary: Awake mapping (DES))
 - **Mapping tasks:** Awake double task (motor + language)
 - **Monitoring tasks:** Awake double task (motor + language), Phonological fluency (D, A, T)
 - **Execution:** Monitor bimanual/contralateral motor initiation and executive control with continuous double task during right medial frontal resection.
@@ -228,7 +479,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### SLF I (dorsal visuomotor & control)
 
-- **Kind / side:** tract (both) · Families: SLF1 · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (both) · Families: SLF1 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Vision-guided reaching (optic ataxia)
 - **Monitoring tasks:** Awake double task (motor + language)
 - **Execution:** Test superior parietal / medial frontoparietal corridor awake with vision-guided reaching and dual motor-cognitive task.
@@ -241,7 +492,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Right SLF II (spatial attention)
 
-- **Kind / side:** tract (R) · Families: SLF2 · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (R) · Families: SLF2 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Line bisection (spatial attention)
 - **Monitoring tasks:** Awake double task (motor + language)
 - **Execution:** Perform <=4 s DES during repeated line bisection along right middle frontal to angular parietal white matter.
@@ -255,7 +506,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left SLF III (articulatory loop)
 
-- **Kind / side:** tract (L) · Families: SLF3 · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (L) · Families: SLF3 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Verbal diadochokinesis (DDK), Repetition of words, Automatic speech (counting)
 - **Monitoring tasks:** Phonological fluency (D, A, T), Awake double task (motor + language)
 - **Execution:** Map supramarginal to ventral premotor subcortical wall with verbal diadochokinesis, word repetition, and counting.
@@ -269,7 +520,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Corticospinal tract (CST)
 
-- **Kind / side:** tract (both) · Families: CST · **Mode:** Asleep mapping
+- **Kind / side:** tract (both) · Families: CST · **Mode:** Asleep mapping (Secondary: Asleep monitoring, Awake mapping (DES))
 - **Mapping tasks:** HF monopolar subcortical threshold, SSEP & central sulcus phase reversal, Verbal diadochokinesis (DDK)
 - **Monitoring tasks:** TES / DCS-MEP monitoring, Awake double task (motor + language)
 - **Execution:** Combine cortical localization (DES or phase reversal) with HF monopolar subcortical threshold probing and continuous TES/DCS-MEP; add DDK/repetition when awake near motor-speech fibers.
@@ -285,7 +536,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Optic radiation (Meyer's loop & OR)
 
-- **Kind / side:** tract (both) · Families: OR · **Mode:** Awake mapping (DES)
+- **Kind / side:** tract (both) · Families: OR · **Mode:** Awake mapping (DES) (Secondary: Untestable (anatomy only))
 - **Mapping tasks:** Visual field dual-quadrant task
 - **Monitoring tasks:** Awake double task (motor + language)
 - **Execution:** Map awake with dual-quadrant simultaneous visual task when preserving quadrant vision is a surgical priority.
@@ -334,7 +585,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left inferior frontal gyrus (IFG)
 
-- **Kind / side:** cortex (L) · Parcels: 44, 45, 47l, IFJp · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: 44, 45, 47l, IFJp · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Verbal diadochokinesis (DDK), Repetition of words, Verb generation, Action naming (3rd person singular), Object naming (100 drawings)
 - **Monitoring tasks:** Syntactic fluency (verbs), Syntactic sentence judgment
 - **Execution:** Map pars opercularis (44) and triangularis (45) serially with DDK, repetition, verb generation, and action naming; monitor syntax during resection.
@@ -348,7 +599,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left posterior middle frontal gyrus (pMFG)
 
-- **Kind / side:** cortex (L) · Parcels: 55b, IFJa, p9-46v, 8C · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: 55b, IFJa, p9-46v, 8C · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Action naming (3rd person singular), Verb generation, Object naming (100 drawings)
 - **Monitoring tasks:** Phonological fluency (D, A, T), Syntactic fluency (verbs), Awake double task (motor + language)
 - **Execution:** Probe 55b and posterior MFG with action naming (DuLIP Table 3) and verb generation; track phonological/syntactic fluency during resection.
@@ -362,7 +613,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left SMA / posterior SFG
 
-- **Kind / side:** cortex (L) · Parcels: SFL, 6ma, 6mp, SCEF · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: SFL, 6ma, 6mp, SCEF · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Sentence completion (closed context), Automatic speech (counting)
 - **Monitoring tasks:** Sentence completion (broad context), Phonological fluency (D, A, T), Syntactic fluency (verbs), Awake double task (motor + language)
 - **Execution:** Map language initiation with closed sentence completion (DuLIP Table 3) and monitor broad completion, verbal fluency, and contralateral movement continuously.
@@ -376,7 +627,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left precentral gyrus (M1 & vPMC)
 
-- **Kind / side:** cortex (L) · Parcels: 4, 6v, 6d, 6r · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: 4, 6v, 6d, 6r · **Mode:** Awake mapping (DES) (Secondary: Asleep mapping, Asleep monitoring)
 - **Mapping tasks:** Repetition of words, Verbal diadochokinesis (DDK), SSEP & central sulcus phase reversal
 - **Monitoring tasks:** TES / DCS-MEP monitoring, Awake double task (motor + language)
 - **Execution:** Calibrate positive motor response in area 4 first; test 6v/6r with repetition and verbal diadochokinesis (DuLIP Table 3) because vPMC has limited plasticity.
@@ -390,7 +641,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left posterior STG (pSTG)
 
-- **Kind / side:** cortex (L) · Parcels: A4, A5, STGa, PBelt · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: A4, A5, PBelt · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Naming with semantic odd picture out, Object naming (100 drawings)
 - **Monitoring tasks:** Semantic sentence judgment, Semantic fluency (animals and jobs)
 - **Execution:** Map posterior STG semantics and naming of living objects with semantic odd picture out and object naming; monitor auditory semantic sentence judgment during removal (DuLIP Table 3).
@@ -403,7 +654,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left mid-posterior STS
 
-- **Kind / side:** cortex (L) · Parcels: STSdp, STSvp, TPOJ1 · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: STSdp, STSvp, TPOJ1 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Reading with phonological odd word out, Repetition of words
 - **Monitoring tasks:** Phonological sentence judgment
 - **Execution:** Test the mid-posterior STS phonological network with phonological odd word out during DES and auditory phonological sentence judgment during resection (DuLIP Table 3).
@@ -417,7 +668,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left mid-inferior temporal gyrus (mid-ITG)
 
-- **Kind / side:** cortex (L) · Parcels: TE1p, TE2a, TE2p, PHT · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: TE1p, TE2a, TE2p, PHT · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Object naming (100 drawings), Awake reading (orthographic / word-form)
 - **Monitoring tasks:** Semantic sentence judgment, Semantic fluency (animals and jobs)
 - **Execution:** Test the phonological-semantic lexical interface (non-living objects) with object naming and semantic sentence judgment (DuLIP Table 3), plus awake reading along basal cortex.
@@ -431,7 +682,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left anterior MTG (aMTG)
 
-- **Kind / side:** cortex (L) · Parcels: TE1a, TGd, STSda · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: TE1a, TGd, STSda · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Object naming (100 drawings), Naming with semantic odd picture out
 - **Monitoring tasks:** Semantic association (moved from 4 s DES), Semantic fluency (animals and jobs)
 - **Execution:** Confirm cortical boundaries with naming (including famous-face naming per DuLIP Table 3) and switch to continuous semantic monitoring when deepening toward temporal stem.
@@ -445,7 +696,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left supramarginal gyrus (SMG)
 
-- **Kind / side:** cortex (L) · Parcels: PF, PFop, PFm, PSL · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: PF, PFop, PFm, PSL · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Sentence completion (closed context), Object naming (100 drawings), Repetition of words
 - **Monitoring tasks:** Semantic association (moved from 4 s DES), Sentence completion (broad context), Phonological sentence judgment
 - **Execution:** Map SMG reading, naming, and semantics with reading-based sentence completion and object naming (DuLIP Table 3), adding repetition near inferior SMG/AF.
@@ -458,7 +709,7 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 ### Left angular gyrus (ANG)
 
-- **Kind / side:** cortex (L) · Parcels: PGi, PGs, PGp · **Mode:** Awake mapping (DES)
+- **Kind / side:** cortex (L) · Parcels: PGi, PGs, PGp · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
 - **Mapping tasks:** Sentence completion (closed context), Awake reading (orthographic / word-form), Calculation (simple arithmetic)
 - **Monitoring tasks:** Sentence completion (broad context), Semantic association (moved from 4 s DES)
 - **Execution:** Combine reading plus sentence completion (DuLIP Table 3) and calculation (DuLIP Case 5) during angular DES; monitor broad completion continuously.
@@ -475,41 +726,64 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 
 During a left medial frontal glioma resection, continuous TES-MEPs remain unchanged from baseline. Postoperatively the patient has severe akinesia and speech initiation arrest despite intact naming at closure. What was the monitoring blind spot?
 
+- **Target protocol:** `fat-left`
 - [x] TES-MEPs test primary CST conduction, not SMA/FAT motor and speech initiation networks. — Preserved MEPs confirm end-to-end CST continuity from M1 to muscle but are silent to medial premotor (SMA/pre-SMA) and FAT initiation pathways; awake fluency and double-task monitoring are required to detect initiation breakdown.
 - [ ] MEP amplitude only drops when cortical area 4 is resected, never with subcortical injury. — MEPs are sensitive to both cortical and subcortical CST conduction failure, so a normal MEP reflects sparing of M1-CST rather than cortical vs subcortical specificity.
 - [ ] SSEP phase reversal would have prevented SMA syndrome under asleep anesthesia. — Phase reversal localizes the central sulcus at the surface and provides no information on medial premotor initiation or FAT.
+**Sources:**
+- **giampiccolo2021** — Giampiccolo D et al., 2021 · Long-term motor deficit in brain tumour surgery with preserved MEPs (PMID 33615216) — association
+- **krainik2001** — Krainik A et al., 2001 · Role of the supplementary motor area in motor deficit following medial frontal surgery (PMID 11552019) — association
+- **catani2013** — Catani M et al., 2013 · Frontal aslant tract and verbal fluency (DOI 10.1093/brain/awt163) — association
 
 ### Left basal occipitotemporal naming pass
 
 Along the inferior-lateral margin of a left temporo-occipital resection, LF bipolar DES at 3.5 mA causes zero errors on object naming. Which deficit can still occur if you clear the corridor on naming alone?
 
+- **Target protocol:** `ilf-vof-left-reading`
 - [x] Pure alexia from disconnecting left ILF/VOF visual word-form pathways. — A positive site is strictly task-specific. Oral object naming can remain intact while left ILF/VOF disconnection produces pure alexia unless awake reading is explicitly tested.
 - [ ] Contralateral hemiplegia from posterior limb CST injury. — The basal occipitotemporal ILF/VOF corridor is distant from the posterior limb CST; reading is the specific local blind spot.
 - [ ] Bilateral episodic amnesia from fornix disconnection. — Episodic amnesia tracks the fornix in medial/intraventricular corridors, not the lateral/basal ILF-VOF reading route.
+**Sources:**
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
 
 ### DuLIP semantic association 4-second delay
 
 You attempt to map cortical and subcortical sites with the DuLIP semantic association task using 4-second DES trains, and the patient makes frequent delays past the 4-second beep even off stimulation. What does DuLIP section 5.3 prescribe?
 
+- **Target protocol:** `ifof-left`
 - [x] Move semantic association to continuous resection monitoring (no 4 s limit) and use faster DES tasks like object naming or semantic odd picture out. — In DuLIP standardization (n=250), healthy adults averaged only 83.44% accuracy on semantic association within 4 s. Section 5.3 explicitly moves it to unpaced resection monitoring.
 - [ ] Increase DES current above 10 mA until every trial stops cleanly. — Escalating current indiscriminately triggers after-discharges and seizures without fixing an unsuitable task timing window.
 - [ ] Treat every >4 s delay as a hard positive language boundary. — Baseline normative delays exceed 4 s on this task, so calling >4 s delays positive under DES produces false positives.
+**Sources:**
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
 
 ### Right parietal "non-eloquent" tumor
 
 A cooperative patient has a right inferior parietal glioma adjacent to SLF II. Naming and motor exam are intact. Why does an asleep motor-only strategy carry a predictable blind spot here?
 
+- **Target protocol:** `slf2-right`
 - [x] Asleep motor IOM cannot detect spatial neglect; awake DES during line bisection directly maps right SLF II spatial attention. — A "non-eloquent" right-hemisphere label is an anatomical prior, not a functional measurement. Right SLF II disconnection causes contralesional spatial neglect unless tested awake with line bisection.
 - [ ] Right-hemisphere tumors never benefit from awake mapping because language is always left-lateralized. — Awake mapping in the right hemisphere tests spatial attention, visuomotor control, praxis, and social cognition that asleep IOM leaves blind.
 - [ ] Median-nerve SSEP detects hemispatial neglect reliably under TIVA. — SSEP monitors dorsal column-lemniscal conduction, not frontoparietal spatial attention.
+**Sources:**
+- **roux2011** — Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection (PMID 22067336) — functional_measurement
+- **aboelnour2024** — Abo-Elnour DE et al., 2024 · Awake versus asleep mapped glioma resection meta-analysis (PMID 39560794) — association
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
 
 ### Intraventricular corridor near fornix and TR_A
 
 During an interhemispheric transcallosal approach to a third-ventricle lesion, the planned trajectory grazes the body of the fornix and anterior thalamic radiation (TR_A). How should intraoperative testing guide protection of these bundles?
 
+- **Target protocol:** `fornix-bilateral`
 - [x] Classify them as anatomy-only (untestable in real time) and protect them through preoperative corridor geometry rather than relying on DES or MEP silence. — Neither fornix episodic memory nor anterior thalamic cognitive loops can be reliably monitored by real-time DES or MEPs; silence on IOM provides false reassurance.
 - [ ] Use HF monopolar train-of-five at 5 mA to measure exact distance to the fornix. — HF monopolar train-of-five elicits motor responses from CST axons and does not stimulate or measure proximity to the fornix.
 - [ ] Rely on continuous counting under awake DES to detect acute fornix injury. — Automatic counting tests speech articulation, not hippocampal-forniceal episodic memory consolidation.
+**Sources:**
+- **aggleton2000** — Aggleton JP et al., 2000 · Differential cognitive effects of third-ventricle lesions involving the fornix (PMID 10734011) — association
+- **serra2021** — Serra C et al., 2021 · Thalamic lesions and thalamic peduncle surgical series (PMID 33007756) — experimental_anatomy
 
 ## Full source list
 

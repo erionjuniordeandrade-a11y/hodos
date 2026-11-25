@@ -1,6 +1,3 @@
-// Core protocol data for Hodos "How to test it? Monitoring vs Mapping" (educational draft).
-// Modes, Monitoring vs Mapping comparison, modalities, and clinical trap drills.
-// Keep UI strings free of em/en dashes and with at most one middle dot per line.
 import {TESTING_SOURCES} from './testing_sources_data.js';
 import {TESTING_TASKS} from './testing_tasks_data.js';
 

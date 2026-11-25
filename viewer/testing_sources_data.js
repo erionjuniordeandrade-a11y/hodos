@@ -1,6 +1,3 @@
-// Verified source registry for Hodos "How to test it? Monitoring vs Mapping".
-// Every PMID and DOI is verified; scope notes state population and transfer limits.
-
 export const TESTING_SOURCES = Object.freeze({
   dulip2015: Object.freeze({
     id: 'dulip2015',

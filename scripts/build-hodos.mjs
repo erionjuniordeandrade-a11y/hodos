@@ -159,8 +159,6 @@ export async function buildHodos({root=repoRoot,out=path.join(root,'dist/hodos')
   // chunks under chunks/), so /atlas, /mips and /labs/lesion-lab share one minified Three.js +
   // atlas_scene chunk instead of waterfalling unbundled modules. Per-file source modules stay
   // in the export untouched so an export remains a valid build source.
-  add('lesion_lab.js',files.get('lesion_lab.js').toString().replaceAll('./testing.html?target=','./testing?target='));
-  add('testing.js',files.get('testing.js').toString().replaceAll('./atlas.html?lesson=','./atlas?lesson=').replaceAll('./labs/lesion-lab.html?hemi=','./labs/lesion-lab?hemi='));
   const bundleSpecs=[
     {entry:'atlas_app.js',out:'atlas_app.bundle.js'},
     {entry:'mips.js',out:'mips.bundle.js'},

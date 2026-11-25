@@ -1,5 +1,3 @@
-// Interactive UI for Hodos "How to test it? Monitoring vs Mapping" (/testing).
-// Pure filtering, URL parsing, and drill evaluation live in testing_model.js.
 import {
   TESTING_MODES,
   TESTING_SOURCES,
@@ -11,9 +9,9 @@ import {
   MODE_BY_ID,
   TASK_BY_ID,
   PROTOCOL_BY_ID,
-  filterProtocols,
+  testingStateFromSearch,
+  testingStep,
   evaluateDrill,
-  parseTestingParams,
 } from './testing_model.js';
 
 const $ = id => document.getElementById(id);
@@ -23,15 +21,15 @@ const el = (tag, props = {}, ...children) => {
   return node;
 };
 
-const initial = parseTestingParams(location.search);
-const state = {
-  kind: initial.kind,
-  hemi: initial.hemi,
-  mode: initial.mode,
-  query: initial.query,
-  selectedId: initial.target ?? TARGET_PROTOCOLS[0].id,
-  drillAnswers: new Map(),
+const routeHref = (slug, query) => {
+  const ext = location.pathname.endsWith('.html') ? '.html' : '';
+  return `./${slug}${ext}?${query}`;
 };
+
+let state = testingStateFromSearch(location.search);
+const drillAnswers = new Map();
+const drillRefs = new Map();
+let renderedMatchIds = '';
 
 function syncUrl() {
   const params = new URLSearchParams();
@@ -42,7 +40,8 @@ function syncUrl() {
   if (state.query) params.set('q', state.query);
   if (new URLSearchParams(location.search).has('test')) params.set('test', '1');
   const query = params.toString();
-  history.replaceState(null, '', query ? `${location.pathname}?${query}` : location.pathname);
+  const base = query ? `${location.pathname}?${query}` : location.pathname;
+  history.replaceState(null, '', `${base}${location.hash}`);
 }
 
 function sourceLinks(sourceIds) {
@@ -135,11 +134,11 @@ function renderDetail(protocol) {
   const links = el(
     'div',
     {className: 'detail-links'},
-    el('a', {className: 'detail-link', href: `./atlas.html?lesson=${protocol.lessonId}`, textContent: 'Open matching 3D lesson'}),
+    el('a', {className: 'detail-link', href: routeHref('atlas', `lesson=${protocol.lessonId}`), textContent: 'Open matching 3D lesson'}),
     protocol.kind === 'tract'
       ? el('a', {
           className: 'detail-link',
-          href: `./labs/lesion-lab.html?hemi=${protocol.hemi === 'R' ? 'R' : 'L'}`,
+          href: routeHref('labs/lesion-lab', `hemi=${protocol.hemi === 'R' ? 'R' : 'L'}`),
           textContent: 'Open in Lesion lab',
         })
       : null,
@@ -149,34 +148,51 @@ function renderDetail(protocol) {
   detail.replaceChildren(head, modeNote, taskGrid, execGrid, blindSpot, links, sources);
 }
 
-function renderLookup() {
-  const matches = filterProtocols({kind: state.kind, hemi: state.hemi, mode: state.mode, query: state.query});
-  if (matches.length && !matches.some(p => p.id === state.selectedId)) {
-    state.selectedId = matches[0].id;
+function syncCurrentRow() {
+  for (const btn of $('targetList').children) {
+    if (btn.dataset.target === state.selectedId) btn.setAttribute('aria-current', 'true');
+    else btn.removeAttribute('aria-current');
   }
-  const active = matches.find(p => p.id === state.selectedId) ?? null;
+}
 
+function dispatch(action, {focusDetail = false} = {}) {
+  state = testingStep(state, action);
+  syncControls();
+  syncUrl();
+  renderLookup();
+  if (focusDetail) {
+    const activeBtn = $('targetList').querySelector('[aria-current="true"]');
+    activeBtn?.scrollIntoView({block: 'nearest'});
+    $('lookupSection').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    $('targetDetail').focus({preventScroll: true});
+  }
+}
+
+function renderLookup() {
+  const {matches} = state;
+  const active = state.selectedId ? PROTOCOL_BY_ID[state.selectedId] ?? null : null;
   $('lookupStatus').textContent = `Showing ${matches.length} of ${TARGET_PROTOCOLS.length} anatomical protocols.`;
+
+  const key = matches.map(p => p.id).join(',');
   const list = $('targetList');
-  const rows = matches.map(p => {
-    const meta = p.kind === 'tract' ? `Tract (${p.families.join('/')}) · ${p.hemi}` : `Cortex · ${p.parcels.slice(0, 3).join(', ')}`;
-    const btn = el(
-      'button',
-      {type: 'button', className: 'target-row'},
-      el('span', {className: 'target-row-name', textContent: p.name}),
-      modeBadge(p.mode),
-      el('span', {className: 'target-row-meta', textContent: meta}),
-    );
-    btn.dataset.target = p.id;
-    if (active && p.id === active.id) btn.setAttribute('aria-current', 'true');
-    btn.addEventListener('click', () => {
-      state.selectedId = p.id;
-      syncUrl();
-      renderLookup();
+  if (key !== renderedMatchIds) {
+    renderedMatchIds = key;
+    const rows = matches.map(p => {
+      const meta = p.kind === 'tract' ? `Tract (${p.families.join('/')}) · ${p.hemi}` : `Cortex · ${p.parcels.slice(0, 3).join(', ')}`;
+      const btn = el(
+        'button',
+        {type: 'button', className: 'target-row'},
+        el('span', {className: 'target-row-name', textContent: p.name}),
+        modeBadge(p.mode),
+        el('span', {className: 'target-row-meta', textContent: meta}),
+      );
+      btn.dataset.target = p.id;
+      btn.addEventListener('click', () => dispatch({type: 'select', targetId: p.id}));
+      return btn;
     });
-    return btn;
-  });
-  list.replaceChildren(...rows);
+    list.replaceChildren(...rows);
+  }
+  syncCurrentRow();
   renderDetail(active);
 }
 
@@ -259,67 +275,64 @@ function renderModalities() {
   );
 }
 
-function jumpToTarget(targetId) {
-  if (!PROTOCOL_BY_ID[targetId]) return;
-  state.kind = 'all';
-  state.hemi = 'all';
-  state.mode = 'all';
-  state.query = '';
-  state.selectedId = targetId;
-  syncControls();
-  syncUrl();
-  renderLookup();
-  $('lookupSection').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+function updateDrillCard(drillId) {
+  const ref = drillRefs.get(drillId);
+  if (!ref) return;
+  const answer = drillAnswers.get(drillId) ?? null;
+  for (const btn of ref.buttons) {
+    btn.setAttribute('aria-pressed', String(answer?.optionId === btn.dataset.option));
+  }
+  if (!answer) {
+    ref.feedback.hidden = true;
+    ref.feedback.replaceChildren();
+    return;
+  }
+  ref.feedback.hidden = false;
+  ref.feedback.dataset.verdict = answer.correct ? 'correct' : 'wrong';
+  const verdict = answer.correct ? 'Correct.' : 'False-reassurance trap.';
+  const jumpBtn = el('button', {
+    type: 'button',
+    className: 'drill-jump',
+    textContent: `Inspect ${PROTOCOL_BY_ID[answer.targetId].name} above`,
+  });
+  jumpBtn.addEventListener('click', () => dispatch({type: 'jump', targetId: answer.targetId}, {focusDetail: true}));
+  ref.feedback.replaceChildren(
+    el('p', {}, el('strong', {textContent: `${verdict} `}), answer.rationale),
+    el('p', {className: 'detail-sources'}, 'Sources: ', sourceLinks(answer.sourceIds)),
+    jumpBtn,
+  );
 }
 
-function renderDrills() {
+function mountDrills() {
+  drillRefs.clear();
   $('drillsList').replaceChildren(
     ...SCENARIO_DRILLS.map((drill, idx) => {
-      const answer = state.drillAnswers.get(drill.id) ?? null;
       const card = el('article', {className: 'drill-card'});
       card.dataset.drill = drill.id;
+      const buttons = drill.options.map(opt => {
+        const btn = el('button', {
+          type: 'button',
+          className: 'drill-option',
+          textContent: opt.label,
+        });
+        btn.dataset.option = opt.id;
+        btn.setAttribute('aria-pressed', 'false');
+        btn.addEventListener('click', () => {
+          drillAnswers.set(drill.id, evaluateDrill(drill.id, opt.id));
+          updateDrillCard(drill.id);
+        });
+        return btn;
+      });
+      const feedback = el('div', {className: 'drill-feedback', role: 'status'});
+      feedback.setAttribute('aria-live', 'polite');
+      feedback.hidden = true;
       card.append(
         el('h3', {textContent: `Trap ${idx + 1}: ${drill.title}`}),
         el('p', {className: 'drill-stem', textContent: drill.stem}),
-        el(
-          'div',
-          {className: 'drill-options'},
-          ...drill.options.map(opt => {
-            const btn = el('button', {
-              type: 'button',
-              className: 'drill-option',
-              textContent: opt.label,
-            });
-            btn.dataset.option = opt.id;
-            btn.setAttribute('aria-pressed', String(answer?.optionId === opt.id));
-            btn.addEventListener('click', () => {
-              state.drillAnswers.set(drill.id, evaluateDrill(drill.id, opt.id));
-              renderDrills();
-            });
-            return btn;
-          }),
-        ),
+        el('div', {className: 'drill-options'}, ...buttons),
+        feedback,
       );
-      const feedback = el('div', {className: 'drill-feedback', role: 'status'});
-      feedback.setAttribute('aria-live', 'polite');
-      if (!answer) {
-        feedback.hidden = true;
-      } else {
-        feedback.dataset.verdict = answer.correct ? 'correct' : 'wrong';
-        const verdict = answer.correct ? 'Correct.' : 'False-reassurance trap.';
-        const jumpBtn = el('button', {
-          type: 'button',
-          className: 'drill-jump',
-          textContent: `Inspect ${PROTOCOL_BY_ID[drill.targetId].name} above`,
-        });
-        jumpBtn.addEventListener('click', () => jumpToTarget(drill.targetId));
-        feedback.append(
-          el('p', {}, el('strong', {textContent: `${verdict} `}), answer.rationale),
-          el('p', {className: 'detail-sources'}, 'Sources: ', sourceLinks(answer.sourceIds)),
-          jumpBtn,
-        );
-      }
-      card.append(feedback);
+      drillRefs.set(drill.id, {card, buttons, feedback});
       return card;
     }),
   );
@@ -355,31 +368,13 @@ function bindControls() {
     modeSelect.append(el('option', {value: mode.id, textContent: mode.label}));
   }
   for (const btn of document.querySelectorAll('[data-filter-kind]')) {
-    btn.addEventListener('click', () => {
-      state.kind = btn.dataset.filterKind;
-      syncControls();
-      syncUrl();
-      renderLookup();
-    });
+    btn.addEventListener('click', () => dispatch({type: 'set-kind', kind: btn.dataset.filterKind}));
   }
   for (const btn of document.querySelectorAll('[data-filter-hemi]')) {
-    btn.addEventListener('click', () => {
-      state.hemi = btn.dataset.filterHemi;
-      syncControls();
-      syncUrl();
-      renderLookup();
-    });
+    btn.addEventListener('click', () => dispatch({type: 'set-hemi', hemi: btn.dataset.filterHemi}));
   }
-  modeSelect.addEventListener('change', () => {
-    state.mode = modeSelect.value;
-    syncUrl();
-    renderLookup();
-  });
-  $('targetSearch').addEventListener('input', event => {
-    state.query = event.target.value;
-    syncUrl();
-    renderLookup();
-  });
+  modeSelect.addEventListener('change', () => dispatch({type: 'set-mode', mode: modeSelect.value}));
+  $('targetSearch').addEventListener('input', event => dispatch({type: 'set-query', query: event.target.value}));
   syncControls();
 }
 
@@ -392,7 +387,7 @@ if (new URLSearchParams(location.search).has('test')) {
       mode: state.mode,
       query: state.query,
       visibleCount: $('targetList').children.length,
-      answeredDrills: Object.fromEntries(state.drillAnswers),
+      answeredDrills: Object.fromEntries(drillAnswers),
     }),
   });
 }
@@ -402,5 +397,5 @@ renderLookup();
 renderComparison();
 renderTasks();
 renderModalities();
-renderDrills();
+mountDrills();
 renderSources();

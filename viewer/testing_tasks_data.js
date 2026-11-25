@@ -1,9 +1,4 @@
-// Intraoperative task battery: 17 DuLIP tasks (De Witte et al., 2015, Table 2 and section 5.3)
-// plus 11 asleep motor and specialized awake tasks.
-// Keep UI strings free of em/en dashes and with at most one middle dot per line.
-
 export const TESTING_TASKS = Object.freeze([
-  // DuLIP Part A: 9 active <=4 s DES tasks (semantic association moved to Part B per section 5.3).
   Object.freeze({
     id: 'dulip-repetition',
     name: 'Repetition of words',
@@ -103,7 +98,6 @@ export const TESTING_TASKS = Object.freeze([
     caveat: 'Carrier phrase separates speech arrest or seizure from pure anomia; intact object naming never excludes reading, action, or initiation deficits.',
     sourceIds: ['dulip2015', 'sanai2008', 'lubrano2014'],
   }),
-  // DuLIP Part B: 8 resection monitoring tasks (original 7 Part B + semantic association moved per section 5.3).
   Object.freeze({
     id: 'dulip-semantic-association',
     name: 'Semantic association (moved from 4 s DES)',
@@ -192,7 +186,6 @@ export const TESTING_TASKS = Object.freeze([
     caveat: 'Probes receptive grammatical awareness in frontal regions when overt sentence production is paused.',
     sourceIds: ['dulip2015'],
   }),
-  // Non-DuLIP / asleep motor IOM / specialized awake tasks (11 tasks)
   Object.freeze({
     id: 'task-counting',
     name: 'Automatic speech (counting)',
