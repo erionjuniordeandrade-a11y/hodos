@@ -11,7 +11,7 @@
 <meta name="twitter:image" content="https://hodosatlas.com/brand/og/testing.jpg">
 <meta name="theme-color" content="#1E2227"><link rel="icon" href="./favicon.ico" sizes="32x32"><link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="manifest" href="./site.webmanifest">
 <link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/archivo-latin.woff2" crossorigin>
-<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./testing.css">
+<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./testing.css"><link rel="stylesheet" href="./testing_sheet.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://hodosatlas.com/#erion","name":"Dr. Erion de Andrade","honorificPrefix":"Dr.","jobTitle":"Neurosurgeon","url":"https://www.dreriondeandrade.com.br/"},{"@type":"LearningResource","name":"Monitoring vs mapping · Hodos","url":"https://hodosatlas.com/testing","description":"An intraoperative testing guide matching white matter bundles and cortical territories to mapping tasks, continuous monitoring, and anatomy-only blind spots. Educational draft awaiting independent clinical review.","learningResourceType":"Clinical reference guide","isAccessibleForFree":true,"author":{"@id":"https://hodosatlas.com/#erion"}}]}</script>
 </head><body class="testing-page">
 <a class="skip-link" href="#testingMain">Skip to testing guide</a>
@@ -25,20 +25,27 @@
   </header>
 
   <section id="lookupSection" class="testing-section" aria-labelledby="lookupTitle">
+    <div class="testing-pillar-bar" role="navigation" aria-label="Lesion and testing views">
+      <div class="pillar-links">
+        <a class="pillar-link" href="./testing.html" aria-current="page">2D Testing Map</a>
+        <a class="pillar-link" href="./labs/lesion-lab.html">3D Lesion Lab</a>
+      </div>
+      <button type="button" id="openTestingSheet" class="sheet-trigger">Print / Save Testing Sheet</button>
+    </div>
     <div class="section-head">
       <h2 id="lookupTitle">Anatomical testing lookup</h2>
-      <p>Filter 16 white matter pathways and 10 left cortical territories to compare mapping tasks, continuous monitoring, error signatures, and false-reassurance traps.</p>
+      <p>Filter 16 white matter tracts and 10 left cortical territories to compare mapping tasks, continuous monitoring, error signatures, and false-reassurance traps.</p>
     </div>
-    <div class="testing-filters" role="region" aria-label="Target filters">
+    <div class="testing-filters" role="region" aria-label="Structure filters">
       <div class="filter-group"><span class="filter-label" id="kindLabel">Structure</span><div class="segmented" role="group" aria-labelledby="kindLabel"><button type="button" data-filter-kind="all" aria-pressed="true">All</button><button type="button" data-filter-kind="tract" aria-pressed="false">Tracts (16)</button><button type="button" data-filter-kind="cortex" aria-pressed="false">Cortex (10)</button></div></div>
       <div class="filter-group"><span class="filter-label" id="hemiLabel">Hemisphere</span><div class="segmented" role="group" aria-labelledby="hemiLabel"><button type="button" data-filter-hemi="all" aria-pressed="true">All</button><button type="button" data-filter-hemi="L" aria-pressed="false">Left</button><button type="button" data-filter-hemi="R" aria-pressed="false">Right</button></div></div>
       <div class="filter-group"><label class="filter-label" for="modeSelect">Testing mode</label><select id="modeSelect"><option value="all">All 5 modes</option></select></div>
-      <div class="filter-group filter-search"><label class="filter-label" for="targetSearch">Search target, parcel, or task</label><input id="targetSearch" type="search" autocomplete="off" placeholder="AF, IFOF, 55b, line bisection, alexia"></div>
+      <div class="filter-group filter-search"><label class="filter-label" for="targetSearch">Search structure, parcel, or task</label><input id="targetSearch" type="search" autocomplete="off" placeholder="AF, IFOF, 55b, line bisection, alexia"></div>
     </div>
     <p id="lookupStatus" class="testing-status" role="status" aria-live="polite"></p>
     <div id="territoryMap" class="territory-map" role="region" aria-label="Interactive brain territory map"></div>
     <div class="lookup-workbench">
-      <div id="targetList" class="target-list" role="region" aria-label="Matching anatomical targets"></div>
+      <div id="targetList" class="target-list" role="region" aria-label="Matching anatomical testing cards"></div>
       <article id="targetDetail" class="target-detail" tabindex="-1"></article>
     </div>
   </section>
@@ -83,6 +90,24 @@
     <ol id="sourcesList" class="sources-list"></ol>
   </section>
 </main>
+<dialog id="testingSheetDialog" class="testing-sheet-dialog" aria-labelledby="sheetTitle">
+  <div class="sheet-card">
+    <header class="sheet-head">
+      <div>
+        <p class="sheet-watermark" data-sheet-watermark></p>
+        <h2 id="sheetTitle" data-sheet-title>Testing sheet</h2>
+        <p class="sheet-subtitle" data-sheet-subtitle></p>
+      </div>
+      <div class="sheet-actions">
+        <button type="button" data-sheet-print>Print / Save PDF</button>
+        <button type="button" data-sheet-copy>Copy link</button>
+        <button type="button" data-sheet-close>Close</button>
+      </div>
+    </header>
+    <p class="sheet-copy-status" data-sheet-status role="status" aria-live="polite"></p>
+    <div class="sheet-body" data-sheet-body></div>
+  </div>
+</dialog>
 <footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p><p class="foot-role"><span>Neurosurgeon, CRM-RS 41.263, RQE 44841.</span> Skull base and neuro-oncology fellowships at Cleveland Clinic and Emory University. Residency preceptor, Hospital São José, Santa Casa de Porto Alegre.</p></div>
   <div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP-MMP1 cortical parcels</p><p>HCP1065 sampled tractography</p><p>Melbourne subcortex atlas</p></div>
   <div class="foot-terms"><p class="foot-label">Use</p><p>Reference atlas, not navigation.</p><p>Educational draft, research only.</p><p>No patient registration.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p><p><a href="./atlas-sources.html#privacy">Privacy</a></p><p><a href="./mips.html">MIPS</a></p><p><a href="./labs/lesion-lab.html">Lesion lab</a></p><p><a href="./connections.html">Connections</a></p><p><a href="./testing.html">Testing guide</a></p><p><a href="./lessons">Lessons</a></p><p><a href="mailto:erion.andrade@santacasa.org.br?subject=Hodos%20feedback">Email a correction</a></p><p><a href="https://github.com/erionjuniordeandrade-a11y/hodos/issues/new" target="_blank" rel="noopener">Report an error or suggest a correction</a></p></div></footer>
