@@ -34,7 +34,7 @@ const cortex = (id, view, hemi, targetId, shortLabel) => {
   });
 };
 
-const tract = (id, view, hemi, targetId, group, untestable, shortLabel, keys) => {
+const tract = (id, view, hemi, targetId, group, untestable, shortLabel, keys, hitFill = false) => {
   const parts = keys.map(k => {
     const geom = TRACT_CENTERLINES[k];
     if (!geom) throw new Error(`Missing tract geometry for ${k}`);
@@ -51,6 +51,7 @@ const tract = (id, view, hemi, targetId, group, untestable, shortLabel, keys) =>
     kind: 'tract',
     group,
     untestable,
+    hitFill,
     shortLabel,
     shape: {type: 'path', d},
     anchor: [Math.round(ax * 10) / 10, Math.round(ay * 10) / 10],
@@ -69,8 +70,10 @@ export const MAP_REGIONS = Object.freeze([
   cortex('ll-mitg', 'lateral', 'L', 'ctx-mitg-left', 'mid-ITG'),
   tract('ll-cst', 'lateral', 'L', 'cst-bilateral', 'Projection', false, 'CST', ['CST-L-lateral']),
   tract('ll-af', 'lateral', 'L', 'af-left', 'Association', false, 'AF', ['AF-L-lateral']),
+  tract('ll-slf2', 'lateral', 'L', 'slf2-left', 'Association', false, 'SLF II', ['SLF2-L-lateral']),
   tract('ll-slf3', 'lateral', 'L', 'slf3-left', 'Association', false, 'SLF III', ['SLF3-L-lateral']),
   tract('ll-ifof', 'lateral', 'L', 'ifof-left', 'Association', false, 'IFOF', ['IFOF-L-lateral']),
+  tract('ll-emc', 'lateral', 'L', 'emc-bilateral', 'Association', false, 'EMC', ['EMC-L-lateral']),
   tract('ll-uf', 'lateral', 'L', 'uf-left', 'Association', false, 'UF', ['UF-L-lateral']),
   tract('ll-ilf-vof', 'lateral', 'L', 'ilf-vof-left-reading', 'Association', false, 'ILF/VOF', [
     'ILF-L-lateral',
@@ -81,18 +84,27 @@ export const MAP_REGIONS = Object.freeze([
   tract('lm-cst', 'medial', 'L', 'cst-bilateral', 'Projection', false, 'CST', ['CST-L-medial']),
   tract('lm-fat', 'medial', 'L', 'fat-left', 'Association', false, 'FAT', ['FAT-L-medial']),
   tract('lm-slf1', 'medial', 'L', 'slf1-bilateral', 'Association', false, 'SLF I', ['SLF1-L-medial']),
-  tract('lm-fornix', 'medial', 'L', 'fornix-bilateral', 'Projection', true, 'Fornix', ['F-L-medial']),
+  tract('lm-cc', 'medial', 'L', 'cc-commissural', 'Commissural', true, 'CC', ['CC-L-medial'], true),
+  tract('lm-fornix', 'medial', 'L', 'fornix-bilateral', 'Projection', true, 'Fornix', ['F-L-medial'], true),
   tract('lm-tra', 'medial', 'L', 'tra-bilateral', 'Projection', true, 'TR_A', ['TR_A-L-medial']),
   tract('lm-drtt', 'medial', 'L', 'drtt-bilateral', 'Projection', true, 'DRTT', ['DRTT-L-medial']),
+  cortex('rl-precentral', 'lateral', 'R', 'ctx-precentral-right', 'M1 / vPMC'),
+  cortex('rl-ifg-insula', 'lateral', 'R', 'ctx-ifg-insula-right', 'IFG / Insula'),
+  cortex('rl-smg', 'lateral', 'R', 'ctx-smg-right', 'SMG'),
+  cortex('rl-ang', 'lateral', 'R', 'ctx-ang-right', 'ANG'),
   tract('rl-cst', 'lateral', 'R', 'cst-bilateral', 'Projection', false, 'CST', ['CST-R-lateral']),
   tract('rl-slf2', 'lateral', 'R', 'slf2-right', 'Association', false, 'Right SLF II', ['SLF2-R-lateral']),
+  tract('rl-slf3', 'lateral', 'R', 'slf3-right', 'Association', false, 'Right SLF III', ['SLF3-R-lateral']),
   tract('rl-af', 'lateral', 'R', 'af-right', 'Association', false, 'Right AF', ['AF-R-lateral']),
   tract('rl-ifof', 'lateral', 'R', 'ifof-right', 'Association', false, 'Right IFOF', ['IFOF-R-lateral']),
+  tract('rl-emc', 'lateral', 'R', 'emc-bilateral', 'Association', false, 'EMC', ['EMC-R-lateral']),
   tract('rl-or', 'lateral', 'R', 'or-bilateral', 'Projection', false, 'OR', ['OR-R-lateral']),
+  cortex('rm-sma', 'medial', 'R', 'ctx-sma-psfg-right', 'SMA / pSFG'),
   tract('rm-cst', 'medial', 'R', 'cst-bilateral', 'Projection', false, 'CST', ['CST-R-medial']),
   tract('rm-fat', 'medial', 'R', 'fat-right', 'Association', false, 'Right FAT', ['FAT-R-medial']),
   tract('rm-slf1', 'medial', 'R', 'slf1-bilateral', 'Association', false, 'SLF I', ['SLF1-R-medial']),
-  tract('rm-fornix', 'medial', 'R', 'fornix-bilateral', 'Projection', true, 'Fornix', ['F-R-medial']),
+  tract('rm-cc', 'medial', 'R', 'cc-commissural', 'Commissural', true, 'CC', ['CC-R-medial'], true),
+  tract('rm-fornix', 'medial', 'R', 'fornix-bilateral', 'Projection', true, 'Fornix', ['F-R-medial'], true),
   tract('rm-tra', 'medial', 'R', 'tra-bilateral', 'Projection', true, 'TR_A', ['TR_A-R-medial']),
   tract('rm-drtt', 'medial', 'R', 'drtt-bilateral', 'Projection', true, 'DRTT', ['DRTT-R-medial']),
 ]);
@@ -189,6 +201,7 @@ function buildHotspot(region, placement, onSelect) {
     'data-kind': region.kind,
     'data-group': region.group,
     'data-untestable': String(region.untestable),
+    ...(region.hitFill ? {'data-hit-fill': 'true'} : {}),
     'aria-label': `${protocol.name} (${region.kind})`,
     'aria-pressed': 'false',
   });
@@ -349,7 +362,7 @@ export function mountTerritoryMap(container, {onSelect, onHemiChange} = {}) {
       }
       for (const callout of callouts) svg.append(callout);
       if (!ordered.length) {
-        svg.append(svgEl('text', {class: 'map-empty-note', x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 28}, 'No right-hemisphere cortical cards yet.'));
+        svg.append(svgEl('text', {class: 'map-empty-note', x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 28}, 'No matching territories in this view.'));
       }
       fig.append(cap, svg);
       return fig;

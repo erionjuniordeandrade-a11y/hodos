@@ -1,6 +1,6 @@
 # How to test it: Monitoring vs mapping
 
-Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review status: draft
+Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.2 · Review status: draft
 
 ## Monitoring vs mapping
 
@@ -490,6 +490,21 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 - **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
 - **giampiccolo2021** — Giampiccolo D et al., 2021 · Long-term motor deficit in brain tumour surgery with preserved MEPs (PMID 33615216) — association
 
+### Left SLF II (dorsal frontoparietal & phonological control)
+
+- **Kind / side:** tract (L) · Families: SLF2 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
+- **Mapping tasks:** Repetition of words, Reading with phonological odd word out, Line bisection (spatial attention)
+- **Monitoring tasks:** Awake double task (motor + language), Phonological fluency (D, A, T)
+- **Execution:** Map the left middle frontal to inferior parietal wall with <=4 s repetition, phonological odd word out, and line bisection; monitor double task and fluency during removal.
+- **Error signature:** Phonological selection pauses, working-memory breakdown, or executive dual-task arrest.
+- **Blind spot:** Spoken object naming alone misses left dorsal frontoparietal phonological control and spatial-executive load.
+- **Matching lesson:** control-network
+**Sources:**
+- **maldonado2011** — Maldonado IL et al., 2011 · Left superior longitudinal fascicle and language electrostimulation (DOI 10.1007/s00429-011-0309-x) — functional_measurement
+- **thiebaut2011** — Thiebaut de Schotten M et al., 2011 · Lateralized frontoparietal SLF network for visuospatial attention (PMID 21926985) — association
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+
 ### Right SLF II (spatial attention)
 
 - **Kind / side:** tract (R) · Families: SLF2 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
@@ -517,6 +532,37 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 - **maldonado2011** — Maldonado IL et al., 2011 · Left superior longitudinal fascicle and language electrostimulation (DOI 10.1007/s00429-011-0309-x) — functional_measurement
 - **vangeemen2013** — Van Geemen K et al., 2013 · Limited plastic potential of left ventral premotor cortex in speech articulation (DOI 10.1002/hbm.22275) — functional_measurement
 - **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+
+### Right SLF III (ventral attention & opercular praxis)
+
+- **Kind / side:** tract (R) · Families: SLF3 · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
+- **Mapping tasks:** Line bisection (spatial attention), Prosody & emotion recognition
+- **Monitoring tasks:** Awake double task (motor + language)
+- **Execution:** Map right supramarginal to inferior frontal opercular white matter awake with <=4 s line bisection and prosody/emotion tasks while monitoring double task.
+- **Error signature:** Rightward line-bisection shift, emotion/prosody recognition failure, or left praxis slowing.
+- **Blind spot:** Asleep motor mapping leaves right ventral frontoparietal attention and opercular praxis completely silent.
+- **Matching lesson:** attention-networks
+**Sources:**
+- **thiebaut2011** — Thiebaut de Schotten M et al., 2011 · Lateralized frontoparietal SLF network for visuospatial attention (PMID 21926985) — association
+- **thiebaut2005** — Thiebaut de Schotten M et al., 2005 · Direct electrostimulation of human parietal cortex and spatial awareness (PMID 16195465) — functional_measurement
+- **roux2011** — Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection (PMID 22067336) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+
+### Extreme capsule (subinsular ventral semantic route)
+
+- **Kind / side:** tract (both) · Families: EMC · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
+- **Mapping tasks:** Naming with semantic odd picture out, Reading with semantic odd word out
+- **Monitoring tasks:** Semantic association (moved from 4 s DES), Semantic sentence judgment
+- **Execution:** Map subinsular white matter awake with <=4 s non-verbal semantic odd picture out and written semantic odd word out; run semantic association and auditory judgment during resection.
+- **Error signature:** Semantic paraphasias (left), non-verbal semantic selection errors, or impaired auditory semantic comprehension.
+- **Blind spot:** During left subinsular DES, semantic paraphasias cannot separate extreme capsule fibers from adjacent IFOF.
+- **Matching lesson:** insular-floor
+**Sources:**
+- **saur2008** — Saur D et al., 2008 · Ventral extreme capsule and dorsal language pathways (PMID 19004769) — functional_measurement
+- **duffau2005** — Duffau H et al., 2005 · Semantic errors during cortico-subcortical ventral stream stimulation (PMID 15705610) — functional_measurement
+- **moritz2013** — Moritz-Gasser S et al., 2013 · Mapping multimodal verbal and non-verbal semantic processing (DOI 10.1016/j.neuropsychologia.2013.06.007) — functional_measurement
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
 
 ### Corticospinal tract (CST)
 
@@ -582,6 +628,20 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 - **Matching lesson:** brainstem-corridors
 **Sources:**
 - **morris2009** — Morris EB et al., 2009 · Proximal dentatothalamocortical tract involvement in posterior fossa syndrome (PMID 19805491) — association
+
+### Corpus callosum (interhemispheric transfer)
+
+- **Kind / side:** tract (both) · Families: CC · **Mode:** Untestable (anatomy only)
+- **Mapping tasks:** None
+- **Monitoring tasks:** None
+- **Execution:** Untestable in real time by DES or IOM; preserve segmental callosal topography through planned transcallosal entry length and pericallosal vascular care.
+- **Error signature:** No reliable intraoperative warning sign; segmental disconnection manifests postoperatively as split-brain or interhemispheric transfer deficits.
+- **Blind spot:** Normal MEPs, SSEPs, and fluent awake speech give zero warning of anterior, body, or splenial callosal disconnection.
+- **Matching lesson:** corpus-callosum
+**Sources:**
+- **hofer2006** — Hofer S & Frahm J, 2006 · Segmental topography of the human corpus callosum (PMID 16854598) — reconstruction
+- **gazzaniga2000** — Gazzaniga MS, 2000 · Cerebral specialization and interhemispheric communication (PMID 10869045) — association
+- **gungor2017** — Gungor A et al., 2017 · White matter tracts in transcallosal ventricular corridors (PMID 27257832) — experimental_anatomy
 
 ### Left inferior frontal gyrus (IFG)
 
@@ -720,6 +780,81 @@ Guide id: `testing-monitoring-vs-mapping` · Version: 2026-11-25.1 · Review sta
 - **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
 - **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
 
+### Right supramarginal gyrus (SMG)
+
+- **Kind / side:** cortex (R) · Parcels: PF, PFop, PFm, PSL · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
+- **Mapping tasks:** Line bisection (spatial attention), Prosody & emotion recognition
+- **Monitoring tasks:** Awake double task (motor + language)
+- **Execution:** Map right supramarginal and temporoparietal reorienting cortex awake with <=4 s line bisection and prosody/emotion trials; maintain continuous double task during removal.
+- **Error signature:** Reproducible rightward line-bisection deviation, left spatial omission, or impaired prosody/emotion recognition.
+- **Blind spot:** Treating right inferior parietal cortex as non-eloquent under asleep motor monitoring misses spatial neglect and reorienting deficits.
+- **Matching lesson:** attention-networks
+**Sources:**
+- **thiebaut2005** — Thiebaut de Schotten M et al., 2005 · Direct electrostimulation of human parietal cortex and spatial awareness (PMID 16195465) — functional_measurement
+- **corbetta2000** — Corbetta M et al., 2000 · Voluntary orienting and right temporoparietal target detection (PMID 10700263) — functional_measurement
+- **roux2011** — Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection (PMID 22067336) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+
+### Right angular gyrus (ANG)
+
+- **Kind / side:** cortex (R) · Parcels: PGi, PGs, PGp · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
+- **Mapping tasks:** Line bisection (spatial attention)
+- **Monitoring tasks:** Awake double task (motor + language)
+- **Execution:** Probe right angular cortex and underlying SLF II junction awake with repeated <=4 s horizontal line bisection while tracking contralateral limb movement continuously.
+- **Error signature:** Consistent rightward bisection shift or slowed left-hemispace target exploration.
+- **Blind spot:** Preserved left hand strength and fluent speech give zero warning of right angular visuospatial neglect.
+- **Matching lesson:** attention-networks
+**Sources:**
+- **roux2011** — Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection (PMID 22067336) — functional_measurement
+- **thiebaut2005** — Thiebaut de Schotten M et al., 2005 · Direct electrostimulation of human parietal cortex and spatial awareness (PMID 16195465) — functional_measurement
+- **thiebaut2011** — Thiebaut de Schotten M et al., 2011 · Lateralized frontoparietal SLF network for visuospatial attention (PMID 21926985) — association
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+
+### Right IFG and anterior insula
+
+- **Kind / side:** cortex (R) · Parcels: 44, 45, 47l, IFJp, FOP4, AVI · **Mode:** Awake mapping (DES) (Secondary: Awake monitoring (resection))
+- **Mapping tasks:** Prosody & emotion recognition, Verbal diadochokinesis (DDK)
+- **Monitoring tasks:** Awake double task (motor + language)
+- **Execution:** Map right inferior frontal operculum and anterior insula awake with prosody/emotion recognition and verbal DDK; track dual-task executive switching during removal.
+- **Error signature:** Emotion recognition failure, aprosodia, articulatory arrest (or speech arrest in atypical dominance), or dual-task breakdown.
+- **Blind spot:** Assuming right opercular and frontoinsular cortex is silent misses salience switching, social cognition, and atypical right language dominance.
+- **Matching lesson:** insular-floor
+**Sources:**
+- **sridharan2008** — Sridharan D et al., 2008 · Right frontoinsular cortex and large-scale network switching (PMID 18723676) — functional_measurement
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+- **aboelnour2024** — Abo-Elnour DE et al., 2024 · Awake versus asleep mapped glioma resection meta-analysis (PMID 39560794) — association
+- **dulip2015** — De Witte E et al., 2015 · The Dutch Linguistic Intraoperative Protocol (DuLIP) (DOI 10.1016/j.bandl.2014.10.011) — functional_measurement
+
+### Right SMA / posterior SFG
+
+- **Kind / side:** cortex (R) · Parcels: SFL, 6ma, 6mp, SCEF · **Mode:** Awake monitoring (resection) (Secondary: Awake mapping (DES))
+- **Mapping tasks:** None
+- **Monitoring tasks:** Awake double task (motor + language), Phonological fluency (D, A, T)
+- **Execution:** Monitor contralateral left-limb rhythmic movement and executive fluency continuously during right medial frontal removal, using focal DES near the posterior M1 border.
+- **Error signature:** Progressive slowing or arrest of left-sided motor initiation and bimanual coordination without focal primary motor twitches.
+- **Blind spot:** Intact asleep TES-MEPs remain unchanged while right SMA/pre-SMA resection causes postoperative left akinesia.
+- **Matching lesson:** motor-beyond-m1
+**Sources:**
+- **krainik2001** — Krainik A et al., 2001 · Role of the supplementary motor area in motor deficit following medial frontal surgery (PMID 11552019) — association
+- **giampiccolo2021** — Giampiccolo D et al., 2021 · Long-term motor deficit in brain tumour surgery with preserved MEPs (PMID 33615216) — association
+- **garic2019** — Garic D et al., 2019 · Laterality of the frontal aslant tract and executive function (PMID 30159951) — association
+- **demaria2025** — De Maria L et al., 2025 · Neurological deficits after supplementary motor area tumour resection (PMID 40282544) — association
+
+### Right precentral gyrus (M1 & vPMC)
+
+- **Kind / side:** cortex (R) · Parcels: 4, 6v, 6d, 6r · **Mode:** Asleep mapping (Secondary: Asleep monitoring, Awake mapping (DES))
+- **Mapping tasks:** SSEP & central sulcus phase reversal, HF monopolar subcortical threshold, Verbal diadochokinesis (DDK)
+- **Monitoring tasks:** TES / DCS-MEP monitoring, Awake double task (motor + language)
+- **Execution:** Localize the right central sulcus with SSEP phase reversal and cortical motor thresholds under TIVA, or add awake DDK and double task near ventral premotor speech-motor cortex.
+- **Error signature:** Left-sided focal muscle contraction, falling subcortical CST mA threshold, sustained >=50% MEP drop, or dysarthric arrest in 6v.
+- **Blind spot:** Asleep MEP stability verifies M1-CST conduction only and misses non-primary dorsal premotor and praxis deficits.
+- **Matching lesson:** motor-cst
+**Sources:**
+- **seidel2013** — Seidel K et al., 2013 · Subcortical motor mapping thresholds and MEP warning (PMID 23198802) — functional_measurement
+- **asnm2013** — Macdonald DB et al., 2013 · ASNM position statement on intraoperative MEP monitoring (PMID 24055297) — conceptual_model
+- **giampiccolo2021** — Giampiccolo D et al., 2021 · Long-term motor deficit in brain tumour surgery with preserved MEPs (PMID 33615216) — association
+- **coello2013** — Coello AF et al., 2013 · Selection of intraoperative tasks for awake mapping (DOI 10.3171/2013.6.JNS122470) — conceptual_model
+
 ## Clinical trap drills
 
 ### Preserved MEPs in medial frontal surgery
@@ -787,12 +922,12 @@ During an interhemispheric transcallosal approach to a third-ventricle lesion, t
 
 ## Lesion lab test lenses and surgical territory presets
 
-All 26 anatomical testing cards are projected from HCP S1200/HCP1065 onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) and custom batteries (`evaluateCustomBattery`) across 6 verified HCP1065 MNI surgical territories.
+All 35 anatomical testing cards are projected from HCP S1200/HCP1065 onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) and custom batteries (`evaluateCustomBattery`) across 6 verified HCP1065 MNI surgical territories.
 
 - **All cut** (`all`): Show every cut bundle at standard brightness. (Interrogates: all cut tracts (no dimming))
 - **Asleep MEP only** (`asleep-mep`): Dims corticospinal conduction (CST) only; leaves language, initiation, spatial, reading, visual, and deep memory pathways bright as blind spots. (Interrogates: cst-bilateral)
 - **Awake naming only** (`awake-naming`): Dims left spoken object-naming core (AF, IFOF, UF); leaves reading (VOF/ILF), initiation (FAT), articulatory (SLF III), spatial (right SLF II), motor (CST), visual (OR), and deep corridors bright. (Interrogates: af-left, ifof-left, uf-left)
-- **Tailored battery** (`tailored`): Dims every pathway with a real-time DES or IOM probe; untestable deep corridors (Fornix, TR_A, proximal DRTT) remain bright. (Interrogates: af-left, af-right, ifof-left, ifof-right, ilf-vof-left-reading, uf-left, fat-left, fat-right, slf1-bilateral, slf2-right, slf3-left, cst-bilateral, or-bilateral)
+- **Tailored battery** (`tailored`): Dims every pathway with a real-time DES or IOM probe; untestable deep corridors (Corpus callosum (CC), Fornix, TR_A, proximal DRTT) remain bright. (Interrogates: af-left, af-right, ifof-left, ifof-right, ilf-vof-left-reading, uf-left, fat-left, fat-right, slf1-bilateral, slf2-left, slf2-right, slf3-left, slf3-right, emc-bilateral, cst-bilateral, or-bilateral)
 
 ### Custom Battery Builder tasks
 
@@ -824,13 +959,17 @@ All 26 anatomical testing cards are projected from HCP S1200/HCP1065 onto intera
 - `fat-left`: dulip-sentence-completion-closed, task-counting, dulip-fluency-phonological
 - `fat-right`: task-double-task
 - `slf1-bilateral`: task-vision-guided-reaching
+- `slf2-left`: dulip-repetition, dulip-phonological-odd-word-out, task-line-bisection
 - `slf2-right`: task-line-bisection
 - `slf3-left`: dulip-ddk, dulip-repetition, task-counting
+- `slf3-right`: task-line-bisection, task-prosody-social
+- `emc-bilateral`: dulip-semantic-odd-picture-out
 - `cst-bilateral`: task-hf-subcortical-cst, task-tes-dcs-mep
 - `or-bilateral`: task-visual-quadrant
 - `fornix-bilateral`: none (untestable corridor only)
 - `tra-bilateral`: none (untestable corridor only)
 - `drtt-bilateral`: none (untestable corridor only)
+- `cc-commissural`: none (untestable corridor only)
 
 - **Left SMA** (`left-sma`): hemi L, MNI [-20, 2, 50], radius 14 mm, default lens `asleep-mep` — Medial frontal corridor crossing FAT and CST.
 - **Left insula** (`left-insula`): hemi L, MNI [-30, 8, -4], radius 12 mm, default lens `asleep-mep` — Limen insulae crossroads over IFOF and UF.
@@ -891,6 +1030,26 @@ All 26 anatomical testing cards are projected from HCP S1200/HCP1065 onto intera
   - _Scope:_ Direct comparison showing preoperative language fMRI sensitivity near 66% against DES; establishes fMRI as a planning prior rather than intraoperative proof.
 - **roux2011** — Roux FE et al., 2011 · Electrostimulation mapping of spatial neglect and line bisection (PMID 22067336) — functional_measurement
   - _Scope:_ Awake cortical and subcortical stimulation during line bisection eliciting rightward spatial deviation in right parietal and SLF II sites.
+- **thiebaut2005** — Thiebaut de Schotten M et al., 2005 · Direct electrostimulation of human parietal cortex and spatial awareness (PMID 16195465) — functional_measurement
+  - _Scope:_ Intraoperative stimulation in right parietal and caudal superior temporal sites produced rightward line-bisection shifts; historical fascicle labels are not reassigned to one modern SLF branch.
+- **thiebaut2011** — Thiebaut de Schotten M et al., 2011 · Lateralized frontoparietal SLF network for visuospatial attention (PMID 21926985) — association
+  - _Scope:_ Tractography and visuospatial behavior series linking SLF branch asymmetry to spatial orienting; population asymmetry does not make attention exclusively right-sided or define individual margins.
+- **corbetta2000** — Corbetta M et al., 2000 · Voluntary orienting and right temporoparietal target detection (PMID 10700263) — functional_measurement
+  - _Scope:_ Event-related fMRI separating intraparietal voluntary orienting from right temporoparietal target reorienting; functional task activations do not coincide with HCP parcel borders.
+- **sridharan2008** — Sridharan D et al., 2008 · Right frontoinsular cortex and large-scale network switching (PMID 18723676) — functional_measurement
+  - _Scope:_ Three fMRI timing and Granger-causality experiments supporting right frontoinsular switching between salience, executive, and default networks; observational imaging rather than surgical perturbation.
+- **saur2008** — Saur D et al., 2008 · Ventral extreme capsule and dorsal language pathways (PMID 19004769) — functional_measurement
+  - _Scope:_ Combined task fMRI and tractography separating dorsal repetition routes from ventral extreme-capsule comprehension pathways; task-defined routes do not map one-to-one onto every atlas fascicle.
+- **duffau2005** — Duffau H et al., 2005 · Semantic errors during cortico-subcortical ventral stream stimulation (PMID 15705610) — functional_measurement
+  - _Scope:_ Awake surgery series of 17 dominant-hemisphere low-grade gliomas eliciting semantic paraphasias along subinsular ventral white matter; DES cannot isolate extreme capsule fibers from adjacent IFOF.
+- **hofer2006** — Hofer S & Frahm J, 2006 · Segmental topography of the human corpus callosum (PMID 16854598) — reconstruction
+  - _Scope:_ Diffusion tractography parcellation of genu, body, isthmus, and splenium cortical topography; population connectivity model rather than an individual disconnection boundary.
+- **gazzaniga2000** — Gazzaniga MS, 2000 · Cerebral specialization and interhemispheric communication (PMID 10869045) — association
+  - _Scope:_ Foundational review of callosal disconnection syndromes and interhemispheric transfer; clinical presentation depends on the callosal segment interrupted and the specific behavior tested.
+- **gungor2017** — Gungor A et al., 2017 · White matter tracts in transcallosal ventricular corridors (PMID 27257832) — experimental_anatomy
+  - _Scope:_ Rhoton-lineage fiber dissection detailing callosal and periventricular white matter relationships in transcallosal ventricular approaches; anatomical context rather than operative instruction.
+- **demaria2025** — De Maria L et al., 2025 · Neurological deficits after supplementary motor area tumour resection (PMID 40282544) — association
+  - _Scope:_ Clinical surgical series describing transient contralateral akinesia and speech initiation deficits after medial frontal SMA resection; series outcomes do not predict individual recovery.
 
 ## Review checklist
 

@@ -11,13 +11,22 @@ function statusTag(protocol, evalLens) {
   return '';
 }
 
+const SHORT_TRACT_NAMES = {
+  'fornix-bilateral': 'Fornix',
+  'cc-commissural': 'CC',
+  'slf1-bilateral': 'SLF I',
+  'slf2-left': 'SLF II',
+  'slf2-right': 'Right SLF II',
+  'slf3-left': 'SLF III',
+  'slf3-right': 'Right SLF III',
+  'af-right': 'Right AF',
+  'ifof-right': 'Right IFOF',
+  'fat-right': 'Right FAT',
+};
+
 function shortTractName(protocol, bundleId) {
   if (!protocol) return bundleId.replace(/_[LR]$/, '');
-  if (protocol.id === 'fornix-bilateral') return 'Fornix';
-  if (protocol.id === 'slf2-right') return 'Right SLF II';
-  if (protocol.id === 'af-right') return 'Right AF';
-  if (protocol.id === 'ifof-right') return 'Right IFOF';
-  if (protocol.id === 'fat-right') return 'Right FAT';
+  if (SHORT_TRACT_NAMES[protocol.id]) return SHORT_TRACT_NAMES[protocol.id];
   if (protocol.families.length > 1) return bundleId.replace(/_[LR]$/, '');
   return protocol.families[0];
 }

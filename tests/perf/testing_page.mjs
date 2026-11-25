@@ -58,26 +58,26 @@ try {
 
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto(new URL('/testing?test=1', base).href, {waitUntil: 'networkidle'});
-  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 26);
+  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 35);
 
   await page.locator('[data-target="ifof-left"]').click();
   assert.equal(await page.evaluate(() => document.activeElement?.dataset?.target), 'ifof-left', 'Selecting a target row preserves keyboard focus');
 
   await page.locator('[data-filter-kind="cortex"]').click();
-  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 10);
+  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 15);
   assert.equal(
     await page.evaluate(() => new URLSearchParams(location.search).get('target')),
     'ctx-ifg-left',
     'URL target updates synchronously with filtered selection',
   );
   await page.locator('[data-filter-kind="tract"]').click();
-  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 16);
+  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 20);
   await page.locator('[data-filter-hemi="R"]').click();
   assert(await page.locator('[data-target="slf2-right"]').isVisible());
   await page.locator('[data-filter-hemi="all"]').click();
   await page.locator('[data-filter-kind="all"]').click();
   await page.locator('#modeSelect').selectOption('untestable-anatomy-only');
-  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 4);
+  assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 5);
   await page.locator('#modeSelect').selectOption('all');
   await page.locator('#targetSearch').fill('55b');
   assert.equal(await page.evaluate(() => window.__testingTest.visibleCount), 1);
@@ -156,10 +156,25 @@ try {
   await page.locator('[data-map-hemi="R"]').click();
   assert.equal(await page.evaluate(() => window.__testingTest.mapHemi), 'R');
   await page.locator('[data-map-target="slf2-right"]').waitFor({state: 'visible'});
+  assert.equal(await page.locator('#territoryMap [data-kind="cortex"] .map-shape').count(), 5);
   await checkNoCalloutOverlap('right-both');
-  await page.locator('[data-map-target="slf2-right"]').click();
+  await page.locator('[data-map-layer="cortex"]').click();
+  assert.equal(await page.locator('#territoryMap .map-hotspot[data-kind="cortex"]').count(), 5);
+  await checkNoCalloutOverlap('right-cortex');
+  await page.locator('[data-map-target="ctx-smg-right"]').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-smg-right');
+  assert.match(await page.locator('#targetDetail h3').innerText(), /Right supramarginal gyrus/);
+  await page.locator('[data-map-layer="tract"]').click();
+  assert((await page.locator('#territoryMap .map-hotspot[data-kind="tract"]').count()) >= 12);
+  await checkNoCalloutOverlap('right-tract');
+  await page.locator('[data-map-layer="both"]').click();
+  await page.locator('[data-map-target="cc-commissural"]').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'cc-commissural');
+  assert.match(await page.locator('#targetDetail h3').innerText(), /Corpus callosum/);
+  await page.locator('[data-callout-target="ctx-smg-right"] .map-pill').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-smg-right');
+  await page.locator('[data-callout-target="slf2-right"] .map-pill').click();
   assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'slf2-right');
-  assert.match(await page.locator('#targetDetail h3').innerText(), /Right SLF II/);
   await page.locator('#territoryMap').screenshot({path: `${out}/testing-map-right-1440.png`});
 
   await page.locator('[data-map-hemi="L"]').click();

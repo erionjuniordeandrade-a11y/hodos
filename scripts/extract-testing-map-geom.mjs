@@ -280,17 +280,31 @@ function resampleLine(pts, n = 22) {
   return out;
 }
 
+function linePoints(line) {
+  const pts = [];
+  if (Array.isArray(line[0]) || ArrayBuffer.isView(line[0])) {
+    for (const p of line) pts.push([Number(p[0]), Number(p[1]), Number(p[2])]);
+  } else {
+    for (let i = 0; i < line.length; i += 3) pts.push([Number(line[i]), Number(line[i + 1]), Number(line[i + 2])]);
+  }
+  return pts;
+}
+
+function smoothOpen3(pts) {
+  return pts.map((p, i) => {
+    if (i === 0 || i === pts.length - 1) return p;
+    const a = pts[i - 1], c = pts[i + 1];
+    return [
+      a[0] * 0.25 + p[0] * 0.5 + c[0] * 0.25,
+      a[1] * 0.25 + p[1] * 0.5 + c[1] * 0.25,
+      a[2] * 0.25 + p[2] * 0.5 + c[2] * 0.25,
+    ];
+  });
+}
+
 export function medoidCenterline(lines) {
   const N = 22;
-  const sampled = lines.map(line => {
-    const pts = [];
-    if (Array.isArray(line[0]) || ArrayBuffer.isView(line[0])) {
-      for (const p of line) pts.push([Number(p[0]), Number(p[1]), Number(p[2])]);
-    } else {
-      for (let i = 0; i < line.length; i += 3) pts.push([Number(line[i]), Number(line[i + 1]), Number(line[i + 2])]);
-    }
-    return resampleLine(pts, N);
-  });
+  const sampled = lines.map(line => resampleLine(linePoints(line), N));
   const ref = sampled[0];
   const aligned = sampled.map(line => {
     const dSame = Math.hypot(line[0][0] - ref[0][0], line[0][1] - ref[0][1], line[0][2] - ref[0][2]);
@@ -308,9 +322,37 @@ export function medoidCenterline(lines) {
     for (let k = 0; k < N; k++) d += Math.hypot(line[k][0] - mean[k][0], line[k][1] - mean[k][1], line[k][2] - mean[k][2]);
     if (d < bestDist) { bestDist = d; best = line; }
   }
-  return best.map((p, i) => {
-    if (i === 0 || i === N - 1) return p;
-    const a = best[i - 1], c = best[i + 1];
-    return [a[0] * 0.25 + p[0] * 0.5 + c[0] * 0.25, a[1] * 0.25 + p[1] * 0.5 + c[1] * 0.25, a[2] * 0.25 + p[2] * 0.5 + c[2] * 0.25];
-  });
+  return smoothOpen3(best);
+}
+
+export function commissuralMidlineArc(lines, bins = 15) {
+  const crossings = [];
+  for (const line of lines) {
+    let best = null;
+    let bestAbs = Infinity;
+    for (const p of linePoints(line)) {
+      const ax = Math.abs(p[0]);
+      if (ax < bestAbs) { bestAbs = ax; best = p; }
+    }
+    if (best) crossings.push(best);
+  }
+  crossings.sort((a, b) => b[1] - a[1]);
+  const trim = crossings.length >= 20 ? Math.max(1, Math.floor(crossings.length * 0.01)) : 0;
+  const core = trim ? crossings.slice(trim, crossings.length - trim) : crossings;
+  if (!core.length) return [];
+  const maxY = core[0][1];
+  const minY = core[core.length - 1][1];
+  const span = maxY - minY || 1;
+  const raw = [];
+  for (let b = 0; b < bins; b++) {
+    const hi = maxY - (b / bins) * span;
+    const lo = maxY - ((b + 1) / bins) * span;
+    const inBin = core.filter(p => p[1] <= hi && (b === bins - 1 ? p[1] >= lo : p[1] > lo));
+    if (!inBin.length) continue;
+    const ys = inBin.map(p => p[1]).sort((a, c) => a - c);
+    const zs = inBin.map(p => p[2]).sort((a, c) => a - c);
+    const mid = Math.floor(inBin.length / 2);
+    raw.push([0, ys[mid], zs[mid]]);
+  }
+  return smoothOpen3(raw);
 }

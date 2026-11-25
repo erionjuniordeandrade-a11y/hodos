@@ -592,7 +592,7 @@ function syncLensUI(){
   const shortSummaries={
     'asleep-mep':'CST only; language, initiation & vision stay bright.',
     'awake-naming':'AF/IFOF/UF only; reading, FAT, SLF III & motor stay bright.',
-    tailored:'Testable pathways dimmed; Fornix, TR_A & DRTT stay bright.',
+    tailored:'Testable pathways dimmed; CC, Fornix, TR_A & DRTT stay bright.',
   };
   note.textContent=lens.id==='all'?lens.summary:`Dimmed = interrogated (not spared). Bright = blind spots or uncurated. ${shortSummaries[lens.id]??lens.summary}`;
 }
@@ -655,7 +655,12 @@ async function applyPreset(presetId){
   }
 }
 
-const protocolTag=p=>p.id==='fornix-bilateral'?'Fornix':p.id==='slf2-right'?'Right SLF II':p.families.join('/');
+const PROTOCOL_TAGS={
+  'fornix-bilateral':'Fornix','cc-commissural':'CC','slf1-bilateral':'SLF I',
+  'slf2-left':'SLF II','slf2-right':'Right SLF II','slf3-left':'SLF III','slf3-right':'Right SLF III',
+  'af-right':'Right AF','ifof-right':'Right IFOF','fat-right':'Right FAT',
+};
+const protocolTag=p=>PROTOCOL_TAGS[p.id]??p.families.join('/');
 
 function updateTractLabels(){
   if(!tractLabels||labelFrame)return;
