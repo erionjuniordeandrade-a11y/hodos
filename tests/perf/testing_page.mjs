@@ -204,6 +204,7 @@ try {
   assert(labState.blindSpotProtocols.includes('fat-left'));
   assert(await page.locator('#storyTesting').isVisible());
   assert.match(await page.locator('#storyTesting').innerText(), /blind spot/);
+  await page.waitForFunction(() => window.__lesionLabTest.labelCount >= 1);
   assert((await page.locator('#labLabels .lab-tract-label').count()) >= 1, 'Expected 3D tract callout labels on desktop');
   const railScroll = await page.evaluate(() => {
     const el = document.getElementById('lesionControls');

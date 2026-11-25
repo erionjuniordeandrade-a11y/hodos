@@ -46,7 +46,7 @@ const lab={hemi:initial.hemi,centre:null,radius:initial.radius,marginOn:initial.
   load:{status:'booting',error:null},rows:[],reached:[],named:[],classifyMs:0,classifyMax:0,view:'oblique',
   entries:{...initial.entries},corridorMm:initial.corridor,placing:null,corridors:{A:null,B:null},
   lens:initial.tasks.length?'custom':initial.lens,customTasks:[...initial.tasks],preset:initial.preset,evalLens:null,hudTestingText:''};
-let scene=null,stage=null,THREE=null,decodeAtlasBundle=null,tractLabels=null;
+let scene=null,stage=null,THREE=null,decodeAtlasBundle=null,tractLabels=null,labelRestTimer=0,labelFrame=0;
 let sphere=null,rings=null,ringScreen=null,drag=null,place=null,hover=false,focusIndex=-1,openIndex=-1,lastFocus='none';
 let lastStory=null,lastInsets=null,drawerReturnFocus=null,insetsObserver=null;
 const layers=new Map(),rowsByHemi=new Map();
@@ -658,16 +658,20 @@ async function applyPreset(presetId){
 const protocolTag=p=>p.id==='fornix-bilateral'?'Fornix':p.id==='slf2-right'?'Right SLF II':p.families.join('/');
 
 function updateTractLabels(){
-  if(!tractLabels)return;
-  const entry=layer();
-  tractLabels.update({
-    reached:lab.reached,
-    evalLens:lab.evalLens,
-    entry,
-    stage,
-    THREE,
-    anchorFor,
-    isMobile:SHEET_LAYOUT.matches,
+  if(!tractLabels||labelFrame)return;
+  labelFrame=requestAnimationFrame(()=>{
+    labelFrame=0;
+    if(!tractLabels)return;
+    const entry=layer();
+    tractLabels.update({
+      reached:lab.reached,
+      evalLens:lab.evalLens,
+      entry,
+      stage,
+      THREE,
+      anchorFor,
+      isMobile:SHEET_LAYOUT.matches,
+    });
   });
 }
 
@@ -1173,6 +1177,7 @@ if(testMode)window.__lesionLabEntry=(id,{x,y,point}={})=>{
 
 addEventListener('pagehide',event=>{
   if(event.persisted)return;
+  clearTimeout(labelRestTimer);cancelAnimationFrame(labelFrame);labelFrame=0;
   sendLoad('leave');rings?.observer.disconnect();insetsObserver?.disconnect();
   for(const entry of layers.values())disposeLayer(entry);layers.clear();
   scene?.dispose();scene=null;stage=null;
@@ -1202,7 +1207,13 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
     THREE=three;decodeAtlasBundle=data.decodeAtlasBundle;
     const created=await sceneModule.createAtlasScene(mount,{
       hover:false,
-      onInteraction(){tractLabels?.setDragging(true);},
+      onInteraction(){
+        tractLabels?.setDragging(true);
+        clearTimeout(labelRestTimer);
+        labelRestTimer=setTimeout(()=>{
+          if(!drag&&!stage?.controls?.currentAction){tractLabels?.setDragging(false);updateTractLabels();}
+        },250);
+      },
       // Before the lab is ready its own loading messages lead, and the scene's "Atlas ready" is not the lab's.
       onStatus(message,detail){
         if(flags().ready)showStatus(detail?.ready?'':message);
@@ -1223,7 +1234,7 @@ $('marginOn').checked=lab.marginOn;$('margin').disabled=!lab.marginOn;$('margin'
       },
       onClick:bundleId=>openEvidenceFor(bundleId),
     });
-    scene.onCameraRest(()=>{tractLabels?.setDragging(false);updateTractLabels();});
+    scene.onCameraRest(()=>{clearTimeout(labelRestTimer);tractLabels?.setDragging(false);updateTractLabels();});
     scene.setProfile('presenter');scene.setPlaying(false);scene.setDeep(false);scene.setSurface(.14);scene.setHemisphere(lab.hemi);
     scene.flyTo({view:'oblique',tweenMs:0});
     createSphere();

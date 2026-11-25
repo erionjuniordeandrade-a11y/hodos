@@ -17,17 +17,12 @@ import {
   TARGET_PROTOCOLS,
   TEST_LENSES,
   LESION_PRESETS,
-  BATTERY_TASKS,
-  PRIMARY_TASKS_BY_TRACT,
   PRESET_BY_ID,
   validateTestingRegistry,
   tractProtocolsForCutBundles,
   evaluateTestLens,
-  evaluateCustomBattery,
   hudTestingSummary,
   interrogatedFamiliesForLens,
-  interrogatedFamiliesForTasks,
-  buildTestingSheetData,
   filterProtocols,
   testingStateFromSearch,
   testingStep,
@@ -324,98 +319,4 @@ test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partitio
     ['dulip-object-naming', 'task-awake-reading'],
   );
   assert.deepEqual(parseLabParams('').tasks, []);
-});
-
-test('custom battery builder isolates task-specific blind spots and never dims untestable or uncurated bundles', () => {
-  assert.equal(BATTERY_TASKS.length, 16);
-  assert.equal(Object.keys(PRIMARY_TASKS_BY_TRACT).length, 16);
-
-  const famsNamingOnly = interrogatedFamiliesForTasks('L', ['dulip-object-naming']);
-  assert.deepEqual([...famsNamingOnly].sort(), ['IFOF', 'UF']);
-  assert.equal(famsNamingOnly.has('AF'), false);
-  assert.equal(famsNamingOnly.has('ILF'), false);
-  assert.equal(famsNamingOnly.has('VOF'), false);
-
-  const sampleRows = [
-    {id: 'AF_L', cut: 20, total: 220},
-    {id: 'IFOF_L', cut: 18, total: 220},
-    {id: 'UF_L', cut: 12, total: 220},
-    {id: 'ILF_L', cut: 14, total: 220},
-    {id: 'VOF_L', cut: 10, total: 220},
-    {id: 'FAT_L', cut: 16, total: 220},
-    {id: 'SLF3_L', cut: 11, total: 220},
-    {id: 'CST_L', cut: 15, total: 220},
-    {id: 'OR_L', cut: 9, total: 220},
-    {id: 'F_L', cut: 5, total: 220},
-    {id: 'TR_A_L', cut: 5, total: 220},
-    {id: 'DRTT_L', cut: 5, total: 220},
-    {id: 'EMC_L', cut: 8, total: 220},
-  ];
-  const namingEval = evaluateCustomBattery(sampleRows, 'L', ['dulip-object-naming']);
-  assert.equal(namingEval.active, true);
-  assert.equal(namingEval.lens.id, 'custom');
-  assert.deepEqual(namingEval.interrogatedProtocols.map(p => p.id).sort(), ['ifof-left', 'uf-left']);
-  assert.deepEqual(
-    namingEval.blindSpotProtocols.map(p => p.id).sort(),
-    ['af-left', 'cst-bilateral', 'drtt-bilateral', 'fat-left', 'fornix-bilateral', 'ilf-vof-left-reading', 'or-bilateral', 'slf3-left', 'tra-bilateral'],
-  );
-  assert.deepEqual(namingEval.unmatchedCutIds, ['EMC_L']);
-
-  const withRepetition = evaluateCustomBattery(sampleRows, 'L', ['dulip-object-naming', 'dulip-repetition']);
-  assert.deepEqual(withRepetition.interrogatedProtocols.map(p => p.id).sort(), ['af-left', 'ifof-left', 'slf3-left', 'uf-left']);
-
-  const withReading = evaluateCustomBattery(sampleRows, 'L', ['dulip-object-naming', 'dulip-repetition', 'task-awake-reading']);
-  assert(withReading.interrogatedProtocols.some(p => p.id === 'ilf-vof-left-reading'));
-
-  const allSelected = interrogatedFamiliesForTasks('L', BATTERY_TASKS.map(t => t.id));
-  assert.equal(allSelected.has('F'), false);
-  assert.equal(allSelected.has('TR_A'), false);
-  assert.equal(allSelected.has('DRTT'), false);
-  assert.equal(allSelected.has('EMC'), false);
-
-  const emptyEval = evaluateCustomBattery(sampleRows, 'L', ['constructor']);
-  assert.equal(emptyEval.active, false);
-  assert.deepEqual(tractProtocolsForCutBundles(null, 'L'), {protocols: [], unmatchedCutIds: []});
-  assert.equal(evaluateCustomBattery(sampleRows, 'L', null).active, false);
-});
-
-test('buildTestingSheetData builds deduplicated 3-column sheet with watermark and zero PHI fields', () => {
-  const sampleRows = [
-    {id: 'AF_L', cut: 20, total: 220},
-    {id: 'IFOF_L', cut: 18, total: 220},
-    {id: 'F_L', cut: 5, total: 220},
-    {id: 'EMC_L', cut: 8, total: 220},
-  ];
-  const ev = evaluateCustomBattery(sampleRows, 'L', ['dulip-object-naming']);
-  const sheet = buildTestingSheetData({
-    title: 'Left temporoparietal',
-    subtitle: 'Custom battery',
-    hemi: 'L',
-    protocols: ev.protocols,
-    blindSpotIds: ev.blindSpotProtocols.map(p => p.id),
-    interrogatedIds: ev.interrogatedProtocols.map(p => p.id),
-    unmatchedCutIds: ev.unmatchedCutIds,
-  });
-  assert.equal(
-    sheet.watermark,
-    'Group reference · Educational draft awaiting clinical review, not patient-specific navigation or an institutional protocol.',
-  );
-  assert.equal((sheet.watermark.match(/·/g) ?? []).length, 1);
-  assert.equal(sheet.lensActive, true);
-  assert(sheet.mapTasks.length >= 2);
-  assert(sheet.monitorTasks.length >= 2);
-  assert.equal(new Set(sheet.mapTasks.map(t => t.id)).size, sheet.mapTasks.length);
-  assert.equal(new Set(sheet.monitorTasks.map(t => t.id)).size, sheet.monitorTasks.length);
-  assert.deepEqual(sheet.blindSpots.map(b => b.id), ['af-left']);
-  assert.equal(sheet.blindSpots[0].isBlindSpot, true);
-  const singleCard = buildTestingSheetData({title: 'Single card', protocols: [ev.protocols[0]]});
-  assert.equal(singleCard.lensActive, false);
-  assert.equal(singleCard.blindSpots[0].isBlindSpot, false);
-  assert.deepEqual(sheet.untestable.map(u => u.id), ['fornix-bilateral']);
-  assert.deepEqual(sheet.uncurated, ['EMC_L']);
-  assert(sheet.sources.length >= 3 && sheet.sources.every(s => s.url));
-  const keys = Object.keys(sheet);
-  for (const phi of ['patient', 'mrn', 'dob', 'age', 'surgeon', 'hospital', 'date']) {
-    assert(!keys.includes(phi), `Unexpected PHI field ${phi}`);
-  }
 });

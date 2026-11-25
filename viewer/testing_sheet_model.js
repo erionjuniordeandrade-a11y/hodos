@@ -46,8 +46,9 @@ export function buildTestingSheetData({
   const interrogatedSet = new Set(interrogatedIds);
   const lensActive = blindSet.size > 0 || interrogatedSet.size > 0;
 
-  const mapTasks = collectSheetTasks(list, 'mappingTasks');
-  const monitorTasks = collectSheetTasks(list, 'monitoringTasks');
+  const taskProtocols = lensActive ? list.filter(p => interrogatedSet.has(p.id)) : list;
+  const mapTasks = collectSheetTasks(taskProtocols, 'mappingTasks');
+  const monitorTasks = collectSheetTasks(taskProtocols, 'monitoringTasks');
   const untestable = [];
   const blindSpots = [];
   const interrogated = [];
