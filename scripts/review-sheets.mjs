@@ -94,7 +94,10 @@ export function buildLessonSheet(lesson, guide, sourcesById = SOURCES, regions =
   if (!guide) throw new Error(`No teaching guide for lesson ${lesson.id}`);
   const lines = [];
   lines.push(`# ${lesson.title}`, '');
-  lines.push(`Lesson id: \`${lesson.id}\` · Minutes: ${lesson.minutes} · Review status: ${lesson.reviewStatus}`, '');
+  const reviewDetail = lesson.reviewedAt
+    ? ` · Reviewed: ${lesson.reviewedAt}${lesson.reviewedBy ? ` (${lesson.reviewedBy})` : ''}`
+    : '';
+  lines.push(`Lesson id: \`${lesson.id}\` · Minutes: ${lesson.minutes} · Review status: ${lesson.reviewStatus}${reviewDetail}`, '');
   lines.push(...renderRest(lesson, LESSON_SHOWN_OR_STRUCTURAL));
   lines.push('## Opening question', '', guide.question, '');
   lines.push('## Three takeaways', '');

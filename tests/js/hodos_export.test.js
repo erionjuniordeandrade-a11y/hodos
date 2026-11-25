@@ -147,7 +147,7 @@ test('Hodos publishes a complete atlas with working public navigation and attrib
   const allBundledJS=[atlasBundle,...await Promise.all(chunkFiles.map(f=>readFile(path.join(out,f.path),'utf8')))].join('\n');
   assert(allBundledJS.includes('#E0605A'),'the /atlas bundle closure carries the Direction colour table');
   assert.match(headers,/\/chunks\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=31536000, immutable/);
-  assert.match(headers,/\/case-images\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=2592000/);
+  assert.match(headers,/\/case-images\/\*\n  ! Cache-Control\n  Cache-Control: public, max-age=14400, must-revalidate/);
   assert.doesNotMatch(await readFile(path.join(out,'scene_materials.js'),'utf8'),/configTube|tube-evidence/,'the unused tube-evidence material code is gone');
   assert.equal(receipt.files.filter(f=>/^reference-plates\/.*\.webp$/.test(f.path)).length,5);
   assert(!receipt.files.some(f=>/^(data\.json|app\.js|cases\/|api\/|handoff\/|\.env)/.test(f.path)));

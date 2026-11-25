@@ -1,4 +1,4 @@
-import {LESSONS,SOURCES,REGIONS,sourceIdsForStep,lessonStatusNotice} from '../viewer/lesson_content.js';
+import {LESSONS,SOURCES,REGIONS,sourceIdsForStep,lessonStatusNotice,curriculumStatusNotice} from '../viewer/lesson_content.js';
 import {CURRICULUM,TEACHING_GUIDES} from '../viewer/lesson_briefings.js';
 
 export const SITE_ORIGIN='https://hodosatlas.com';
@@ -153,7 +153,7 @@ function indexJSON(ordered){
 
 function indexBody(ordered,draft,headerHTML,footerHTML){
   const description='Browse twenty Hodos lessons in neuroanatomy, from atlas evidence and regional relationships to networks and behaviour.';
-  return page({headHTML:head({title:'Lessons',description,url:`${SITE_ORIGIN}/lessons`,jsonLd:indexJSON(ordered),ogType:'website'}),headerHTML,footerHTML,bodyHTML:`<main id="lessonMain" class="prose lessons-index-page"><div>${breadcrumb([{name:'Hodos',url:'/'},{name:'Lessons'}])}</div><p class="lesson-draft-notice">${text(draft)}</p><h1>Lessons</h1><p class="lesson-summary">A curriculum of relationships for neurosurgical residents. Each lesson moves from a reference view to a question you can explain.</p><ol class="lessons-index-list">${ordered.map((lesson,index)=>`<li><p class="lesson-index-number"><span class="lesson-ordinal">${String(index+1).padStart(2,'0')}</span>${text(lesson.category)} · ${lesson.steps.length} relationships, about ${lesson.minutes} minutes</p><h2><a href="/lessons/${text(lesson.id)}">${text(lesson.title)}</a></h2><p>${text(lesson.summary)}</p><p><a href="/lessons/${text(lesson.id)}">Read the lesson</a></p></li>`).join('')}</ol></main>`});
+  return page({headHTML:head({title:'Lessons',description,url:`${SITE_ORIGIN}/lessons`,jsonLd:indexJSON(ordered),ogType:'website'}),headerHTML,footerHTML,bodyHTML:`<main id="lessonMain" class="prose lessons-index-page"><div>${breadcrumb([{name:'Hodos',url:'/'},{name:'Lessons'}])}</div><p class="lesson-draft-notice">${text(curriculumStatusNotice(ordered,draft))}</p><h1>Lessons</h1><p class="lesson-summary">A curriculum of relationships for neurosurgical residents. Each lesson moves from a reference view to a question you can explain.</p><ol class="lessons-index-list">${ordered.map((lesson,index)=>`<li><p class="lesson-index-number"><span class="lesson-ordinal">${String(index+1).padStart(2,'0')}</span>${text(lesson.category)} · ${lesson.steps.length} relationships, about ${lesson.minutes} minutes</p><h2><a href="/lessons/${text(lesson.id)}">${text(lesson.title)}</a></h2><p>${text(lesson.summary)}</p><p><a href="/lessons/${text(lesson.id)}">Read the lesson</a></p></li>`).join('')}</ol></main>`});
 }
 
 export function lessonIdsFromLanding(landingHTML){

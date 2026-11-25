@@ -71,7 +71,7 @@ export async function createAtlasScene(mount,{onPick=()=>{},onHover=()=>{},onSta
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const scene=new THREE.Scene();
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  // Narrow screens render at 2x at most; resize() applies the same cap to the pipeline.
+  // Cap pixel ratio at 2x; resize() applies the same cap to the pipeline.
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x070c12,0);
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.localClippingEnabled=true;

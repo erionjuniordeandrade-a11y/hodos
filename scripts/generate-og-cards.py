@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generate deterministic 1200x630 OpenGraph preview cards for Hodos lessons and tools.
 
-Uses only real atlas renders/plates already in viewer/media/ — never AI-generated anatomy.
+Uses existing atlas renders/plates from viewer/media/ (and the clearly watermarked
+synthetic MRI-style illustration for the fictional Case Conference card).
 Run from repo root: python3 scripts/generate-og-cards.py
 """
 import json
@@ -28,11 +29,15 @@ FONT_CANDIDATES_BOLD = [
     "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
     "/System/Library/Fonts/HelveticaNeue.ttc",
     "/Library/Fonts/Arial Bold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
 ]
 FONT_CANDIDATES_REG = [
     "/System/Library/Fonts/Supplemental/Arial.ttf",
     "/System/Library/Fonts/HelveticaNeue.ttc",
     "/Library/Fonts/Arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
 ]
 
 
@@ -43,7 +48,10 @@ def load_font(candidates, size):
                 return ImageFont.truetype(p, size)
             except Exception:
                 pass
-    return ImageFont.load_default()
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
 
 
 def cover_crop(img, tw, th):
@@ -191,7 +199,7 @@ def main():
             "case-conference",
             "Case Conference",
             "Bring your reasoning to the conference.",
-            "Four staged glioma teaching cases for senior neurosurgical residents.",
+            "Four fictional staged glioma cases for senior neurosurgical residents.",
             "hodosatlas.com/case-conference",
             VIEWER / "media" / "landing" / "case-right-medial-frontal-20260914.jpg",
         ),

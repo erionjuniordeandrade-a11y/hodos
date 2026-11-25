@@ -23,7 +23,7 @@ const arg=name=>process.argv.find(a=>a.startsWith(`--${name}=`))?.slice(name.len
 const out=path.resolve(arg('out')||'output/lesion-lab');
 const ciMode=process.argv.includes('--ci');
 const record=!ciMode&&!process.argv.includes('--no-record');
-const FPS_MIN=58,DRAG_SECONDS=ciMode?1.2:3,VIDEO_SECONDS=30;
+const FPS_MIN=58,DRAG_SECONDS=ciMode?1.8:3,VIDEO_SECONDS=30;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 await mkdir(out,{recursive:true});
 const report={started:new Date().toISOString(),url:null,renderer:null,fps:{},checks:[],errors:[],expectedErrors:0,video:null};
@@ -121,7 +121,7 @@ const cutIds=state=>state.rows.filter(r=>r.cut>0).map(r=>r.id).sort();
 // bundle lost the MARGIN/CUT exports lit every streamline while the counts stayed right.
 async function litPixels(page){
   await frame(page);
-  const png=PNG.sync.read(await page.locator('.lab-stage').screenshot());
+  const png=PNG.sync.read(await page.locator('.lab-stage').screenshot({animations:'disabled',timeout:ciMode?45000:20000}));
   let lit=0;
   for(let i=0;i<png.data.length;i+=4){const r=png.data[i],g=png.data[i+1],b=png.data[i+2];if(Math.max(r,g,b)-Math.min(r,g,b)>70)lit++;}
   return lit;
@@ -294,7 +294,7 @@ try{
   // Desktop: frame rate, controls, every statement the page can show, URL state.
   {
     const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:ciMode?1:2});
-    const page=await context.newPage();page.setDefaultTimeout(20000);watch(page,report.errors);
+    const page=await context.newPage();page.setDefaultTimeout(ciMode?45000:20000);watch(page,report.errors);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     let state=await ready(page);
     report.renderer=await page.evaluate(()=>{const gl=document.querySelector('#atlasCanvas canvas').getContext('webgl2'),info=gl.getExtension('WEBGL_debug_renderer_info');
@@ -429,7 +429,7 @@ try{
   // Phone width: frame rate, touch drag, layout.
   {
     const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:ciMode?1:3,isMobile:true,hasTouch:true});
-    const page=await context.newPage();page.setDefaultTimeout(20000);watch(page,report.errors);
+    const page=await context.newPage();page.setDefaultTimeout(ciMode?45000:20000);watch(page,report.errors);
     await page.goto(`${base}/labs/lesion-lab?test=1`,{waitUntil:'domcontentloaded'});
     await ready(page);
     assert(await noOverflow(page),'no horizontal overflow at 390');

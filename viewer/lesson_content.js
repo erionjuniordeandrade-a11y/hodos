@@ -38,6 +38,13 @@ export function lessonStatusNotice(lesson){
   throw new Error(`Unknown reviewStatus: ${lesson.reviewStatus}`);
 }
 
+export function curriculumStatusNotice(lessons,draftNoticeText='Lesson text is an educational draft awaiting anatomical review.'){
+  const draftCount=lessons.filter(l=>l.reviewStatus==='draft').length;
+  if(draftCount===lessons.length)return draftNoticeText;
+  if(draftCount===0)return 'All lessons have been reviewed. Group anatomy reference only, not for surgical navigation.';
+  return `${lessons.length-draftCount} of ${lessons.length} lessons reviewed; ${draftCount} remain educational drafts awaiting anatomical review.`;
+}
+
 export const SOURCES=Object.freeze({...REFERENCE_SOURCES,...RESIDENT_SOURCES,...CORPUS_CALLOSUM_SOURCES,...INTERNAL_CAPSULE_SOURCES,...VENTRAL_SOURCES,...BRAINSTEM_SOURCES,...NETWORK_SOURCES,...W3_limen.SOURCES,...W3_insularFloor.SOURCES,...W3_medialSystem.SOURCES,...W3_motorBeyondM1.SOURCES,...W3_controlNetwork.SOURCES,...W3_readingRoute.SOURCES});
 // Wave-3 modules carry their own region cards; ids must not collide with the base set.
 export const REGIONS=Object.freeze({...BASE_REGIONS,...W3_limen.REGIONS,...W3_insularFloor.REGIONS,...W3_medialSystem.REGIONS,...W3_motorBeyondM1.REGIONS,...W3_controlNetwork.REGIONS,...W3_readingRoute.REGIONS});
@@ -116,6 +123,13 @@ function validateScene(scene,lessonId){
   }
 }
 
+function isIsoDate(value){
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const [y,m,d]=value.split('-').map(Number);
+  const dt=new Date(Date.UTC(y,m-1,d));
+  return dt.getUTCFullYear()===y&&dt.getUTCMonth()===m-1&&dt.getUTCDate()===d;
+}
+
 export function validateLessons(lessons=LESSONS,{sources=SOURCES,regions=REGIONS}={}){
   const ids=new Set(),usedSources=new Set(),usedRegions=new Set(),papers=new Set();
   for(const [id,s] of Object.entries(sources)){
@@ -136,7 +150,9 @@ export function validateLessons(lessons=LESSONS,{sources=SOURCES,regions=REGIONS
   }
   for(const l of lessons){
     if(ids.has(l.id)||!l.version||!REVIEW_STATUSES.includes(l.reviewStatus)||!l.steps.length)throw new Error('Invalid lesson identity or review state');
-    if(l.reviewStatus!=='draft'&&!(typeof l.reviewedAt==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(l.reviewedAt)))throw new Error(`Reviewed lesson ${l.id} requires ISO reviewedAt date`);
+    if(l.reviewStatus==='draft'&&(l.reviewedAt!=null||l.reviewedBy!=null))throw new Error(`Draft lesson ${l.id} must not carry review metadata`);
+    if(l.reviewStatus!=='draft'&&!isIsoDate(l.reviewedAt))throw new Error(`Reviewed lesson ${l.id} requires valid ISO reviewedAt date`);
+    if(l.reviewStatus==='author-reviewed'&&l.reviewedBy!=null)throw new Error(`Author-reviewed lesson ${l.id} must not set reviewedBy`);
     if(l.reviewStatus==='peer-reviewed'&&!(typeof l.reviewedBy==='string'&&l.reviewedBy.trim()))throw new Error(`Peer-reviewed lesson ${l.id} requires reviewedBy`);
     ids.add(l.id);
     for(const s of l.steps){
