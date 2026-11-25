@@ -6,7 +6,8 @@ import path from 'node:path';
 import {LESSONS, SOURCES, REGIONS, sourceIdsForStep} from '../../viewer/lesson_content.js';
 import {TEACHING_GUIDES} from '../../viewer/lesson_briefings.js';
 import {CASES} from '../../viewer/case_content.js';
-import {writeReviewSheets, buildLessonSheet, buildCaseSheet, citationTag} from '../../scripts/review-sheets.mjs';
+import {TESTING_SOURCES} from '../../viewer/testing_model.js';
+import {writeReviewSheets, buildLessonSheet, buildCaseSheet, buildTestingSheet, citationTag} from '../../scripts/review-sheets.mjs';
 
 async function withTempDir(fn) {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'hodos-review-sheets-'));
@@ -17,17 +18,32 @@ async function withTempDir(fn) {
   }
 }
 
-test('writes one sheet per lesson and per case (24 total) into the given output dir', async () => {
+test('writes one sheet per lesson, case, and testing guide (25 total) into the given output dir', async () => {
   await withTempDir(async (dir) => {
     const written = await writeReviewSheets(dir);
-    assert.equal(written.length, 24);
+    assert.equal(written.length, 25);
     const files = (await readdir(dir)).sort();
-    const expected = [...LESSONS.map((l) => `${l.id}.md`), ...CASES.map((c) => `${c.id}.md`)].sort();
+    const expected = [
+      ...LESSONS.map((l) => `${l.id}.md`),
+      ...CASES.map((c) => `${c.id}.md`),
+      'testing-monitoring-vs-mapping.md',
+    ].sort();
     assert.deepEqual(files, expected);
-    assert.equal(files.length, 24);
+    assert.equal(files.length, 25);
     assert.equal(LESSONS.length, 20);
     assert.equal(CASES.length, 4);
   });
+});
+
+test('known-positive: testing sheet includes all 25 verified sources, scope notes, task groups, secondary modes, and drill targets', () => {
+  const sheet = buildTestingSheet();
+  for (const src of Object.values(TESTING_SOURCES)) {
+    assert.ok(sheet.includes(src.id), `expected testing source ${src.id}`);
+    assert.ok(sheet.includes(src.scope), `expected testing scope of ${src.id}`);
+  }
+  assert.ok(sheet.includes('**Group / mode:**'));
+  assert.ok(sheet.includes('(Secondary:'));
+  assert.ok(sheet.includes('**Target protocol:** `fat-left`'));
 });
 
 test('known-positive: every lesson sheet contains every source id used by that lesson', async () => {

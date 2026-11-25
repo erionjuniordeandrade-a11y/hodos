@@ -8,6 +8,18 @@ import {fileURLToPath} from 'node:url';
 import {LESSONS, SOURCES, REGIONS, sourceIdsForStep} from '../viewer/lesson_content.js';
 import {TEACHING_GUIDES} from '../viewer/lesson_briefings.js';
 import {CASES} from '../viewer/case_content.js';
+import {
+  REVIEW_STATUS as TESTING_REVIEW_STATUS,
+  TESTING_VERSION,
+  TESTING_SOURCES,
+  COMPARISON_ROWS,
+  MODALITIES,
+  TESTING_TASKS,
+  SCENARIO_DRILLS,
+  TARGET_PROTOCOLS,
+  MODE_BY_ID,
+  TASK_BY_ID,
+} from '../viewer/testing_model.js';
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url));
 export const DEFAULT_OUT_DIR = path.join(repoRoot, 'docs/review-sheets');
@@ -180,6 +192,70 @@ export function buildCaseSheet(case_) {
   return lines.join('\n');
 }
 
+export function buildTestingSheet() {
+  const lines = [];
+  lines.push('# How to test it: Monitoring vs mapping', '');
+  lines.push(`Guide id: \`testing-monitoring-vs-mapping\` · Version: ${TESTING_VERSION} · Review status: ${TESTING_REVIEW_STATUS}`, '');
+  lines.push('## Monitoring vs mapping', '');
+  for (const row of COMPARISON_ROWS) {
+    lines.push(`- **${row.dimension}:** Monitoring: ${row.monitoring} | Mapping: ${row.mapping}`);
+  }
+  lines.push('', '## Modalities', '');
+  for (const mod of MODALITIES) {
+    lines.push(`### ${mod.name} (${mod.role})`, '');
+    lines.push(`- **Question:** ${mod.question}`);
+    lines.push(`- **Parameters:** ${mod.parameters}`);
+    lines.push(`- **Blind spot:** ${mod.blindSpot}`);
+    lines.push('**Sources:**');
+    sourceLookupFor(mod.sourceIds, TESTING_SOURCES).forEach((s) => lines.push(formatSourceLine(s)));
+    lines.push('');
+  }
+  lines.push('## Tasks (DuLIP & specialized)', '');
+  for (const task of TESTING_TASKS) {
+    const modeLabel = MODE_BY_ID[task.mode]?.label ?? task.mode;
+    lines.push(`### ${task.name}`, '');
+    lines.push(`- **Group / mode:** ${task.group} · ${modeLabel}`);
+    lines.push(`- **Domain / timing:** ${task.domain}, ${task.timing}`);
+    lines.push(`- **Prompt / protocol:** ${task.carrierPhrase}`);
+    lines.push(`- **Caveat:** ${task.caveat}`);
+    lines.push('**Sources:**');
+    sourceLookupFor(task.sourceIds, TESTING_SOURCES).forEach((s) => lines.push(formatSourceLine(s)));
+    lines.push('');
+  }
+  lines.push('## Anatomical protocols', '');
+  for (const p of TARGET_PROTOCOLS) {
+    const modeLabel = MODE_BY_ID[p.mode]?.label ?? p.mode;
+    const secondary = p.secondaryModes.map((id) => MODE_BY_ID[id]?.label ?? id).join(', ');
+    const refs = p.kind === 'tract' ? `Families: ${p.families.join(', ')}` : `Parcels: ${p.parcels.join(', ')}`;
+    lines.push(`### ${p.name}`, '');
+    lines.push(`- **Kind / side:** ${p.kind} (${p.hemi}) · ${refs} · **Mode:** ${modeLabel}${secondary ? ` (Secondary: ${secondary})` : ''}`);
+    lines.push(`- **Mapping tasks:** ${p.mappingTasks.map((id) => TASK_BY_ID[id]?.name ?? id).join(', ') || 'None'}`);
+    lines.push(`- **Monitoring tasks:** ${p.monitoringTasks.map((id) => TASK_BY_ID[id]?.name ?? id).join(', ') || 'None'}`);
+    lines.push(`- **Execution:** ${p.execution}`);
+    lines.push(`- **Error signature:** ${p.errorSignature}`);
+    lines.push(`- **Blind spot:** ${p.blindSpot}`);
+    lines.push(`- **Matching lesson:** ${p.lessonId}`);
+    lines.push('**Sources:**');
+    sourceLookupFor(p.sourceIds, TESTING_SOURCES).forEach((s) => lines.push(formatSourceLine(s)));
+    lines.push('');
+  }
+  lines.push('## Clinical trap drills', '');
+  for (const drill of SCENARIO_DRILLS) {
+    lines.push(`### ${drill.title}`, '', drill.stem, '');
+    lines.push(`- **Target protocol:** \`${drill.targetId}\``);
+    for (const opt of drill.options) {
+      lines.push(`- [${opt.correct ? 'x' : ' '}] ${opt.label} — ${opt.rationale}`);
+    }
+    lines.push('**Sources:**');
+    sourceLookupFor(drill.sourceIds, TESTING_SOURCES).forEach((s) => lines.push(formatSourceLine(s)));
+    lines.push('');
+  }
+  lines.push('## Full source list', '');
+  Object.values(TESTING_SOURCES).forEach((s) => lines.push(formatSourceEntry(s)));
+  lines.push('', '## Review checklist', '', CHECKLIST, '', 'Notes:', '');
+  return lines.join('\n');
+}
+
 // --- Driver ---------------------------------------------------------------
 
 export async function writeReviewSheets(outDir = DEFAULT_OUT_DIR) {
@@ -197,6 +273,9 @@ export async function writeReviewSheets(outDir = DEFAULT_OUT_DIR) {
     await writeFile(file, sheet, 'utf8');
     written.push(file);
   }
+  const testingFile = path.join(outDir, 'testing-monitoring-vs-mapping.md');
+  await writeFile(testingFile, buildTestingSheet(), 'utf8');
+  written.push(testingFile);
   return written;
 }
 

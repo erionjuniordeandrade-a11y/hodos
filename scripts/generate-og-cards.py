@@ -211,6 +211,14 @@ def main():
             "hodosatlas.com/connections",
             VIEWER / "media" / "landing" / "family-networks-loop-20260926.jpg",
         ),
+        (
+            "testing",
+            "Testing Guide",
+            "How to test it: monitoring vs mapping.",
+            "26 anatomical protocols, 17 DuLIP tasks, modality cards and 5 clinical trap drills.",
+            "hodosatlas.com/testing",
+            VIEWER / "media" / "landing" / "family-language-loop-20260926.jpg",
+        ),
     ]
     for slug, eyebrow, title, subtitle, url, plate in tools:
         out = OUT / f"{slug}.jpg"

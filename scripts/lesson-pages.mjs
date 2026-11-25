@@ -94,7 +94,7 @@ function head({title,description,url,jsonLd,ogType='article',ogImage=`${SITE_ORI
 
 function cleanPath(target){
   if(target==='')return '/';
-  for(const [file,route] of [['index.html','/'],['atlas.html','/atlas'],['atlas-sources.html','/atlas-sources'],['case-conference.html','/case-conference'],['mips.html','/mips'],['connections.html','/connections'],['lessons.html','/lessons']])if(target===file||target.startsWith(`${file}?`)||target.startsWith(`${file}#`))return `${route}${target.slice(file.length)}`;
+  for(const [file,route] of [['index.html','/'],['atlas.html','/atlas'],['atlas-sources.html','/atlas-sources'],['case-conference.html','/case-conference'],['mips.html','/mips'],['connections.html','/connections'],['testing.html','/testing'],['lessons.html','/lessons']])if(target===file||target.startsWith(`${file}?`)||target.startsWith(`${file}#`))return `${route}${target.slice(file.length)}`;
   return `/${target}`;
 }
 

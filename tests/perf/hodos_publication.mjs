@@ -22,8 +22,9 @@ try{
   const sitemap=await http.get('/sitemap.xml');
   assert.equal(sitemap.status(),200);
   const sitemapLocs=[...await sitemap.text().then(text=>text.matchAll(/<loc>([^<]+)<\/loc>/g))].map(match=>{const url=new URL(match[1]);return url.pathname+url.search;});
-  assert.equal(sitemapLocs.length,28);
+  assert.equal(sitemapLocs.length,29);
   assert(sitemapLocs.includes('/connections'));
+  assert(sitemapLocs.includes('/testing'));
   assert(sitemapLocs.includes('/lessons'));
   assert.deepEqual(sitemapLocs.filter(pathname=>pathname.startsWith('/lessons/')),lessonIdsInCurriculum().map(id=>`/lessons/${id}`));
   assert(!sitemapLocs.some(pathname=>pathname.startsWith('/atlas?lesson=')));
@@ -157,6 +158,9 @@ try{
   assert(await page.getByRole('link',{name:'Amy Sterling, human-brain'}).isVisible());
   assert.equal(await page.getByRole('link',{name:'Third-party notices and software licenses'}).getAttribute('href'),'./THIRD_PARTY_NOTICES.md');
   await page.screenshot({path:`${out}/sources.png`,fullPage:true});
+  await page.goto(new URL('/testing',base).href);
+  assert.equal(await page.title(),'Monitoring vs mapping · Hodos');
+  assert.equal(await page.locator('h1').innerText(),'How to test it. Monitoring vs mapping.');
   assert.deepEqual(report.errors,[]);
   assert.deepEqual(report.failedRequests,[]);
   // build-hodos.mjs already permits Pages' auto-injected Cloudflare analytics.

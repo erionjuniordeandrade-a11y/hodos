@@ -9,6 +9,7 @@ import {EVIDENCE_SOURCES} from './lesion_evidence.js';
 import {bundleLabel} from './atlas_glossary.js';
 import {VERBS} from './connections_graph.js';
 import {composeStory} from './lesion_story.js';
+import {tractProtocolsForCutBundles} from './testing_model.js';
 
 const $=id=>document.getElementById(id);
 const testMode=new URLSearchParams(location.search).has('test');
@@ -515,6 +516,37 @@ function bundleBody(bundle,applying,other){
   return body;
 }
 
+function renderTestingProtocols(rows,hemi){
+  const block=$('testingBlock'),listEl=$('testingList'),coverageEl=$('testingCoverage');
+  if(!block||!listEl)return;
+  const {protocols,unmatchedCutIds}=tractProtocolsForCutBundles(rows,hemi);
+  const hasAny=protocols.length>0||unmatchedCutIds.length>0;
+  block.hidden=!hasAny;
+  if(!hasAny){listEl.replaceChildren();if(coverageEl)coverageEl.hidden=true;return;}
+  const testingBase=location.pathname.endsWith('.html')?'./testing.html?target=':'./testing?target=';
+  listEl.replaceChildren(...protocols.map(item=>{
+    const mapNames=item.mappingTaskList.map(t=>t.name);
+    const monNames=item.monitoringTaskList.map(t=>t.name);
+    const badge=el('span',{className:'lab-testing-badge',textContent:item.modeInfo?.badge??item.mode});
+    badge.dataset.badge=item.modeInfo?.badge??'';
+    const head=el('div',{className:'lab-testing-head'},el('strong',{textContent:item.name}),badge);
+    const bundles=el('p',{className:'lab-testing-bundles',textContent:item.matchedBundles.map(b=>bundleLabel(b.id)).join(', ')});
+    const taskLines=[];
+    if(mapNames.length)taskLines.push(el('p',{className:'lab-testing-tasks',textContent:`Map: ${mapNames.join(', ')}`}));
+    if(monNames.length)taskLines.push(el('p',{className:'lab-testing-tasks',textContent:`Monitor: ${monNames.join(', ')}`}));
+    if(!taskLines.length)taskLines.push(el('p',{className:'lab-testing-tasks',textContent:'No real-time probe; protect corridor geometry.'}));
+    const warn=el('p',{className:'lab-testing-blindspot',textContent:item.blindSpot});
+    const link=el('a',{className:'lab-testing-link',href:`${testingBase}${item.id}`,textContent:'Open testing protocol'});
+    return el('li',{className:'lab-testing-item'},head,bundles,...taskLines,warn,link);
+  }));
+  if(coverageEl){
+    coverageEl.hidden=!unmatchedCutIds.length;
+    if(unmatchedCutIds.length){
+      coverageEl.textContent=`No curated guide protocol yet for: ${unmatchedCutIds.map(bundleLabel).join(', ')}. Absence of a card does not mean monitoring-silent or safe.`;
+    }
+  }
+}
+
 function renderPanel(){
   panelAt=performance.now();
   const entry=layer();if(!entry||!lab.centre)return;
@@ -540,6 +572,7 @@ function renderPanel(){
   named.replaceChildren(...lab.named.map(n=>el('li',{},n.object,el('small',{textContent:
     [n.condition==='dominant'?'Dominant hemisphere':null,n.bundles.map(bundleLabel).join(', ')].filter(Boolean).join(' · ')}))));
   $('namedBlock').hidden=!lab.named.length;
+  renderTestingProtocols(lab.rows,lab.hemi);
   const items=reached.map(r=>{
     const row=rowFor(entry,r.index);
     row.counts.textContent=`${count(r.cut)} of ${count(r.total)} sampled streamlines cut (${percent(r.cut,r.total)})`+
