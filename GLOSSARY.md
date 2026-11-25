@@ -277,7 +277,7 @@ _Avoid_: Silent tract, uncovered bundle
 _Seen in_: `viewer/testing_model.js`
 
 **Untestable pathway**:
-A pathway with no validated real-time intraoperative DES or IOM warning probe (such as fornix, anterior thalamic peduncle, or proximal DRTT), protected through corridor geometry alone.
+A pathway with no validated real-time intraoperative DES or IOM warning probe (such as corpus callosum, fornix, anterior thalamic peduncle, or proximal DRTT), protected through corridor geometry alone.
 _Avoid_: Non-eloquent tract, silent pathway
 _Seen in_: `viewer/testing_tracts_data.js`
 

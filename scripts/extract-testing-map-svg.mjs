@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import zlib from 'node:zlib';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import {decodeAtlasBundle, decodeAtlasLabels} from '../viewer/atlas_data.js';
+import {decodeAtlasBundle, decodeAtlasLabels, MIDLINE_BUNDLE_FAMILIES, resolveBundleId} from '../viewer/atlas_data.js';
 import {CORTEX_PROTOCOLS} from '../viewer/testing_cortex_data.js';
 import {
   VIEW_W,
@@ -18,6 +18,7 @@ import {
   faceNormals,
   extractSulcalCreases,
   medoidCenterline,
+  commissuralMidlineArc,
 } from './extract-testing-map-geom.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -128,30 +129,36 @@ async function main() {
     }
   }
 
-  const codeToIdL = new Map();
-  for (const [idStr, roi] of Object.entries(surfMeta.sets.glasser.regions.L)) {
-    const code = roi.replace(/^L_/, '').replace(/_ROI$/, '');
-    codeToIdL.set(code, Number(idStr));
+  const codeToId = {L: new Map(), R: new Map()};
+  for (const hemi of ['L', 'R']) {
+    const prefix = new RegExp(`^${hemi}_`);
+    for (const [idStr, roi] of Object.entries(surfMeta.sets.glasser.regions[hemi])) {
+      const code = roi.replace(prefix, '').replace(/_ROI$/, '');
+      codeToId[hemi].set(code, Number(idStr));
+    }
   }
 
+  const MEDIAL_CORTEX_IDS = new Set(['ctx-sma-psfg-left', 'ctx-sma-psfg-right']);
   const cortexTerritories = {};
   for (const p of CORTEX_PROTOCOLS) {
-    const ids = new Set(p.parcels.map(c => codeToIdL.get(c)).filter(Boolean));
-    const view = p.id === 'ctx-sma-psfg-left' ? 'medial' : 'lateral';
-    const mirror = view === 'medial';
-    const outwardSign = view === 'lateral' ? -1 : 1;
+    const hemi = p.hemi === 'R' ? 'R' : 'L';
+    const mesh = hemi === 'L' ? cortexL : cortexR;
+    const hemiLabels = labels[hemi];
+    const ids = new Set(p.parcels.map(c => codeToId[hemi].get(c)).filter(Boolean));
+    const view = MEDIAL_CORTEX_IDS.has(p.id) ? 'medial' : 'lateral';
+    const mirror = (view === 'lateral' && hemi === 'R') || (view === 'medial' && hemi === 'L');
+    const outwardSign = hemi === 'L' ? (view === 'lateral' ? -1 : 1) : (view === 'lateral' ? 1 : -1);
     const mask = rasterizeTriangles(
-      cortexL.positions,
-      cortexL.indices,
+      mesh.positions,
+      mesh.indices,
       (a, b, c) => {
-        if (!(ids.has(labels.L[a]) || ids.has(labels.L[b]) || ids.has(labels.L[c]))) return false;
-        const ax = cortexL.positions[a * 3], ay = cortexL.positions[a * 3 + 1], az = cortexL.positions[a * 3 + 2];
-        const bx = cortexL.positions[b * 3], by = cortexL.positions[b * 3 + 1], bz = cortexL.positions[b * 3 + 2];
-        const cx = cortexL.positions[c * 3], cy = cortexL.positions[c * 3 + 1], cz = cortexL.positions[c * 3 + 2];
-        const ux = bx - ax, uy = by - ay, uz = bz - az;
-        const vx = cx - ax, vy = cy - ay, vz = cz - az;
-        const nxf = uy * vz - uz * vy;
-        return nxf * outwardSign > 0;
+        if (!(ids.has(hemiLabels[a]) || ids.has(hemiLabels[b]) || ids.has(hemiLabels[c]))) return false;
+        const ay = mesh.positions[a * 3 + 1], az = mesh.positions[a * 3 + 2];
+        const by = mesh.positions[b * 3 + 1], bz = mesh.positions[b * 3 + 2];
+        const cy = mesh.positions[c * 3 + 1], cz = mesh.positions[c * 3 + 2];
+        const uy = by - ay, uz = bz - az;
+        const vy = cy - ay, vz = cz - az;
+        return (uy * vz - uz * vy) * outwardSign > 0;
       },
       mirror,
       1,
@@ -160,7 +167,7 @@ async function main() {
     if (!loops.length) throw new Error(`No projected polygon for ${p.id}`);
     cortexTerritories[p.id] = {
       view,
-      hemi: 'L',
+      hemi,
       d: closedPathD(loops[0], 1.4),
       anchor: centroidOf(loops[0]),
     };
@@ -173,22 +180,24 @@ async function main() {
 
   const tractPaths = {};
   const needed = [
-    ['AF', 'L', 'lateral'], ['SLF3', 'L', 'lateral'], ['IFOF', 'L', 'lateral'], ['UF', 'L', 'lateral'],
-    ['ILF', 'L', 'lateral'], ['VOF', 'L', 'lateral'], ['OR', 'L', 'lateral'], ['CST', 'L', 'lateral'],
-    ['FAT', 'L', 'medial'], ['SLF1', 'L', 'medial'], ['CST', 'L', 'medial'], ['F', 'L', 'medial'],
-    ['TR_A', 'L', 'medial'], ['DRTT', 'L', 'medial'],
-    ['SLF2', 'R', 'lateral'], ['AF', 'R', 'lateral'], ['IFOF', 'R', 'lateral'], ['OR', 'R', 'lateral'], ['CST', 'R', 'lateral'],
-    ['FAT', 'R', 'medial'], ['SLF1', 'R', 'medial'], ['CST', 'R', 'medial'], ['F', 'R', 'medial'],
-    ['TR_A', 'R', 'medial'], ['DRTT', 'R', 'medial'],
+    ['AF', 'L', 'lateral'], ['SLF2', 'L', 'lateral'], ['SLF3', 'L', 'lateral'], ['IFOF', 'L', 'lateral'],
+    ['EMC', 'L', 'lateral'], ['UF', 'L', 'lateral'], ['ILF', 'L', 'lateral'], ['VOF', 'L', 'lateral'],
+    ['OR', 'L', 'lateral'], ['CST', 'L', 'lateral'],
+    ['FAT', 'L', 'medial'], ['SLF1', 'L', 'medial'], ['CST', 'L', 'medial'], ['CC', 'L', 'medial'],
+    ['F', 'L', 'medial'], ['TR_A', 'L', 'medial'], ['DRTT', 'L', 'medial'],
+    ['SLF2', 'R', 'lateral'], ['SLF3', 'R', 'lateral'], ['AF', 'R', 'lateral'], ['IFOF', 'R', 'lateral'],
+    ['EMC', 'R', 'lateral'], ['OR', 'R', 'lateral'], ['CST', 'R', 'lateral'],
+    ['FAT', 'R', 'medial'], ['SLF1', 'R', 'medial'], ['CST', 'R', 'medial'], ['CC', 'R', 'medial'],
+    ['F', 'R', 'medial'], ['TR_A', 'R', 'medial'], ['DRTT', 'R', 'medial'],
   ];
   for (const [fam, hemi, view] of needed) {
-    const id = `${fam}_${hemi}`;
+    const id = resolveBundleId(fam, hemi);
     const meta = bundleById.get(id);
     if (!meta) throw new Error(`Missing bundle ${id}`);
     const lines = decodeAtlasBundle(meta, tractsBuf);
-    const medoid = medoidCenterline(lines);
+    const centerline = MIDLINE_BUNDLE_FAMILIES.includes(fam) ? commissuralMidlineArc(lines) : medoidCenterline(lines);
     const mirror = (view === 'lateral' && hemi === 'R') || (view === 'medial' && hemi === 'L');
-    const pts2d = medoid.map(([, y, z]) => project(y, z, mirror));
+    const pts2d = centerline.map(([, y, z]) => project(y, z, mirror));
     const mid = pts2d[Math.floor(pts2d.length / 2)];
     tractPaths[`${fam}-${hemi}-${view}`] = {
       d: openPathD(pts2d, 1.4),
@@ -196,12 +205,13 @@ async function main() {
     };
   }
 
+  const formatMap = obj => `{\n${Object.entries(obj).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n')}\n}`;
   const outJs = `export const MAP_VIEWBOX = Object.freeze({width: ${VIEW_W}, height: ${VIEW_H}});
-export const BRAIN_OUTLINES = Object.freeze(${JSON.stringify(outlines, null, 2)});
-export const MEDIAL_WALLS = Object.freeze(${JSON.stringify(medialWalls, null, 2)});
-export const SULCAL_CREASES = Object.freeze(${JSON.stringify(sulci, null, 2)});
-export const CORTEX_TERRITORIES = Object.freeze(${JSON.stringify(cortexTerritories, null, 2)});
-export const TRACT_CENTERLINES = Object.freeze(${JSON.stringify(tractPaths, null, 2)});
+export const BRAIN_OUTLINES = Object.freeze(${formatMap(outlines)});
+export const MEDIAL_WALLS = Object.freeze(${formatMap(medialWalls)});
+export const SULCAL_CREASES = Object.freeze(${formatMap(sulci)});
+export const CORTEX_TERRITORIES = Object.freeze(${formatMap(cortexTerritories)});
+export const TRACT_CENTERLINES = Object.freeze(${formatMap(tractPaths)});
 `;
   const outPath = path.join(root, 'viewer/testing_map_geometry.js');
   fs.writeFileSync(outPath, outJs);

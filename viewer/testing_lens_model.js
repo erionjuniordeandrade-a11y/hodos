@@ -17,15 +17,17 @@ export function tractProtocolsForCutBundles(rows = [], hemi = 'L') {
   const cutByFamily = new Map();
   for (const row of rows) {
     if (!row || !(row.cut > 0)) continue;
-    const fam = familyOf(row.id);
     const share = row.total > 0 ? row.cut / row.total : 0;
     const entry = {id: row.id, cut: row.cut, total: row.total, share};
     cutRows.push(entry);
+    const sideMatch = /_([LR])$/.exec(row.id);
+    if (sideMatch && sideMatch[1] !== side) continue;
+    const fam = sideMatch ? row.id.slice(0, -2) : row.id;
     const list = cutByFamily.get(fam) ?? [];
     list.push(entry);
     cutByFamily.set(fam, list);
   }
-  if (!cutByFamily.size) return {protocols: [], unmatchedCutIds: []};
+  if (!cutRows.length) return {protocols: [], unmatchedCutIds: []};
 
   const matched = [];
   const coveredBundleIds = new Set();

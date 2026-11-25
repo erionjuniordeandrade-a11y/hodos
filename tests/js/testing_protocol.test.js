@@ -52,13 +52,13 @@ test('testing registry integrity matches tracts.json families, surface.json parc
   assert.equal(TESTING_MODES.length, 5);
   assert.equal(COMPARISON_ROWS.length, 7);
   assert.equal(MODALITIES.length, 7);
-  assert.equal(TRACT_PROTOCOLS.length, 16);
-  assert.equal(CORTEX_PROTOCOLS.length, 10);
-  assert.equal(TARGET_PROTOCOLS.length, 26);
+  assert.equal(TRACT_PROTOCOLS.length, 20);
+  assert.equal(CORTEX_PROTOCOLS.length, 15);
+  assert.equal(TARGET_PROTOCOLS.length, 35);
   assert.equal(TEST_LENSES.length, 4);
   assert.equal(LESION_PRESETS.length, 6);
   assert.equal(SCENARIO_DRILLS.length, 5);
-  assert.equal(Object.keys(TESTING_SOURCES).length, 25);
+  assert.equal(Object.keys(TESTING_SOURCES).length, 35);
 
   const dulipTasks = TESTING_TASKS.filter(t => t.id.startsWith('dulip-'));
   assert.equal(dulipTasks.length, 17, 'All 17 DuLIP tasks are registered');
@@ -84,16 +84,18 @@ test('tractProtocolsForCutBundles matches cut bundles by hemisphere, orders by m
     {id: 'F_L', cut: 10, margin: 0, total: 220},
     {id: 'SLF2_R', cut: 50, margin: 0, total: 220},
     {id: 'CC', cut: 33, margin: 0, total: 220},
+    {id: 'MdLF_L', cut: 14, margin: 0, total: 220},
     {id: 'UF_L', cut: 0, margin: 12, total: 220},
   ];
   const {protocols, unmatchedCutIds} = tractProtocolsForCutBundles(rows, 'L');
   assert.deepEqual(
     protocols.map(m => m.id),
-    ['cst-bilateral', 'af-left', 'fornix-bilateral'],
+    ['cst-bilateral', 'cc-commissural', 'af-left', 'fornix-bilateral'],
   );
   assert.equal(protocols[0].modeInfo.badge, 'Map');
-  assert.equal(protocols[2].modeInfo.badge, 'Corridor only');
-  assert.deepEqual(unmatchedCutIds, ['SLF2_R', 'CC']);
+  assert.equal(protocols[1].modeInfo.badge, 'Corridor only');
+  assert.equal(protocols[3].modeInfo.badge, 'Corridor only');
+  assert.deepEqual(unmatchedCutIds, ['SLF2_R', 'MdLF_L']);
 
   const ilfVof = tractProtocolsForCutBundles([{id: 'VOF_L', cut: 15, margin: 0, total: 100}], 'L');
   assert.deepEqual(ilfVof.protocols.map(m => m.id), ['ilf-vof-left-reading']);
@@ -101,18 +103,19 @@ test('tractProtocolsForCutBundles matches cut bundles by hemisphere, orders by m
 });
 
 test('filterProtocols narrows by kind, hemisphere, mode, and search query', () => {
-  assert.equal(filterProtocols({kind: 'cortex'}).length, 10);
-  assert.equal(filterProtocols({kind: 'tract'}).length, 16);
+  assert.equal(filterProtocols({kind: 'cortex'}).length, 15);
+  assert.equal(filterProtocols({kind: 'tract'}).length, 20);
 
   const rightTracts = filterProtocols({kind: 'tract', hemi: 'R'});
   assert(rightTracts.some(p => p.id === 'slf2-right'));
+  assert(rightTracts.some(p => p.id === 'slf3-right'));
   assert(rightTracts.some(p => p.id === 'cst-bilateral'));
   assert(!rightTracts.some(p => p.id === 'af-left'));
 
   const untestable = filterProtocols({mode: 'untestable-anatomy-only'});
   assert.deepEqual(
     untestable.map(p => p.id),
-    ['or-bilateral', 'fornix-bilateral', 'tra-bilateral', 'drtt-bilateral'],
+    ['or-bilateral', 'fornix-bilateral', 'tra-bilateral', 'drtt-bilateral', 'cc-commissural'],
   );
 
   const byParcel = filterProtocols({query: '55b'});
@@ -209,7 +212,7 @@ test('testing.css has zero raw hex colors, testing.html obeys strict CSP, and UI
     }
   }
   assert.equal(validateMapCoverage(TARGET_PROTOCOLS), true);
-  assert(MAP_REGIONS.length >= 26);
+  assert(MAP_REGIONS.length >= 35);
 });
 
 test('select-map clears narrowing filters so any clicked map region becomes visible and selected', () => {
@@ -308,7 +311,11 @@ test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partitio
   assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('F'), false);
   assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('TR_A'), false);
   assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('DRTT'), false);
-  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('EMC'), false);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('CC'), false);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('EMC'), true);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('SLF2'), true);
+  assert.equal(interrogatedFamiliesForLens('R', 'tailored').has('SLF3'), true);
+  assert.equal(interrogatedFamiliesForLens('L', 'tailored').has('MdLF'), false);
 
   assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').lens, 'asleep-mep');
   assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').preset, 'left-sma');

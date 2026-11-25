@@ -64,8 +64,8 @@
 .testing-page .map-hotspot[tabindex]:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
 .map-hotspot:focus-visible .map-shape{stroke:var(--color-focus);stroke-width:4}
 .map-hotspot:focus-visible[data-kind="cortex"] .map-shape{stroke:var(--color-focus);stroke-width:2.2}
-.map-hotspot .map-hit-area{fill:none;stroke:transparent;stroke-width:18;stroke-linecap:round;stroke-linejoin:round}
-.map-hotspot[data-map-target="fornix-bilateral"] .map-hit-area{fill:transparent}
+.map-hotspot .map-hit-area{fill:none;stroke:transparent;stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.map-hotspot[data-hit-fill="true"] .map-hit-area{fill:transparent}
 .map-hotspot[data-kind="cortex"] .map-shape{fill:color-mix(in srgb,var(--color-parcel-context) 22%,transparent);stroke:var(--color-parcel-context);stroke-width:1.15;stroke-linejoin:round}
 .map-hotspot[data-kind="tract"] .map-shape{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .map-hotspot[data-kind="tract"][data-group="Association"] .map-shape{stroke:var(--color-dec-association)}
@@ -75,6 +75,7 @@
 .map-anchor-dot{fill:var(--color-ink);stroke:var(--color-stage);stroke-width:.8;pointer-events:none}
 .map-hotspot[data-kind="tract"][data-group="Association"] .map-anchor-dot{fill:var(--color-dec-association)}
 .map-hotspot[data-kind="tract"][data-group="Projection"] .map-anchor-dot{fill:var(--color-dec-projection)}
+.map-hotspot[data-kind="tract"][data-group="Commissural"] .map-anchor-dot{fill:var(--color-dec-commissural)}
 .map-hotspot[data-kind="cortex"] .map-anchor-dot{fill:var(--color-parcel-context)}
 .map-callout-item .map-pill{fill:var(--color-paper-2);stroke:var(--color-rule-2);stroke-width:.9}
 .map-callout-item .map-label{fill:var(--color-ink);font:600 8.5px/1 var(--font-body);text-anchor:middle;pointer-events:none}

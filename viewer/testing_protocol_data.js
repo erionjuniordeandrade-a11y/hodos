@@ -4,7 +4,7 @@ import {TESTING_TASKS} from './testing_tasks_data.js';
 export {TESTING_SOURCES, TESTING_TASKS};
 
 export const REVIEW_STATUS = 'draft';
-export const TESTING_VERSION = '2026-11-25.1';
+export const TESTING_VERSION = '2026-11-25.2';
 
 export const TESTING_MODES = Object.freeze([
   Object.freeze({

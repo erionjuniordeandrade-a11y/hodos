@@ -255,7 +255,7 @@ export function buildTestingSheet() {
     lines.push('');
   }
   lines.push('## Lesion lab test lenses and surgical territory presets', '');
-  lines.push('All 26 anatomical testing cards are projected from HCP S1200/HCP1065 onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) and custom batteries (`evaluateCustomBattery`) across 6 verified HCP1065 MNI surgical territories.', '');
+  lines.push(`All ${TARGET_PROTOCOLS.length} anatomical testing cards are projected from HCP S1200/HCP1065 onto interactive 2D lateral and medial hemisphere diagrams on \`/testing\` (\`testing_map.js\`), and the 3D Lesion lab applies test lenses (\`evaluateTestLens\`) and custom batteries (\`evaluateCustomBattery\`) across ${LESION_PRESETS.length} verified HCP1065 MNI surgical territories.`, '');
   for (const lens of TEST_LENSES) {
     const scope = lens.interrogates ? `Interrogates: ${lens.interrogates.join(', ')}` : 'Interrogates: all cut tracts (no dimming)';
     lines.push(`- **${lens.label}** (\`${lens.id}\`): ${lens.summary} (${scope})`);
