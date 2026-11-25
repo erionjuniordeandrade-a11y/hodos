@@ -183,11 +183,24 @@ test('testing.css has zero raw hex colors, testing.html obeys strict CSP, and UI
   assert.doesNotMatch(html, /[\u2013\u2014]/, 'testing.html must contain zero em/en dashes');
   assert.doesNotMatch(js, /[\u2013\u2014]/, 'testing.js must contain zero em/en dashes');
 
-  const [mapJs, presetsJs] = await Promise.all([
+  const [mapJs, presetsJs, sheetCss, sheetModelJs, sheetJs, lensModelJs, labelsJs] = await Promise.all([
     readFile(path.join(root, 'viewer/testing_map.js'), 'utf8'),
     readFile(path.join(root, 'viewer/testing_presets_data.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_sheet.css'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_sheet_model.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_sheet.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/testing_lens_model.js'), 'utf8'),
+    readFile(path.join(root, 'viewer/lesion_labels.js'), 'utf8'),
   ]);
-  for (const [label, src] of [['testing_map.js', mapJs], ['testing_presets_data.js', presetsJs]]) {
+  assert.doesNotMatch(sheetCss, /#[0-9a-fA-F]{3,8}\b/, 'testing_sheet.css must use tokens only, zero raw hex');
+  for (const [label, src] of [
+    ['testing_map.js', mapJs],
+    ['testing_presets_data.js', presetsJs],
+    ['testing_sheet_model.js', sheetModelJs],
+    ['testing_sheet.js', sheetJs],
+    ['testing_lens_model.js', lensModelJs],
+    ['lesion_labels.js', labelsJs],
+  ]) {
     assert.doesNotMatch(src, /#[0-9a-fA-F]{3,8}\b/, `${label} must use CSS tokens, zero raw hex`);
     assert.doesNotMatch(src, /\bstyle\s*=/i, `${label} must not emit inline style attributes`);
     assert.doesNotMatch(src, /[\u2013\u2014]/, `${label} must contain zero em/en dashes`);
@@ -301,4 +314,9 @@ test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partitio
   assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').preset, 'left-sma');
   assert.equal(parseLabParams('?lens=constructor&preset=toString').lens, 'all');
   assert.equal(parseLabParams('?lens=constructor&preset=toString').preset, null);
+  assert.deepEqual(
+    parseLabParams('?tasks=dulip-object-naming,constructor,task-awake-reading,dulip-object-naming').tasks,
+    ['dulip-object-naming', 'task-awake-reading'],
+  );
+  assert.deepEqual(parseLabParams('').tasks, []);
 });

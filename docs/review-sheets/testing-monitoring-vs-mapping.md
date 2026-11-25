@@ -785,14 +785,52 @@ During an interhemispheric transcallosal approach to a third-ventricle lesion, t
 - **aggleton2000** — Aggleton JP et al., 2000 · Differential cognitive effects of third-ventricle lesions involving the fornix (PMID 10734011) — association
 - **serra2021** — Serra C et al., 2021 · Thalamic lesions and thalamic peduncle surgical series (PMID 33007756) — experimental_anatomy
 
-## Lesion lab test lenses and tumor territory presets
+## Lesion lab test lenses and surgical territory presets
 
-All 26 anatomical protocols are mapped onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) across 6 verified HCP1065 MNI tumor territories.
+All 26 anatomical testing cards are projected from HCP S1200/HCP1065 onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) and custom batteries (`evaluateCustomBattery`) across 6 verified HCP1065 MNI surgical territories.
 
-- **All cut** (`all`): Show every cut bundle at standard brightness. (Interrogates: all cut protocols (no dimming))
+- **All cut** (`all`): Show every cut bundle at standard brightness. (Interrogates: all cut tracts (no dimming))
 - **Asleep MEP only** (`asleep-mep`): Dims corticospinal conduction (CST) only; leaves language, initiation, spatial, reading, visual, and deep memory pathways bright as blind spots. (Interrogates: cst-bilateral)
 - **Awake naming only** (`awake-naming`): Dims left spoken object-naming core (AF, IFOF, UF); leaves reading (VOF/ILF), initiation (FAT), articulatory (SLF III), spatial (right SLF II), motor (CST), visual (OR), and deep corridors bright. (Interrogates: af-left, ifof-left, uf-left)
 - **Tailored battery** (`tailored`): Dims every pathway with a real-time DES or IOM probe; untestable deep corridors (Fornix, TR_A, proximal DRTT) remain bright. (Interrogates: af-left, af-right, ifof-left, ifof-right, ilf-vof-left-reading, uf-left, fat-left, fat-right, slf1-bilateral, slf2-right, slf3-left, cst-bilateral, or-bilateral)
+
+### Custom Battery Builder tasks
+
+- **HF subcortical CST** (`task-hf-subcortical-cst`, asleep)
+- **TES / DCS-MEP** (`task-tes-dcs-mep`, asleep)
+- **Object naming** (`dulip-object-naming`, awake)
+- **Word repetition** (`dulip-repetition`, awake)
+- **Phonological odd word** (`dulip-phonological-odd-word-out`, awake)
+- **Semantic odd picture** (`dulip-semantic-odd-picture-out`, awake)
+- **Awake reading** (`task-awake-reading`, awake)
+- **Closed sentence completion** (`dulip-sentence-completion-closed`, awake)
+- **Counting** (`task-counting`, awake)
+- **Verbal DDK** (`dulip-ddk`, awake)
+- **Verbal fluency** (`dulip-fluency-phonological`, awake)
+- **Line bisection** (`task-line-bisection`, awake)
+- **Vision-guided reaching** (`task-vision-guided-reaching`, awake)
+- **Visual quadrant** (`task-visual-quadrant`, awake)
+- **Prosody & emotion** (`task-prosody-social`, awake)
+- **Double task** (`task-double-task`, awake)
+
+### Primary interrogation tasks per tract
+
+- `af-left`: dulip-repetition, dulip-phonological-odd-word-out
+- `af-right`: task-prosody-social, dulip-repetition
+- `ifof-left`: dulip-semantic-odd-picture-out, dulip-object-naming
+- `ifof-right`: task-prosody-social, dulip-semantic-odd-picture-out
+- `ilf-vof-left-reading`: task-awake-reading, dulip-sentence-completion-closed
+- `uf-left`: dulip-object-naming, dulip-semantic-odd-picture-out
+- `fat-left`: dulip-sentence-completion-closed, task-counting, dulip-fluency-phonological
+- `fat-right`: task-double-task
+- `slf1-bilateral`: task-vision-guided-reaching
+- `slf2-right`: task-line-bisection
+- `slf3-left`: dulip-ddk, dulip-repetition, task-counting
+- `cst-bilateral`: task-hf-subcortical-cst, task-tes-dcs-mep
+- `or-bilateral`: task-visual-quadrant
+- `fornix-bilateral`: none (untestable corridor only)
+- `tra-bilateral`: none (untestable corridor only)
+- `drtt-bilateral`: none (untestable corridor only)
 
 - **Left SMA** (`left-sma`): hemi L, MNI [-20, 2, 50], radius 14 mm, default lens `asleep-mep` — Medial frontal corridor crossing FAT and CST.
 - **Left insula** (`left-insula`): hemi L, MNI [-30, 8, -4], radius 12 mm, default lens `asleep-mep` — Limen insulae crossroads over IFOF and UF.

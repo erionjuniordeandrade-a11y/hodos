@@ -12,8 +12,10 @@ import {
   testingStateFromSearch,
   testingStep,
   evaluateDrill,
+  buildTestingSheetData,
 } from './testing_model.js';
 import {mountTerritoryMap} from './testing_map.js';
+import {renderTestingSheet, bindTestingSheetDialog} from './testing_sheet.js';
 
 const $ = id => document.getElementById(id);
 const el = (tag, props = {}, ...children) => {
@@ -80,7 +82,7 @@ function renderTaskList(ids, emptyText) {
 function renderDetail(protocol) {
   const detail = $('targetDetail');
   if (!protocol) {
-    detail.replaceChildren(el('p', {textContent: 'No targets match the current filter. Clear search or widen filters.'}));
+    detail.replaceChildren(el('p', {textContent: 'No testing cards match the current filter. Clear search or widen filters.'}));
     return;
   }
   const mode = MODE_BY_ID[protocol.mode];
@@ -178,7 +180,9 @@ function dispatch(action, {focusDetail = false} = {}) {
 function renderLookup(mapHemi = null) {
   const {matches} = state;
   const active = state.selectedId ? PROTOCOL_BY_ID[state.selectedId] ?? null : null;
-  $('lookupStatus').textContent = `Showing ${matches.length} of ${TARGET_PROTOCOLS.length} anatomical protocols.`;
+  $('lookupStatus').textContent = `Showing ${matches.length} of ${TARGET_PROTOCOLS.length} anatomical testing cards.`;
+  const sheetBtn = $('openTestingSheet');
+  if (sheetBtn) sheetBtn.disabled = !active;
 
   const key = matches.map(p => p.id).join(',');
   const list = $('targetList');
@@ -202,6 +206,11 @@ function renderLookup(mapHemi = null) {
   syncCurrentRow();
   renderDetail(active);
   territoryMap?.update({selectedId: state.selectedId, hemi: mapHemi});
+  const labLink = document.querySelector('.pillar-link[href*="lesion-lab"]');
+  if (labLink) {
+    const activeHemi = active?.hemi === 'R' ? 'R' : mapHemi === 'R' || state.hemi === 'R' ? 'R' : 'L';
+    labLink.href = activeHemi === 'R' ? './labs/lesion-lab.html?hemi=R' : './labs/lesion-lab.html';
+  }
 }
 
 function renderComparison() {
@@ -383,6 +392,23 @@ function bindControls() {
   }
   modeSelect.addEventListener('change', () => dispatch({type: 'set-mode', mode: modeSelect.value}));
   $('targetSearch').addEventListener('input', event => dispatch({type: 'set-query', query: event.target.value}));
+  const sheetDialog = $('testingSheetDialog');
+  if (sheetDialog) {
+    bindTestingSheetDialog(sheetDialog, {getShareUrl: () => location.href});
+    $('openTestingSheet')?.addEventListener('click', () => {
+      const active = state.selectedId ? PROTOCOL_BY_ID[state.selectedId] ?? null : null;
+      if (!active) return;
+      const mode = MODE_BY_ID[active.mode];
+      const sheet = buildTestingSheetData({
+        title: active.name,
+        subtitle: `Testing card (${mode?.label ?? active.mode})`,
+        hemi: active.hemi,
+        protocols: [active],
+      });
+      renderTestingSheet(sheetDialog, sheet, {thirdColTitle: 'False-reassurance trap & limits'});
+      sheetDialog.showModal();
+    });
+  }
   syncControls();
 }
 
@@ -397,6 +423,7 @@ if (new URLSearchParams(location.search).has('test')) {
       visibleCount: $('targetList').children.length,
       answeredDrills: Object.fromEntries(drillAnswers),
       mapHemi: territoryMap?.getHemi() ?? null,
+      mapLayer: territoryMap?.getLayer() ?? null,
       mapTargetCount: territoryMap?.targetCount ?? 0,
     }),
   });

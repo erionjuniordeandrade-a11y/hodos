@@ -11,7 +11,7 @@
 <meta name="twitter:image" content="https://hodosatlas.com/brand/og/lesion-lab.jpg">
 <meta name="theme-color" content="#1E2227"><link rel="icon" href="./brand/hodos-favicon.svg" type="image/svg+xml">
 <link rel="preload" as="font" type="font/woff2" href="./vendor/fonts/archivo-latin.woff2" crossorigin>
-<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./lesion-lab.css">
+<link rel="stylesheet" href="./tokens.css"><link rel="stylesheet" href="./hodos.css"><link rel="stylesheet" href="./lesion-lab.css"><link rel="stylesheet" href="./testing_sheet.css">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/","three-mesh-bvh":"./vendor/three-mesh-bvh.js","camera-controls":"./vendor/camera-controls.js"}}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://hodosatlas.com/#erion","name":"Dr. Erion de Andrade","honorificPrefix":"Dr.","jobTitle":"Neurosurgeon","url":"https://www.dreriondeandrade.com.br/"},{"@type":"LearningResource","name":"Lesion lab · Hodos","url":"https://hodosatlas.com/labs/lesion-lab","description":"Drag a lesion sphere through group-average white matter and see which sampled bundles it cuts, with what the author’s teaching notes say injury to each causes, quoted verbatim with their sources. Group reference, not a patient; educational draft awaiting independent clinical review.","learningResourceType":"Interactive teaching exercise","isAccessibleForFree":true,"author":{"@id":"https://hodosatlas.com/#erion"}}]}</script>
 </head><body class="lab-page">
@@ -45,23 +45,35 @@
       <fieldset id="lesionControls" class="lab-controls lab-glass" disabled>
         <legend>Lesion controls</legend>
         <div class="lab-control"><span class="lab-control-label" id="hemiLabel">Hemisphere</span><div class="lab-options" role="group" aria-labelledby="hemiLabel"><button type="button" data-hemi="L" aria-pressed="true">Left</button><button type="button" data-hemi="R" aria-pressed="false">Right</button></div></div>
-        <div class="lab-control"><span class="lab-control-label" id="presetLabel">Tumor territories</span><div class="lab-presets" role="group" aria-labelledby="presetLabel"><button type="button" data-preset="left-sma" aria-pressed="false">Left SMA</button><button type="button" data-preset="left-insula" aria-pressed="false">Left insula</button><button type="button" data-preset="left-temporoparietal" aria-pressed="false">Left temporoparietal</button><button type="button" data-preset="left-occipitotemporal" aria-pressed="false">Left occipitotemporal</button><button type="button" data-preset="right-parietal" aria-pressed="false">Right parietal</button><button type="button" data-preset="third-ventricle" aria-pressed="false">Third ventricle</button></div></div>
-        <div class="lab-control"><span class="lab-control-label" id="lensLabel">Test lens</span><div class="lab-lens-options" role="group" aria-labelledby="lensLabel"><button type="button" data-lens="all" aria-pressed="true">All cut</button><button type="button" data-lens="asleep-mep" aria-pressed="false">Asleep MEP</button><button type="button" data-lens="awake-naming" aria-pressed="false">Awake naming</button><button type="button" data-lens="tailored" aria-pressed="false">Tailored</button></div><p id="lensNote" class="lab-help" aria-live="polite">Show every cut bundle at standard brightness.</p></div>
+        <div class="lab-control"><span class="lab-control-label" id="presetLabel">Surgical territories</span><div class="lab-presets" role="group" aria-labelledby="presetLabel"><button type="button" data-preset="left-sma" aria-pressed="false">Left SMA</button><button type="button" data-preset="left-insula" aria-pressed="false">Left insula</button><button type="button" data-preset="left-temporoparietal" aria-pressed="false">Left temporoparietal</button><button type="button" data-preset="left-occipitotemporal" aria-pressed="false">Left occipitotemporal</button><button type="button" data-preset="right-parietal" aria-pressed="false">Right parietal</button><button type="button" data-preset="third-ventricle" aria-pressed="false">Third ventricle</button></div></div>
+        <div class="lab-control"><span class="lab-control-label" id="lensLabel">Test lens</span><div class="lab-lens-options" role="group" aria-labelledby="lensLabel"><button type="button" data-lens="all" aria-pressed="true">All cut</button><button type="button" data-lens="asleep-mep" aria-pressed="false">Asleep MEP</button><button type="button" data-lens="awake-naming" aria-pressed="false">Awake naming</button><button type="button" data-lens="tailored" aria-pressed="false">Tailored</button></div><p id="lensNote" class="lab-help" aria-live="polite">Show every cut bundle at standard brightness.</p>
+          <details class="lab-battery">
+            <summary>Build custom battery</summary>
+            <div class="lab-battery-body">
+              <div class="lab-battery-group"><span class="lab-control-label">Asleep motor</span><div id="batteryAsleep" class="lab-battery-chips" role="group" aria-label="Asleep motor tasks"></div></div>
+              <div class="lab-battery-group"><span class="lab-control-label">Awake DES / Monitoring</span><div id="batteryAwake" class="lab-battery-chips" role="group" aria-label="Awake DES and monitoring tasks"></div></div>
+              <button type="button" id="clearBattery" class="lab-battery-clear">Clear tasks</button>
+            </div>
+          </details>
+        </div>
         <div class="lab-control"><label for="radius">Radius <output id="radiusValue" for="radius">10 mm</output></label><input id="radius" type="range" min="3" max="30" step="1" value="10"></div>
         <div class="lab-control">
           <div class="lab-check"><input id="marginOn" type="checkbox" role="switch"><label for="marginOn">Resection margin</label><output id="marginValue" for="margin">5 mm</output></div>
           <input id="margin" type="range" min="1" max="20" step="1" value="5" aria-label="Margin beyond the sphere, in millimetres" disabled>
-          <p class="lab-help">The ring marks a chosen distance beyond the sphere and counts the streamlines that run inside it. It is a geometric band for discussion, not a safe distance.</p>
+          <p class="lab-help">Geometric band beyond the sphere for discussion, not a safe distance.</p>
         </div>
-        <div class="lab-control lab-corridors">
-          <span class="lab-control-label" id="entryLabel">Corridors to the sphere</span>
-          <div class="lab-options" role="group" aria-labelledby="entryLabel"><button type="button" data-entry="A" aria-pressed="false">Place entry A</button><button type="button" data-entry="B" aria-pressed="false">Place entry B</button></div>
-          <p id="corridorHint" class="lab-help" aria-live="polite">Choose an entry, then click the cortex where the corridor starts. The corridor runs straight to the sphere.</p>
-          <label for="corridorWidth">Corridor diameter <output id="corridorWidthValue" for="corridorWidth">8 mm</output></label><input id="corridorWidth" type="range" min="4" max="20" step="1" value="8">
-          <ul id="corridorList" class="lab-corridor-list" aria-label="Corridors"></ul>
-          <button type="button" id="compareCorridors" class="lab-compare-open" hidden>Compare corridors A and B</button>
-          <p class="lab-help">A corridor counts the sampled streamlines that pass within half its diameter of a straight line from the entry to the sphere. It is a geometric line for discussion, not a planned trajectory.</p>
-        </div>
+        <details class="lab-corridors-panel">
+          <summary>Corridors (A / B)</summary>
+          <div class="lab-control lab-corridors">
+            <span class="lab-control-label" id="entryLabel">Corridors to the sphere</span>
+            <div class="lab-options" role="group" aria-labelledby="entryLabel"><button type="button" data-entry="A" aria-pressed="false">Place entry A</button><button type="button" data-entry="B" aria-pressed="false">Place entry B</button></div>
+            <p id="corridorHint" class="lab-help" aria-live="polite">Choose an entry, then click the cortex where the corridor starts. The corridor runs straight to the sphere.</p>
+            <label for="corridorWidth">Corridor diameter <output id="corridorWidthValue" for="corridorWidth">8 mm</output></label><input id="corridorWidth" type="range" min="4" max="20" step="1" value="8">
+            <ul id="corridorList" class="lab-corridor-list" aria-label="Corridors"></ul>
+            <button type="button" id="compareCorridors" class="lab-compare-open" hidden>Compare corridors A and B</button>
+            <p class="lab-help">A corridor counts the sampled streamlines that pass within half its diameter of a straight line from the entry to the sphere. It is a geometric line for discussion, not a planned trajectory.</p>
+          </div>
+        </details>
         <details class="lab-precise">
           <summary>Precise position</summary>
           <div class="lab-position">
@@ -77,9 +89,16 @@
       </fieldset>
 
       <div class="lab-console lab-glass" role="group" aria-label="Named anatomical views">
-        <span class="lab-control-label">View</span>
-        <div class="lab-views">
-          <button type="button" data-view="oblique" aria-pressed="true">Oblique</button><button type="button" data-view="lateral" aria-pressed="false">Lateral</button><button type="button" data-view="medial" aria-pressed="false">Medial</button><button type="button" data-view="superior" aria-pressed="false">Superior</button><button type="button" data-view="anterior" aria-pressed="false">Anterior</button><span id="viewStatus">Oblique view</span>
+        <div class="lab-console-group">
+          <span class="lab-control-label">View</span>
+          <div class="lab-views">
+            <button type="button" data-view="oblique" aria-pressed="true">Oblique</button><button type="button" data-view="lateral" aria-pressed="false">Lateral</button><button type="button" data-view="medial" aria-pressed="false">Medial</button><button type="button" data-view="superior" aria-pressed="false">Superior</button><button type="button" data-view="anterior" aria-pressed="false">Anterior</button><span id="viewStatus">Oblique view</span>
+          </div>
+        </div>
+        <div class="lab-console-actions">
+          <button type="button" id="toggleLabLabels" class="lab-console-btn lab-labels-toggle" aria-pressed="true">Labels</button>
+          <a id="openTestingMapLink" class="lab-console-link" href="./testing.html">2D Testing Map</a>
+          <button type="button" id="openTestingSheet" class="lab-console-btn">Testing Sheet</button>
         </div>
       </div>
     </div>
@@ -104,7 +123,7 @@
     </section>
     <p id="labSummary" class="lab-summary">The bundle list appears when the reference atlas has loaded.</p>
     <div id="namedBlock" class="lab-named-block" hidden><h3>Named in the notes for these bundles</h3><ul id="namedList" class="lab-named"></ul><p class="lab-aside">Statements that need damage on both sides, or that place the injury at one site of a bundle, are listed under that bundle, not here. The share of sampled streamlines is a geometric count, not the probability of a deficit.</p></div>
-    <section id="testingBlock" class="lab-testing-block" aria-labelledby="testingBlockTitle" hidden><h3 id="testingBlockTitle">How to test cut bundles</h3><ul id="testingList" class="lab-testing-list"></ul><p id="testingCoverage" class="lab-aside" hidden></p><p class="lab-aside"><a href="./testing.html">Open full Monitoring vs mapping guide</a></p></section>
+    <section id="testingBlock" class="lab-testing-block" aria-labelledby="testingBlockTitle" hidden><h3 id="testingBlockTitle">Testing cards for cut tracts</h3><ul id="testingList" class="lab-testing-list"></ul><p id="testingCoverage" class="lab-aside" hidden></p><p class="lab-aside"><a href="./testing.html">Open full 2D Testing Map</a></p></section>
     <ol id="bundleList" class="lab-bundles" aria-label="Bundles the sphere reaches"></ol>
   </aside>
   <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
@@ -126,6 +145,24 @@
     </div>
   </section>
 </main>
+<dialog id="labTestingSheet" class="testing-sheet-dialog" aria-labelledby="labSheetTitle">
+  <div class="sheet-card">
+    <header class="sheet-head">
+      <div>
+        <p class="sheet-watermark" data-sheet-watermark></p>
+        <h2 id="labSheetTitle" data-sheet-title>Testing sheet</h2>
+        <p class="sheet-subtitle" data-sheet-subtitle></p>
+      </div>
+      <div class="sheet-actions">
+        <button type="button" data-sheet-print>Print / Save PDF</button>
+        <button type="button" data-sheet-copy>Copy link</button>
+        <button type="button" data-sheet-close>Close</button>
+      </div>
+    </header>
+    <p class="sheet-copy-status" data-sheet-status role="status" aria-live="polite"></p>
+    <div class="sheet-body" data-sheet-body></div>
+  </div>
+</dialog>
 <footer class="source-footer"><div class="foot-brand"><p class="foot-name">Hodos</p><p>Brain networks and white matter tracts for intra-axial surgery.</p><p class="creator-credit">Created by <a href="https://www.dreriondeandrade.com.br/" target="_blank" rel="noopener noreferrer"><strong>Dr. Erion de Andrade</strong></a></p></div><div class="foot-data"><p class="foot-label">Reference data</p><p>HCP S1200 group surface</p><p>HCP1065 sampled tractography</p><p>Author's white matter teaching notes</p></div><div class="foot-terms"><p class="foot-label">Use</p><p class="lab-foot-scope">Group reference, not this patient.</p><p>Reference anatomy only.</p><p><a href="./atlas-sources.html">Atlas sources and use terms</a></p><p><a href="./atlas-sources.html#privacy">Privacy</a></p><p><a href="./mips.html">MIPS</a></p><p><a href="./labs/lesion-lab.html">Lesion lab</a></p><p><a href="./connections.html">Connections</a></p><p><a href="./testing.html">Testing guide</a></p><p><a href="./lessons">Lessons</a></p><p><a href="mailto:erion.andrade@santacasa.org.br?subject=Hodos%20feedback">Email a correction</a></p><p><a href="https://github.com/erionjuniordeandrade-a11y/hodos/issues/new" target="_blank" rel="noopener">Report an error or suggest a correction</a></p></div></footer>
 <noscript><p class="lab-noscript">The interactive lab needs JavaScript. The method, sources and limits on this page remain available to read.</p></noscript>
 <script type="module" src="./lesion_lab.js"></script></body></html>

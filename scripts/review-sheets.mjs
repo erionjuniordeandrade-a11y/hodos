@@ -19,6 +19,8 @@ import {
   TARGET_PROTOCOLS,
   TEST_LENSES,
   LESION_PRESETS,
+  BATTERY_TASKS,
+  PRIMARY_TASKS_BY_TRACT,
   MODE_BY_ID,
   TASK_BY_ID,
 } from '../viewer/testing_model.js';
@@ -252,11 +254,19 @@ export function buildTestingSheet() {
     sourceLookupFor(drill.sourceIds, TESTING_SOURCES).forEach((s) => lines.push(formatSourceLine(s)));
     lines.push('');
   }
-  lines.push('## Lesion lab test lenses and tumor territory presets', '');
-  lines.push('All 26 anatomical protocols are mapped onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) across 6 verified HCP1065 MNI tumor territories.', '');
+  lines.push('## Lesion lab test lenses and surgical territory presets', '');
+  lines.push('All 26 anatomical testing cards are projected from HCP S1200/HCP1065 onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) and custom batteries (`evaluateCustomBattery`) across 6 verified HCP1065 MNI surgical territories.', '');
   for (const lens of TEST_LENSES) {
-    const scope = lens.interrogates ? `Interrogates: ${lens.interrogates.join(', ')}` : 'Interrogates: all cut protocols (no dimming)';
+    const scope = lens.interrogates ? `Interrogates: ${lens.interrogates.join(', ')}` : 'Interrogates: all cut tracts (no dimming)';
     lines.push(`- **${lens.label}** (\`${lens.id}\`): ${lens.summary} (${scope})`);
+  }
+  lines.push('', '### Custom Battery Builder tasks', '');
+  for (const bt of BATTERY_TASKS) {
+    lines.push(`- **${bt.shortLabel}** (\`${bt.id}\`, ${bt.group})`);
+  }
+  lines.push('', '### Primary interrogation tasks per tract', '');
+  for (const [tractId, taskIds] of Object.entries(PRIMARY_TASKS_BY_TRACT)) {
+    lines.push(`- \`${tractId}\`: ${taskIds.length ? taskIds.join(', ') : 'none (untestable corridor only)'}`);
   }
   lines.push('');
   for (const preset of LESION_PRESETS) {

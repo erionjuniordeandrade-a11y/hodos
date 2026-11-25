@@ -102,3 +102,44 @@ export const LESION_PRESETS = Object.freeze([
     note: 'Deep medial corridor crossing fornix, TR_A, and proximal DRTT.',
   }),
 ]);
+
+export const BATTERY_TASKS = Object.freeze([
+  Object.freeze({id: 'task-hf-subcortical-cst', shortLabel: 'HF subcortical CST', group: 'asleep'}),
+  Object.freeze({id: 'task-tes-dcs-mep', shortLabel: 'TES / DCS-MEP', group: 'asleep'}),
+  Object.freeze({id: 'dulip-object-naming', shortLabel: 'Object naming', group: 'awake'}),
+  Object.freeze({id: 'dulip-repetition', shortLabel: 'Word repetition', group: 'awake'}),
+  Object.freeze({id: 'dulip-phonological-odd-word-out', shortLabel: 'Phonological odd word', group: 'awake'}),
+  Object.freeze({id: 'dulip-semantic-odd-picture-out', shortLabel: 'Semantic odd picture', group: 'awake'}),
+  Object.freeze({id: 'task-awake-reading', shortLabel: 'Awake reading', group: 'awake'}),
+  Object.freeze({id: 'dulip-sentence-completion-closed', shortLabel: 'Closed sentence completion', group: 'awake'}),
+  Object.freeze({id: 'task-counting', shortLabel: 'Counting', group: 'awake'}),
+  Object.freeze({id: 'dulip-ddk', shortLabel: 'Verbal DDK', group: 'awake'}),
+  Object.freeze({id: 'dulip-fluency-phonological', shortLabel: 'Verbal fluency', group: 'awake'}),
+  Object.freeze({id: 'task-line-bisection', shortLabel: 'Line bisection', group: 'awake'}),
+  Object.freeze({id: 'task-vision-guided-reaching', shortLabel: 'Vision-guided reaching', group: 'awake'}),
+  Object.freeze({id: 'task-visual-quadrant', shortLabel: 'Visual quadrant', group: 'awake'}),
+  Object.freeze({id: 'task-prosody-social', shortLabel: 'Prosody & emotion', group: 'awake'}),
+  Object.freeze({id: 'task-double-task', shortLabel: 'Double task', group: 'awake'}),
+]);
+
+const freezeTasks = list => Object.freeze([...list]);
+export const PRIMARY_TASKS_BY_TRACT = Object.freeze(
+  Object.assign(Object.create(null), {
+    'af-left': freezeTasks(['dulip-repetition', 'dulip-phonological-odd-word-out']),
+    'af-right': freezeTasks(['task-prosody-social', 'dulip-repetition']),
+    'ifof-left': freezeTasks(['dulip-semantic-odd-picture-out', 'dulip-object-naming']),
+    'ifof-right': freezeTasks(['task-prosody-social', 'dulip-semantic-odd-picture-out']),
+    'ilf-vof-left-reading': freezeTasks(['task-awake-reading', 'dulip-sentence-completion-closed']),
+    'uf-left': freezeTasks(['dulip-object-naming', 'dulip-semantic-odd-picture-out']),
+    'fat-left': freezeTasks(['dulip-sentence-completion-closed', 'task-counting', 'dulip-fluency-phonological']),
+    'fat-right': freezeTasks(['task-double-task']),
+    'slf1-bilateral': freezeTasks(['task-vision-guided-reaching']),
+    'slf2-right': freezeTasks(['task-line-bisection']),
+    'slf3-left': freezeTasks(['dulip-ddk', 'dulip-repetition', 'task-counting']),
+    'cst-bilateral': freezeTasks(['task-hf-subcortical-cst', 'task-tes-dcs-mep']),
+    'or-bilateral': freezeTasks(['task-visual-quadrant']),
+    'fornix-bilateral': freezeTasks([]),
+    'tra-bilateral': freezeTasks([]),
+    'drtt-bilateral': freezeTasks([]),
+  }),
+);
