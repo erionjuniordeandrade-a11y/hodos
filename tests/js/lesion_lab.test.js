@@ -139,18 +139,19 @@ test('bundle anchors are real sample points; centres stay in the chosen hemisphe
 });
 
 test('lab links restore allowed values and discard malformed ones',()=>{
-  assert.deepEqual(parseLabParams('?hemi=R&x=12.5&y=-30&z=20&r=15&margin=8'),{hemi:'R',centre:[12.5,-30,20],radius:15,marginOn:true,margin:8,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
-  assert.deepEqual(parseLabParams(''),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
-  assert.deepEqual(parseLabParams('?hemi=X&x=1&y=2&r=&margin=abc'),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
-  assert.deepEqual(parseLabParams('?x=1&y=2&z=Infinity&r=999&margin=0'),{hemi:'L',centre:null,radius:RADIUS.max,marginOn:true,margin:MARGIN_MM.min,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
-  assert.equal(parseLabParams('?r=2').radius,RADIUS.min);
-  const corridors=parseLabParams('?a=-45,45,24&b=-25,12.5,68&cd=12');
+  const base=s=>{const {lens,preset,...rest}=parseLabParams(s);return rest;};
+  assert.deepEqual(base('?hemi=R&x=12.5&y=-30&z=20&r=15&margin=8'),{hemi:'R',centre:[12.5,-30,20],radius:15,marginOn:true,margin:8,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.deepEqual(base(''),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.deepEqual(base('?hemi=X&x=1&y=2&r=&margin=abc'),{hemi:'L',centre:null,radius:RADIUS.initial,marginOn:false,margin:MARGIN_MM.initial,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.deepEqual(base('?x=1&y=2&z=Infinity&r=999&margin=0'),{hemi:'L',centre:null,radius:RADIUS.max,marginOn:true,margin:MARGIN_MM.min,entries:{A:null,B:null},corridor:CORRIDOR_MM.initial});
+  assert.equal(base('?r=2').radius,RADIUS.min);
+  const corridors=base('?a=-45,45,24&b=-25,12.5,68&cd=12');
   assert.deepEqual(corridors.entries,{A:[-45,45,24],B:[-25,12.5,68]});
   assert.equal(corridors.corridor,12);
-  assert.deepEqual(parseLabParams('?a=1,2&b=1,2,x').entries,{A:null,B:null});
-  assert.deepEqual(parseLabParams('?a=1,2,999&b=,,').entries,{A:null,B:null});
-  assert.equal(parseLabParams('?cd=1').corridor,CORRIDOR_MM.min);
-  assert.equal(parseLabParams('?cd=99').corridor,CORRIDOR_MM.max);
+  assert.deepEqual(base('?a=1,2&b=1,2,x').entries,{A:null,B:null});
+  assert.deepEqual(base('?a=1,2,999&b=,,').entries,{A:null,B:null});
+  assert.equal(base('?cd=1').corridor,CORRIDOR_MM.min);
+  assert.equal(base('?cd=99').corridor,CORRIDOR_MM.max);
 });
 
 test('segment-to-segment distance handles crossing, parallel, skew and degenerate segments',()=>{

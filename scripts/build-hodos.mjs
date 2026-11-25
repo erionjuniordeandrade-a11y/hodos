@@ -13,7 +13,7 @@ const modules=[
   'mips.js','mips_content.js','corridor_geometry.js','corridor_overlay.js',
   'connections.js','connections_route.js','connections_graph.js','connections_data.js',
   'lesion_lab.js','lesion_model.js','lesion_evidence.js','lesion_story.js',
-  'testing_sources_data.js','testing_tasks_data.js','testing_protocol_data.js','testing_tracts_data.js','testing_cortex_data.js','testing_targets_data.js','testing_model.js','testing.js',
+  'testing_sources_data.js','testing_tasks_data.js','testing_protocol_data.js','testing_tracts_data.js','testing_cortex_data.js','testing_targets_data.js','testing_presets_data.js','testing_model.js','testing.js',
   'case_content.js','case_state.js','case_audio.js','case_conference.js','case_reference.js','case_lesions.js',
   'atlas_app.js','atlas_scene.js','tract_ranges.js','atlas_data.js','atlas_catalog.js','atlas_glossary.js',
   'atlas_networks.js','atlas_arterial.js','cortex_wash.js','atlas_workspace.js','atlas_camera_frame.js','atlas_cinematic.js','atlas_labels.js','atlas_deeplink.js','atlas_slice.js','atlas_slice_panel.js','anatomy_lesson_player.js','anatomy_learning.js','lesson_briefings.js','teachback.js',

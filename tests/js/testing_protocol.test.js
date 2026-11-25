@@ -15,14 +15,21 @@ import {
   TRACT_PROTOCOLS,
   CORTEX_PROTOCOLS,
   TARGET_PROTOCOLS,
+  TEST_LENSES,
+  LESION_PRESETS,
+  PRESET_BY_ID,
   validateTestingRegistry,
   tractProtocolsForCutBundles,
+  evaluateTestLens,
+  hudTestingSummary,
   filterProtocols,
   testingStateFromSearch,
   testingStep,
   evaluateDrill,
   parseTestingParams,
 } from '../../viewer/testing_model.js';
+import {decodeAtlasBundle} from '../../viewer/atlas_data.js';
+import {labBundles, packStreamlines, classify, summarize, parseLabParams} from '../../viewer/lesion_model.js';
 import {LESSONS} from '../../viewer/lesson_content.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -46,6 +53,8 @@ test('testing registry integrity matches tracts.json families, surface.json parc
   assert.equal(TRACT_PROTOCOLS.length, 16);
   assert.equal(CORTEX_PROTOCOLS.length, 10);
   assert.equal(TARGET_PROTOCOLS.length, 26);
+  assert.equal(TEST_LENSES.length, 4);
+  assert.equal(LESION_PRESETS.length, 6);
   assert.equal(SCENARIO_DRILLS.length, 5);
   assert.equal(Object.keys(TESTING_SOURCES).length, 25);
 
@@ -171,4 +180,107 @@ test('testing.css has zero raw hex colors, testing.html obeys strict CSP, and UI
   assert.equal(inlineScripts.length, 0, 'testing.html must not contain executable inline scripts');
   assert.doesNotMatch(html, /[\u2013\u2014]/, 'testing.html must contain zero em/en dashes');
   assert.doesNotMatch(js, /[\u2013\u2014]/, 'testing.js must contain zero em/en dashes');
+});
+
+test('select-map clears narrowing filters so any clicked map region becomes visible and selected', () => {
+  let s = testingStateFromSearch('?kind=tract&hemi=L&mode=asleep-mapping&q=corticospinal');
+  s = testingStep(s, {type: 'select-map', targetId: 'ctx-pmfg-left'});
+  assert.equal(s.selectedId, 'ctx-pmfg-left');
+  assert.equal(s.kind, 'all');
+  assert.equal(s.query, '');
+  assert.equal(s.mode, 'all');
+  assert.equal(s.hemi, 'L');
+  assert(s.matches.some(m => m.id === 'ctx-pmfg-left'));
+
+  s = testingStep(s, {type: 'set-hemi', hemi: 'L'});
+  s = testingStep(s, {type: 'select-map', targetId: 'slf2-right'});
+  assert.equal(s.selectedId, 'slf2-right');
+  assert.equal(s.hemi, 'R');
+
+  // Bilateral protocol preserves current L/R hemisphere filter.
+  s = testingStep(s, {type: 'set-hemi', hemi: 'R'});
+  s = testingStep(s, {type: 'select-map', targetId: 'fornix-bilateral'});
+  assert.equal(s.selectedId, 'fornix-bilateral');
+  assert.equal(s.hemi, 'R');
+});
+
+test('all 6 lesion presets classify real HCP1065 tracts.bin bundles and partition blind spots under test lenses', async () => {
+  const bin = (await readFile(path.join(root, 'viewer/atlas/tracts.bin'))).buffer;
+  const packs = new Map();
+  for (const hemi of ['L', 'R']) {
+    const entries = labBundles(tractMeta, hemi).map(b => ({
+      id: b.id,
+      group: b.group,
+      lines: decodeAtlasBundle(b, bin),
+    }));
+    packs.set(hemi, packStreamlines(entries));
+  }
+  const runPreset = (presetId, lensId) => {
+    const preset = PRESET_BY_ID[presetId];
+    assert(preset, `Missing preset ${presetId}`);
+    const pack = packs.get(preset.hemi);
+    const state = new Uint8Array(pack.count);
+    classify(pack, {centre: preset.centre, radius: preset.radius}, state);
+    const rows = summarize(pack, state);
+    return {
+      rows,
+      evalResult: evaluateTestLens(rows, preset.hemi, lensId),
+      hud: hudTestingSummary(rows, preset.hemi, lensId),
+    };
+  };
+
+  // All cut lens is inactive.
+  const allLens = runPreset('left-sma', 'all').evalResult;
+  assert.equal(allLens.active, false);
+  assert.equal(allLens.interrogatedProtocols.length, 0);
+  assert.equal(allLens.blindSpotProtocols.length, 0);
+
+  // Left SMA under asleep-mep: CST interrogated, FAT in blind spots.
+  const smaMep = runPreset('left-sma', 'asleep-mep');
+  assert.deepEqual(smaMep.evalResult.interrogatedProtocols.map(p => p.id), ['cst-bilateral']);
+  assert(smaMep.evalResult.blindSpotProtocols.some(p => p.id === 'fat-left'));
+  assert(smaMep.evalResult.interrogatedBundleIds.includes('CST_L'));
+  assert(smaMep.evalResult.blindSpotBundleIds.includes('FAT_L'));
+  assert(smaMep.hud.mapCount >= 1 && smaMep.hud.blindCount >= 1);
+
+  // Left insula: blind under asleep-mep, IFOF/UF interrogated under awake-naming while TR_A stays blind.
+  const insulaMep = runPreset('left-insula', 'asleep-mep').evalResult;
+  assert.equal(insulaMep.interrogatedProtocols.length, 0);
+  assert(insulaMep.blindSpotProtocols.some(p => p.id === 'ifof-left'));
+  assert(insulaMep.blindSpotProtocols.some(p => p.id === 'uf-left'));
+  const insulaNaming = runPreset('left-insula', 'awake-naming').evalResult;
+  assert(insulaNaming.interrogatedProtocols.some(p => p.id === 'ifof-left'));
+  assert(insulaNaming.interrogatedProtocols.some(p => p.id === 'uf-left'));
+  assert(insulaNaming.blindSpotProtocols.some(p => p.id === 'tra-bilateral'));
+
+  // Left temporoparietal under awake-naming: AF interrogated, SLF III in blind spots.
+  const tpNaming = runPreset('left-temporoparietal', 'awake-naming').evalResult;
+  assert(tpNaming.interrogatedProtocols.some(p => p.id === 'af-left'));
+  assert(tpNaming.blindSpotProtocols.some(p => p.id === 'slf3-left'));
+
+  // Left occipitotemporal under awake-naming: IFOF interrogated, ILF/VOF and OR in blind spots.
+  const otNaming = runPreset('left-occipitotemporal', 'awake-naming').evalResult;
+  assert(otNaming.interrogatedProtocols.some(p => p.id === 'ifof-left'));
+  assert(otNaming.blindSpotProtocols.some(p => p.id === 'ilf-vof-left-reading'));
+  assert(otNaming.blindSpotProtocols.some(p => p.id === 'or-bilateral'));
+
+  // Right parietal under asleep-mep and awake-naming: SLF II and right AF in blind spots.
+  for (const lensId of ['asleep-mep', 'awake-naming']) {
+    const rp = runPreset('right-parietal', lensId).evalResult;
+    assert(rp.blindSpotProtocols.some(p => p.id === 'slf2-right'), `${lensId}: slf2-right blind`);
+    assert(rp.blindSpotProtocols.some(p => p.id === 'af-right'), `${lensId}: af-right blind`);
+  }
+
+  // Third ventricle under tailored battery: fornix, TR_A, and proximal DRTT all stay blind spots.
+  const tvTailored = runPreset('third-ventricle', 'tailored').evalResult;
+  assert.equal(tvTailored.interrogatedProtocols.length, 0);
+  const tvBlindIds = tvTailored.blindSpotProtocols.map(p => p.id);
+  assert(tvBlindIds.includes('fornix-bilateral'));
+  assert(tvBlindIds.includes('tra-bilateral'));
+  assert(tvBlindIds.includes('drtt-bilateral'));
+
+  assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').lens, 'asleep-mep');
+  assert.equal(parseLabParams('?lens=asleep-mep&preset=left-sma').preset, 'left-sma');
+  assert.equal(parseLabParams('?lens=constructor&preset=toString').lens, 'all');
+  assert.equal(parseLabParams('?lens=constructor&preset=toString').preset, null);
 });

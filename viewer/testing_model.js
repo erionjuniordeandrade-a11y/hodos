@@ -9,6 +9,7 @@ import {
   SCENARIO_DRILLS,
 } from './testing_protocol_data.js';
 import {TRACT_PROTOCOLS, CORTEX_PROTOCOLS, TARGET_PROTOCOLS} from './testing_targets_data.js';
+import {TEST_LENSES, LESION_PRESETS} from './testing_presets_data.js';
 
 export {
   REVIEW_STATUS,
@@ -22,6 +23,8 @@ export {
   TRACT_PROTOCOLS,
   CORTEX_PROTOCOLS,
   TARGET_PROTOCOLS,
+  TEST_LENSES,
+  LESION_PRESETS,
 };
 
 const VALID_EVIDENCE = new Set([
@@ -45,10 +48,14 @@ export const MODE_BY_ID = nullMap(TESTING_MODES.map(m => [m.id, m]));
 export const TASK_BY_ID = nullMap(TESTING_TASKS.map(t => [t.id, t]));
 export const PROTOCOL_BY_ID = nullMap(TARGET_PROTOCOLS.map(p => [p.id, p]));
 export const DRILL_BY_ID = nullMap(SCENARIO_DRILLS.map(d => [d.id, d]));
+export const LENS_BY_ID = nullMap(TEST_LENSES.map(l => [l.id, l]));
+export const PRESET_BY_ID = nullMap(LESION_PRESETS.map(p => [p.id, p]));
 
 export const modeOf = id => (typeof id === 'string' ? MODE_BY_ID[id] ?? null : null);
 export const taskOf = id => (typeof id === 'string' ? TASK_BY_ID[id] ?? null : null);
 export const protocolOf = id => (typeof id === 'string' ? PROTOCOL_BY_ID[id] ?? null : null);
+export const lensOf = id => (typeof id === 'string' ? LENS_BY_ID[id] ?? null : null);
+export const presetOf = id => (typeof id === 'string' ? PRESET_BY_ID[id] ?? null : null);
 
 function collectStrings(value, out = []) {
   if (typeof value === 'string') out.push(value);
@@ -130,7 +137,48 @@ export function validateTestingRegistry(tractFamilies = null, parcelCodes = null
     }
   }
 
-  for (const s of collectStrings([TESTING_MODES, TESTING_SOURCES, COMPARISON_ROWS, MODALITIES, TESTING_TASKS, TARGET_PROTOCOLS, SCENARIO_DRILLS])) {
+  const lensIds = new Set();
+  for (const lens of TEST_LENSES) {
+    if (!lens.id || lensIds.has(lens.id)) throw new Error(`Duplicate or missing lens id: ${lens.id}`);
+    lensIds.add(lens.id);
+    if (!lens.label || !lens.shortLabel || !lens.summary) throw new Error(`Missing fields on lens ${lens.id}`);
+    if (lens.interrogates !== null) {
+      if (!Array.isArray(lens.interrogates)) throw new Error(`Lens ${lens.id} interrogates must be array or null`);
+      for (const pid of lens.interrogates) {
+        const p = PROTOCOL_BY_ID[pid];
+        if (!p || p.kind !== 'tract' || p.mode === 'untestable-anatomy-only') {
+          throw new Error(`Invalid interrogated protocol ${pid} on lens ${lens.id}`);
+        }
+      }
+    }
+  }
+
+  const presetIds = new Set();
+  for (const preset of LESION_PRESETS) {
+    if (!preset.id || presetIds.has(preset.id)) throw new Error(`Duplicate or missing preset id: ${preset.id}`);
+    presetIds.add(preset.id);
+    if (!preset.label || !preset.note) throw new Error(`Missing label or note on preset ${preset.id}`);
+    if (preset.hemi !== 'L' && preset.hemi !== 'R') throw new Error(`Invalid hemi on preset ${preset.id}`);
+    if (!Array.isArray(preset.centre) || preset.centre.length !== 3 || !preset.centre.every(Number.isFinite)) {
+      throw new Error(`Invalid centre coordinates on preset ${preset.id}`);
+    }
+    if (!Number.isFinite(preset.radius) || preset.radius < 3 || preset.radius > 30) {
+      throw new Error(`Invalid radius on preset ${preset.id}`);
+    }
+    if (!lensIds.has(preset.defaultLens)) throw new Error(`Invalid defaultLens ${preset.defaultLens} on preset ${preset.id}`);
+  }
+
+  for (const s of collectStrings([
+    TESTING_MODES,
+    TESTING_SOURCES,
+    COMPARISON_ROWS,
+    MODALITIES,
+    TESTING_TASKS,
+    TARGET_PROTOCOLS,
+    SCENARIO_DRILLS,
+    TEST_LENSES,
+    LESION_PRESETS,
+  ])) {
     if (/[\u2013\u2014]/.test(s)) throw new Error(`Em/en dash prohibited in testing data: ${s.slice(0, 60)}`);
     for (const line of s.split('\n')) {
       if ((line.match(/·/g) ?? []).length > 1) throw new Error(`At most one middle dot per line: ${line.slice(0, 60)}`);
@@ -182,6 +230,77 @@ export function tractProtocolsForCutBundles(rows = [], hemi = 'L') {
     .sort((a, b) => b.share - a.share || a.id.localeCompare(b.id))
     .map(r => r.id);
   return {protocols: matched, unmatchedCutIds};
+}
+
+export function evaluateTestLens(rows = [], hemi = 'L', lensId = 'all') {
+  const {protocols, unmatchedCutIds} = tractProtocolsForCutBundles(rows, hemi);
+  const lens = lensOf(lensId) ?? LENS_BY_ID.all;
+  if (lens.id === 'all') {
+    return {
+      lens,
+      active: false,
+      protocols,
+      interrogatedProtocols: [],
+      blindSpotProtocols: [],
+      interrogatedBundleIds: [],
+      blindSpotBundleIds: [],
+      unmatchedCutIds,
+    };
+  }
+  const interrogatedSet = new Set(lens.interrogates);
+  const interrogatedProtocols = [];
+  const blindSpotProtocols = [];
+  for (const protocol of protocols) {
+    if (interrogatedSet.has(protocol.id)) interrogatedProtocols.push(protocol);
+    else blindSpotProtocols.push(protocol);
+  }
+  // A bundle shared by an interrogated and a blind-spot protocol stays bright (blind-spot wins).
+  const blindSpotBundleSet = new Set();
+  for (const protocol of blindSpotProtocols) {
+    for (const b of protocol.matchedBundles) blindSpotBundleSet.add(b.id);
+  }
+  const interrogatedBundleSet = new Set();
+  for (const protocol of interrogatedProtocols) {
+    for (const b of protocol.matchedBundles) {
+      if (!blindSpotBundleSet.has(b.id)) interrogatedBundleSet.add(b.id);
+    }
+  }
+  return {
+    lens,
+    active: true,
+    protocols,
+    interrogatedProtocols,
+    blindSpotProtocols,
+    interrogatedBundleIds: [...interrogatedBundleSet],
+    blindSpotBundleIds: [...blindSpotBundleSet],
+    unmatchedCutIds,
+  };
+}
+
+export function hudTestingSummary(rows = [], hemi = 'L', lensId = 'all') {
+  const result = evaluateTestLens(rows, hemi, lensId);
+  const mapTasks = new Set();
+  const monitorTasks = new Set();
+  const mapNames = [];
+  let untestableCount = 0;
+  for (const p of result.protocols) {
+    for (const tid of p.mappingTasks) mapTasks.add(tid);
+    for (const tid of p.monitoringTasks) monitorTasks.add(tid);
+    if (p.mappingTasks.length) mapNames.push(p.name);
+    if (p.mode === 'untestable-anatomy-only') untestableCount++;
+  }
+  return {
+    mapCount: mapTasks.size,
+    monitorCount: monitorTasks.size,
+    untestableCount,
+    blindCount: result.blindSpotProtocols.length,
+    interrogatedCount: result.interrogatedProtocols.length,
+    unmatchedCount: result.unmatchedCutIds.length,
+    protocolCount: result.protocols.length,
+    lensId: result.lens.id,
+    topMapNames: mapNames.slice(0, 3),
+    topBlindNames: result.blindSpotProtocols.slice(0, 3).map(p => p.name),
+  };
 }
 
 export function filterProtocols({kind = 'all', hemi = 'all', mode = 'all', query = ''} = {}) {
@@ -256,6 +375,17 @@ export function testingStep(prev, action) {
         next = {kind: 'all', hemi: 'all', mode: 'all', query: '', selectedId: action.targetId};
       }
       break;
+    case 'select-map': {
+      const p = protocolOf(action.targetId);
+      if (p) {
+        next.selectedId = action.targetId;
+        next.query = '';
+        next.mode = 'all';
+        if (next.kind !== 'all' && next.kind !== p.kind) next.kind = 'all';
+        if (p.hemi !== 'both' && next.hemi !== 'all' && next.hemi !== p.hemi) next.hemi = p.hemi;
+      }
+      break;
+    }
     default:
       break;
   }

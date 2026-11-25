@@ -8,6 +8,7 @@
 // joined to the provenance that scripts/lesion-evidence.mjs traced for it.
 import {CONNECTION_ROWS} from './connections_data.js';
 import {CLAIM_PROVENANCE,PMID_RECORDS,GRAPH_TO_ATLAS,UNPLACED_SUBJECTS} from './lesion_evidence.js';
+import {TEST_LENSES,LESION_PRESETS} from './testing_presets_data.js';
 
 // Owner switch: true lists only statements whose cited slides carry a PMID.
 export const REQUIRE_PMID=false;
@@ -223,9 +224,11 @@ const parseEntry=value=>{
   const point=parts.map(Number);
   return point.every(v=>Math.abs(v)<=MAX_ENTRY_MM)?point:null;
 };
+const VALID_LENS_IDS=new Set(TEST_LENSES.map(l=>l.id));
+const VALID_PRESET_IDS=new Set(LESION_PRESETS.map(p=>p.id));
 /**
- * Reads ?hemi=L&x=&y=&z=&r=&margin=&a=x,y,z&b=x,y,z&cd= ; anything missing or malformed falls back
- * to the defaults (no corridor, an 8 mm diameter).
+ * Reads ?hemi=L&x=&y=&z=&r=&margin=&a=x,y,z&b=x,y,z&cd=&lens=&preset= ; anything missing or
+ * malformed falls back to the defaults (no corridor, an 8 mm diameter, 'all' lens, null preset).
  */
 export function parseLabParams(search){
   const params=new URLSearchParams(search);
@@ -233,10 +236,14 @@ export function parseLabParams(search){
   const xyz=['x','y','z'].map(k=>params.get(k));
   const centre=xyz.every(numeric)?xyz.map(Number):null;
   const marginOn=numeric(params.get('margin'));
+  const rawLens=params.get('lens');
+  const rawPreset=params.get('preset');
   return {hemi,centre,radius:clampStep(params.get('r'),RADIUS,RADIUS.initial),marginOn,
     margin:clampStep(params.get('margin'),MARGIN_MM,MARGIN_MM.initial),
     entries:{A:parseEntry(params.get('a')),B:parseEntry(params.get('b'))},
-    corridor:clampStep(params.get('cd'),CORRIDOR_MM,CORRIDOR_MM.initial)};
+    corridor:clampStep(params.get('cd'),CORRIDOR_MM,CORRIDOR_MM.initial),
+    lens:VALID_LENS_IDS.has(rawLens)?rawLens:'all',
+    preset:VALID_PRESET_IDS.has(rawPreset)?rawPreset:null};
 }
 
 // ---- Load lifecycle: every status of the lab's 3D atlas and the only moves between them ----------
