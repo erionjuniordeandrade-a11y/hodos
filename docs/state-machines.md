@@ -42,6 +42,7 @@ Status values:
 | Evidence drawer | closed, open; one Esc press does one step: a drag ignores it, then an armed entry is disarmed, then the drawer closes | `lesion_lab.js` `openDrawer` / `closeDrawer`; `lesion_model.js` `ESCAPE_ACTIONS`, `escapeAction` | `#openEvidence[aria-expanded]`, `__lesionLabTest.drawer` | Inline (Esc order explicit) |
 | Sheet | peek, expanded | `lesion_lab.js` `setSheet` | `[data-sheet]` | Inline |
 | Bundle focus | none, hovered, open; a row lifts its bundle only while it is listed | `lesion_model.js`: `FOCUS_STATES`, `bundleFocus` | `uFocus`, `__lesionLabTest.focus` | Explicit |
+| Test lens & preset | lens (`all` / `asleep-mep` / `awake-naming` / `tailored`) × optional preset (`left-sma`, `left-insula`, `left-temporoparietal`, `left-occipitotemporal`, `right-parietal`, `third-ventricle`); manual sphere move or radius edit clears preset | `testing_model.js`: `TEST_LENSES`, `LESION_PRESETS`, `evaluateTestLens`, `hudTestingSummary`; `lesion_lab.js` | `[data-lens][aria-pressed]`, `[data-preset][aria-pressed]`, URL `?lens=`, `__lesionLabTest.lens` / `.preset` | Explicit |
 
 ## Other pages
 
