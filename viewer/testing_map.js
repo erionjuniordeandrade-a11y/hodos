@@ -310,7 +310,7 @@ export function mountTerritoryMap(container, {onSelect, onHemiChange} = {}) {
       const svg = svgEl('svg', {
         class: 'territory-map-svg',
         viewBox: `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`,
-        role: 'img',
+        role: 'group',
         'aria-label': `${label} anatomical testing map`,
       });
       drawBrainBackground(svg, view, activeHemi);
