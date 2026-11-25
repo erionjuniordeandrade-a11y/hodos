@@ -90,7 +90,6 @@ main{max-width:1680px;margin:auto;padding:28px 36px 18px}
 #lessonPanel h2{font-size:24px;margin:18px 0}
 #lessonPanel h3{font-size:20px}
 #lessonPanel select{font-size:12px;padding:8px}
-#lessonProfile{margin-bottom:8px}
 .lesson-sources>div{margin-top:10px}
 #lessonPanel .lesson-catalog button{background:transparent;border:0;border-bottom:1px solid var(--legacy-border-panel);border-radius:0;padding:12px 0}
 #lessonPanel .lesson-catalog button:hover{color:var(--gold)}
@@ -248,7 +247,7 @@ body[data-profile=presenter] #lessonPanel .lesson-capability,body[data-profile=p
 .intro h1,body[data-profile=presenter] .intro h1{font-size:30px}
 .intro>p{margin-top:12px}
 .studio-header nav{gap:6px 8px;flex-wrap:wrap;font-size:12px;width:100%;justify-content:space-between}
-.studio-header nav button,.studio-header #lessonProfile{padding-inline:8px}
+.studio-header nav button{padding-inline:8px}
 .studio-header nav .nav-long{display:none}
 .studio-header nav .nav-short{display:contents}
 .brand{font-size:22px}
@@ -268,8 +267,8 @@ body[data-profile=presenter] #lessonPanel .lesson-capability,body[data-profile=p
 @media(pointer:coarse){button,input,.views button,.bundle-chip,.scene-footer button,.picker-head button,#selectedPathways button,#anatomyResults button,#lessonPanel button,#lessonPanel .lesson-top #lessonClose,#lessonPanel .lesson-progress button,#lessonPanel .lesson-nav button,.studio-header nav a,select,.atlas-controls select,#lessonPanel select{min-height:44px}
 #lessonPanel .lesson-progress button{min-width:44px}
 .deep-control>label{display:flex;align-items:center;min-height:44px}
-#lessonPanel .lesson-controls button,#lessonPanel .lesson-targets button,#lessonPanel #lessonProfile{min-height:44px;}
-button,select,.studio-header nav button,.studio-header #lessonProfile,.stage-tools>button,.views button,.atlas-view-menu>summary,#lessonPanel button,#lessonPanel #lessonSelect,#lessonPanel #lessonLibrary,#lessonPanel .lesson-nav button,#lessonPanel .lesson-targets button,#lessonPanel .learning-phases button,#lessonPanel .lesson-tools #lessonRestore,#lessonPanel .lesson-tools #lessonExplore{min-height:44px}
+#lessonPanel .lesson-controls button,#lessonPanel .lesson-targets button{min-height:44px;}
+button,select,.studio-header nav button,.stage-tools>button,.views button,.atlas-view-menu>summary,#lessonPanel button,#lessonPanel #lessonSelect,#lessonPanel #lessonLibrary,#lessonPanel .lesson-nav button,#lessonPanel .lesson-targets button,#lessonPanel .learning-phases button,#lessonPanel .lesson-tools #lessonRestore,#lessonPanel .lesson-tools #lessonExplore{min-height:44px}
 button,select,.stage-tools>button,.atlas-view-menu>summary,.views button,#lessonPanel button,.scene-details>summary,.studio-header nav button,.studio-header nav a{min-height:2.75rem}}
 @media(prefers-contrast:more){button,select,input,#atlasWorkspace,#anatomyResults{border-color:var(--legacy-border-contrast)}
 #lessonPanel .lesson-capability,.trace-note,.canvas-help,.source-footer{color:var(--legacy-text-contrast)}
@@ -672,10 +671,9 @@ input[type=checkbox]{accent-color:var(--color-accent);width:1rem;height:1rem}
 .brand-mark .d{fill:var(--color-parcel-context)}
 .studio-header nav{display:flex;align-items:center;gap:var(--space-xs);font-size:var(--text-sm)}
 .studio-header nav button,.studio-header nav a{min-height:2.5rem;padding:0 var(--space-sm);border:0;background:transparent;color:var(--color-muted);font-weight:500;text-decoration:none;border-radius:var(--radius);display:inline-flex;align-items:center;line-height:1}
-.studio-header nav button[aria-current=page]{color:var(--color-ink);box-shadow:inset 0 -2px 0 var(--color-accent);border-radius:0;font-weight:600}
+.studio-header nav button[aria-current=page],.studio-header nav a[aria-current=page]{color:var(--color-ink);box-shadow:inset 0 -2px 0 var(--color-accent);border-radius:0;font-weight:600}
 .studio-header nav .header-sources{color:var(--color-muted);margin-left:var(--space-xs)}
 .studio-header nav .header-sources:hover{color:var(--color-ink)}
-.studio-header #lessonProfile{min-height:2.5rem;font-size:var(--text-sm);max-width:none;width:auto;margin:0 0 0 var(--space-xs);padding:0 var(--space-xl) 0 var(--space-sm);background-color:transparent;border:1px solid var(--color-rule);color:var(--color-muted)}
 .studio-header nav .header-tools{display:none}
 /* ---- Page frame ---- */
 main{max-width:1680px;margin:0 auto;padding:var(--space-md) var(--page-gutter) var(--space-md)}
@@ -715,7 +713,10 @@ main{padding-top:var(--space-md)}
 .atlas-orientation text{font:11px var(--font-outlier)}
 /* Readout band: one line for the name, one for its role, the key inline below. */
 .scene-readout{padding:var(--space-sm) var(--space-md);padding-right:var(--space-md);border-top:1px solid var(--color-rule);min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"class key" "name key" "status key" "details details";align-items:center;column-gap:var(--space-md)}
-#pickedClass{grid-area:class;font:500 var(--text-xs)/1.3 var(--font-body);letter-spacing:0;text-transform:none;color:var(--color-muted);margin:0}
+.readout-head{grid-area:class;display:flex;align-items:center;justify-content:space-between;gap:var(--space-xs);pointer-events:auto;min-width:0}
+#pickedClass{font:500 var(--text-xs)/1.3 var(--font-body);letter-spacing:0;text-transform:none;color:var(--color-muted);margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.readout-head #lessonProfile{min-height:2.25rem;width:auto;max-width:none;flex:none;margin:0;padding:0 var(--space-lg) 0 var(--space-sm);font:500 var(--text-xs)/1 var(--font-body);background-color:transparent;background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;border:1px solid var(--color-rule);color:var(--color-muted);white-space:nowrap}
+.readout-head #lessonProfile:hover{color:var(--color-ink);border-color:var(--color-rule-2)}
 .scene-readout h2,body[data-profile=presenter] .scene-readout h2{grid-area:name;font:500 var(--text-md)/1.2 var(--font-display);letter-spacing:0;margin:var(--space-3xs) 0 0;color:var(--color-ink)}
 .scene-readout #lessonSceneStatus,.scene-readout #explorationStatus{grid-area:status;font:400 var(--text-xs)/1.4 var(--font-body);color:var(--color-muted);margin:var(--space-3xs) 0 0;padding:0;border:0}
 .scene-readout #explorationStatus{color:var(--color-accent-strong)}
@@ -934,7 +935,6 @@ body.sources main,.sources-page main{max-width:none}
   .brand .brand-name{font-size:var(--text-md)}
   .studio-header nav{width:100%;justify-content:space-between;gap:0}
   .studio-header nav button,.studio-header nav a{padding:0 var(--space-xs);font-size:var(--text-sm)}
-  .studio-header #lessonProfile{margin:0;padding:0 var(--space-lg) 0 var(--space-xs);font-size:var(--text-xs)}
   main{padding:var(--space-sm) var(--page-gutter)}
   .intro{margin:var(--space-md) 0 var(--space-lg)}
   .intro>p{font-size:var(--text-base)}
@@ -948,10 +948,11 @@ body.sources main,.sources-page main{max-width:none}
   .stage-tools{gap:0}
   .stage-tools>button,.atlas-view-menu>summary{min-height:2rem;padding:0 var(--space-xs);font-size:var(--text-xs)}
   #expandAnatomy{display:none}
-  .scene-readout{padding:var(--space-xs) var(--space-md);grid-template-areas:"class key" "name key" "status status" "details details"}
+  .scene-readout{padding:var(--space-xs) var(--space-sm);column-gap:var(--space-xs);grid-template-areas:"class key" "name key" "status status" "details details"}
   .scene-readout h2,body[data-profile=presenter] .scene-readout h2{font-size:var(--text-base)}
   .scene-readout #lessonSceneStatus,.scene-readout #explorationStatus{display:none}
-  .scene-details>summary{min-height:2rem}
+  .scene-details>summary{min-height:2rem;padding:0 var(--space-xs)}
+  .readout-head #lessonProfile{min-height:2rem;padding:0 var(--space-md) 0 var(--space-xs);background-position:calc(100% - 10px) 50%,calc(100% - 5px) 50%}
   .scene-details-body{right:var(--space-xs);bottom:calc(100% + var(--space-2xs));width:min(22rem,calc(100vw - 2 * var(--space-xs)));max-height:60dvh}
   /* The base .views max-width:100% resolves against the trigger-sized details box; size to the viewport. */
   .atlas-view-menu .views{width:19rem;max-width:calc(100vw - 2 * var(--space-xs));grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2xs)}
@@ -992,7 +993,7 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 /* Touch: every control reaches 44 px. Placed last because the token-era rules above set
  * 2.5rem for pointer devices and would otherwise win on phones and tablets. */
 @media(pointer:coarse){
-.brand,.studio-header nav a,.studio-header nav button,.studio-header #lessonProfile,.skip-link,
+.brand,.studio-header nav a,.studio-header nav button,.skip-link,
 #lessonPanel #lessonLibrary,#lessonPanel #lessonSelect,#lessonPanel .lesson-outline>summary,#lessonPanel .lesson-targets button,#lessonPanel summary,
 #lessonPanel select,#lessonPanel .lesson-nav button,.atlas-controls select,
 .lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,
@@ -1004,7 +1005,7 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 
 /* ---- Prelaunch layer (design.md: nothing links smaller than the control height, nothing wraps). ----
  * Placed last: the sheets above carry older 32-40 px floors and 11-12 px header type. */
-.brand,.studio-header nav a,.studio-header nav button,.studio-header #lessonProfile,.skip-link,
+.brand,.studio-header nav a,.studio-header nav button,.skip-link,
 #lessonPanel #lessonLibrary,#lessonPanel #lessonSelect,#lessonPanel .lesson-outline>summary,#lessonPanel .lesson-targets button,#lessonPanel summary,
 #lessonPanel select,#lessonPanel .lesson-nav button,.atlas-controls select,
 .lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,
@@ -1014,27 +1015,23 @@ h2,h3,.brand .brand-name,.hero-copy .tagline{font-variation-settings:"wdth" 112}
 .brand,.skip-link,.case-row>a,.lesson-navigation a{display:inline-flex;align-items:center}
 .lesson-explanation summary,.lesson-step-notes summary,.lesson-teaching-notes summary,.lesson-recap details summary,.scene-details>summary,.atlas-view-menu>summary{display:flex;align-items:center}
 /* Header: links never wrap; at narrow widths the nav drops to its own tidy row. */
-.brand,.brand .brand-name,.studio-header nav a,.studio-header nav button,.studio-header #lessonProfile{white-space:nowrap}
+.brand,.brand .brand-name,.studio-header nav a,.studio-header nav button{white-space:nowrap}
 .studio-header nav a,.studio-header nav button{min-width:var(--control-height);justify-content:center}
 .studio-header nav{flex-wrap:wrap;row-gap:0}
-.studio-header #lessonProfile{font-size:var(--text-sm)}
 @media(max-width:760px){
   .studio-header{row-gap:0}
   .studio-header nav{width:100%;justify-content:flex-start;column-gap:var(--space-2xs)}
   .studio-header nav a,.studio-header nav button{padding:0 var(--space-sm);font-size:var(--text-sm)}
   .hero .studio-header nav a{padding:0 var(--space-sm)}
-  /* Four links share one row on a phone; Sources never drops alone. */
+  /* Keep nav items on a single row at phone widths. */
   .studio-header nav a,.studio-header nav button{padding-inline:var(--space-xs)}
   .studio-header nav .header-sources{margin-left:0}
-  /* The atlas has six entries: break them three and three. */
-  .studio-header nav[aria-label=Workspace]::after{content:"";flex-basis:100%;order:1}
-  .studio-header nav[aria-label=Workspace]>a{order:2}
 }
 @media(max-width:350px){
   .studio-header nav{column-gap:0}
   .studio-header nav a,.studio-header nav button{padding-inline:var(--space-2xs)}
 }
-/* 701-1100: tighten the nav so six links sit on one row rather than leaving one orphaned. */
+/* 701-1100: tighten the nav so links sit on one row rather than leaving one orphaned. */
 @media(min-width:701px) and (max-width:1100px){
   .studio-header nav{gap:0}
   .studio-header nav a,.studio-header nav button{padding-inline:var(--space-xs);font-size:var(--text-sm)}
@@ -1083,8 +1080,6 @@ h1,h1 span{text-wrap:balance}
 .slice-panel button{min-height:36px}}
 @media(forced-colors:active){.slice-axes button[aria-pressed=true]{forced-color-adjust:none;background:Highlight;color:HighlightText;border-color:Highlight}}
 .atlas-view-menu .views-head{grid-column:1/-1;margin:var(--space-2xs) 0 0;padding:var(--space-2xs) var(--space-xs) 0;border-top:1px solid var(--color-rule);font-size:var(--text-xs);color:var(--color-muted)}
-/* Phone atlas header: one nav row. The projector profile is a desktop control, so it leaves the phone header. */
-@media screen and (max-width:760px){.studio-header nav #lessonProfile{display:none}.studio-header nav[aria-label=Workspace]::after{content:none}}
 @media screen and (max-width:380px){.studio-header nav[aria-label=Workspace] a,.studio-header nav[aria-label=Workspace] button{padding-inline:var(--space-2xs)}}
 /* Labels size to their name; the hemisphere prefix never sits alone on a line. */
 .atlas-parcel-label{width:max-content}.atlas-parcel-label span{overflow-wrap:anywhere}

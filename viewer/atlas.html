@@ -66,9 +66,7 @@
 </head><body data-mode="library">
 <a class="skip-link" href="#atlasControls">Skip to atlas controls</a>
 <header class="studio-header"><a class="brand" href="./index.html" title="Brain networks and white matter tracts for intra-axial surgery"><svg class="brand-mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true" focusable="false"><path d="M10 46 C 24 44, 30 30, 40 24 S 54 16, 56 14" fill="none" stroke-width="4" stroke-linecap="round"/><path class="f" d="M8 40 C 22 40, 28 26, 38 20 S 50 12, 54 10" fill="none" stroke-width="3" stroke-linecap="round"/><path class="f" d="M12 52 C 26 50, 34 36, 44 30 S 56 22, 58 20" fill="none" stroke-width="3" stroke-linecap="round"/><circle class="n" cx="10" cy="46" r="5"/><circle class="n" cx="40" cy="24" r="5"/><circle class="d" cx="56" cy="14" r="5"/></svg><span class="brand-name">Hodos <small>NETWORKS &amp; TRACTS</small></span></a>
-  <nav aria-label="Workspace"><button id="learnHome" type="button">Learn</button><button id="toggleLesson" type="button" aria-controls="lessonPanel" aria-expanded="true">Explore</button>
-  <label class="sr-only" for="lessonProfile">Display profile</label><select id="lessonProfile" title="Study: reading size, fibre animation available. Present: larger type for a projector, animation off."><option value="teaching">Study</option><option value="presenter">Present</option></select>
-  <a href="./case-conference.html" id="caseConferenceLink"><span class="nav-long">Case Conference</span><span class="nav-short">Cases</span></a><a href="./labs/lesion-lab.html">Lesion lab</a><a href="./atlas-sources.html" class="header-sources">Sources</a></nav>
+  <nav aria-label="Workspace"><button id="learnHome" type="button">Learn</button><button id="toggleLesson" type="button" aria-controls="lessonPanel" aria-expanded="true">Explore</button><a href="./labs/lesion-lab.html">Lesion &amp; testing</a><a href="./case-conference.html" id="caseConferenceLink"><span class="nav-long">Case Conference</span><span class="nav-short">Cases</span></a></nav>
 </header>
 <main>
   <div class="intro"><h1>The reference atlas.</h1>
@@ -94,7 +92,7 @@
           <p class="slice-readout" data-slice-readout aria-live="polite"></p>
           <p class="slice-note">Radiological view: the subject's right is on screen left. Surface, pathways and template share MNI coordinates but come from different group constructions; the overlay is illustrative, not registered to any patient.</p>
         </section></div>
-      <div class="scene-readout" aria-live="polite"><span id="pickedClass">Atlas parcel</span>
+      <div class="scene-readout" aria-live="polite"><div class="readout-head"><span id="pickedClass">Atlas parcel</span><label class="sr-only" for="lessonProfile">Display profile</label><select id="lessonProfile" title="Study: reading size, fibre animation available. Present: larger type for a projector, animation off."><option value="teaching">Study</option><option value="presenter">Present</option></select></div>
         <h2 id="pickedName">Choose a relationship</h2><p id="lessonSceneStatus" role="status" hidden></p><p id="explorationStatus" role="status" hidden></p>
         <details class="scene-details"><summary>Scene key & details</summary><div class="scene-details-body"><p id="pickedDescription">Select cortex to inspect its HCP-MMP1 label.</p>
         <p id="pickedNetwork" class="picked-network"></p>
