@@ -37,6 +37,7 @@
       <button type="button" class="lab-sheet-handle" id="sheetHandle" aria-expanded="false" aria-controls="labDock"><span class="sr-only">Show lab controls</span></button>
 
       <article class="lab-story lab-glass" id="labStory">
+        <p id="storyTesting" class="lab-story-testing" aria-live="polite" hidden></p>
         <p id="storyText" aria-live="polite"></p>
         <p class="lab-story-links"><button type="button" id="openEvidence" aria-haspopup="dialog" aria-controls="evidenceDrawer">Quotes and sources</button><span aria-hidden="true"> · </span><a href="#limitsTitle">How the lab decides</a></p>
       </article>
@@ -44,6 +45,8 @@
       <fieldset id="lesionControls" class="lab-controls lab-glass" disabled>
         <legend>Lesion controls</legend>
         <div class="lab-control"><span class="lab-control-label" id="hemiLabel">Hemisphere</span><div class="lab-options" role="group" aria-labelledby="hemiLabel"><button type="button" data-hemi="L" aria-pressed="true">Left</button><button type="button" data-hemi="R" aria-pressed="false">Right</button></div></div>
+        <div class="lab-control"><span class="lab-control-label" id="presetLabel">Tumor territories</span><div class="lab-presets" role="group" aria-labelledby="presetLabel"><button type="button" data-preset="left-sma" aria-pressed="false">Left SMA</button><button type="button" data-preset="left-insula" aria-pressed="false">Left insula</button><button type="button" data-preset="left-temporoparietal" aria-pressed="false">Left temporoparietal</button><button type="button" data-preset="left-occipitotemporal" aria-pressed="false">Left occipitotemporal</button><button type="button" data-preset="right-parietal" aria-pressed="false">Right parietal</button><button type="button" data-preset="third-ventricle" aria-pressed="false">Third ventricle</button></div></div>
+        <div class="lab-control"><span class="lab-control-label" id="lensLabel">Test lens</span><div class="lab-lens-options" role="group" aria-labelledby="lensLabel"><button type="button" data-lens="all" aria-pressed="true">All cut</button><button type="button" data-lens="asleep-mep" aria-pressed="false">Asleep MEP</button><button type="button" data-lens="awake-naming" aria-pressed="false">Awake naming</button><button type="button" data-lens="tailored" aria-pressed="false">Tailored</button></div><p id="lensNote" class="lab-help" aria-live="polite">Show every cut bundle at standard brightness.</p></div>
         <div class="lab-control"><label for="radius">Radius <output id="radiusValue" for="radius">10 mm</output></label><input id="radius" type="range" min="3" max="30" step="1" value="10"></div>
         <div class="lab-control">
           <div class="lab-check"><input id="marginOn" type="checkbox" role="switch"><label for="marginOn">Resection margin</label><output id="marginValue" for="margin">5 mm</output></div>

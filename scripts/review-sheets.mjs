@@ -17,6 +17,8 @@ import {
   TESTING_TASKS,
   SCENARIO_DRILLS,
   TARGET_PROTOCOLS,
+  TEST_LENSES,
+  LESION_PRESETS,
   MODE_BY_ID,
   TASK_BY_ID,
 } from '../viewer/testing_model.js';
@@ -250,7 +252,17 @@ export function buildTestingSheet() {
     sourceLookupFor(drill.sourceIds, TESTING_SOURCES).forEach((s) => lines.push(formatSourceLine(s)));
     lines.push('');
   }
-  lines.push('## Full source list', '');
+  lines.push('## Lesion lab test lenses and tumor territory presets', '');
+  lines.push('All 26 anatomical protocols are mapped onto interactive 2D lateral and medial hemisphere diagrams on `/testing` (`testing_map.js`), and the 3D Lesion lab applies test lenses (`evaluateTestLens`) across 6 verified HCP1065 MNI tumor territories.', '');
+  for (const lens of TEST_LENSES) {
+    const scope = lens.interrogates ? `Interrogates: ${lens.interrogates.join(', ')}` : 'Interrogates: all cut protocols (no dimming)';
+    lines.push(`- **${lens.label}** (\`${lens.id}\`): ${lens.summary} (${scope})`);
+  }
+  lines.push('');
+  for (const preset of LESION_PRESETS) {
+    lines.push(`- **${preset.label}** (\`${preset.id}\`): hemi ${preset.hemi}, MNI [${preset.centre.join(', ')}], radius ${preset.radius} mm, default lens \`${preset.defaultLens}\` — ${preset.note}`);
+  }
+  lines.push('', '## Full source list', '');
   Object.values(TESTING_SOURCES).forEach((s) => lines.push(formatSourceEntry(s)));
   lines.push('', '## Review checklist', '', CHECKLIST, '', 'Notes:', '');
   return lines.join('\n');

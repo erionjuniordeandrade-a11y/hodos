@@ -31,7 +31,7 @@ try {
           return new Set([...r.getClientRects()].filter(x => x.width && x.height).map(x => Math.round(x.top))).size > 1;
         })
         .map(a => a.textContent.trim());
-      const clippedButtons = [...document.querySelectorAll('.drill-option, .target-row, .drill-jump')]
+      const clippedButtons = [...document.querySelectorAll('.drill-option, .target-row, .drill-jump, .territory-map .segmented button')]
         .filter(btn => {
           const r = btn.getBoundingClientRect();
           return r.width > 0 && (btn.scrollWidth > btn.clientWidth + 1 || r.right > doc.clientWidth + 1);
@@ -106,8 +106,84 @@ try {
   assert.match(await page.locator('#targetDetail .detail-link').first().getAttribute('href'), /^\.\/atlas\?lesson=/);
   report.checks.push('Deep link ?target=af-left selects target with clean atlas route');
 
+  assert((await page.evaluate(() => window.__testingTest.mapTargetCount)) >= 20);
+  await page.locator('[data-map-target="ctx-pmfg-left"]').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-pmfg-left');
+  assert.match(await page.locator('#targetDetail h3').innerText(), /posterior middle frontal gyrus/);
+  assert.equal(await page.evaluate(() => new URLSearchParams(location.search).get('target')), 'ctx-pmfg-left');
+
+  await page.locator('[data-map-target="fornix-bilateral"]').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'fornix-bilateral');
+  assert.match(await page.locator('#targetDetail h3').innerText(), /Fornix/);
+  assert.equal(await page.evaluate(() => new URLSearchParams(location.search).get('target')), 'fornix-bilateral');
+  await page.locator('#territoryMap').screenshot({path: `${out}/testing-map-left-1440.png`});
+
+  await page.locator('[data-map-hemi="R"]').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.mapHemi), 'R');
+  await page.locator('[data-map-target="slf2-right"]').waitFor({state: 'visible'});
+  await page.locator('[data-map-target="slf2-right"]').click();
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'slf2-right');
+  assert.match(await page.locator('#targetDetail h3').innerText(), /Right SLF II/);
+  await page.locator('#territoryMap').screenshot({path: `${out}/testing-map-right-1440.png`});
+
+  await page.locator('[data-map-hemi="L"]').click();
+  await page.locator('[data-map-target="ctx-ifg-left"]').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => window.__testingTest.selectedId), 'ctx-ifg-left');
+
+  await page.setViewportSize({width: 390, height: 844});
+  await page.locator('#territoryMap').screenshot({path: `${out}/testing-map-390.png`});
+  await page.setViewportSize({width: 1440, height: 900});
+  report.checks.push('2D territory map renders Left/Right lateral & medial hotspots, selects on click & Enter, and syncs URL');
+
   await page.goto(new URL('/labs/lesion-lab?test=1', base).href, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => window.__lesionLabTest?.ready, null, {timeout: 60000});
+
+  for (const vw of [1024, 1440]) {
+    await page.setViewportSize({width: vw, height: 900});
+    const clippedLabButtons = await page.evaluate(() =>
+      [...document.querySelectorAll('.lab-presets button, .lab-lens-options button')]
+        .filter(btn => {
+          const r = btn.getBoundingClientRect();
+          return r.width > 0 && (btn.scrollWidth > btn.clientWidth + 1 || r.right > document.documentElement.clientWidth + 1);
+        })
+        .map(btn => btn.textContent.trim()),
+    );
+    assert.deepEqual(clippedLabButtons, [], `Clipped Lesion Lab buttons at ${vw}px: ${clippedLabButtons.join(', ')}`);
+  }
+
+  await page.locator('[data-preset="left-sma"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.preset === 'left-sma' && window.__lesionLabTest.lens === 'asleep-mep');
+  let labState = await page.evaluate(() => window.__lesionLabTest);
+  assert(labState.interrogatedProtocols.includes('cst-bilateral'));
+  assert(labState.blindSpotProtocols.includes('fat-left'));
+  assert(await page.locator('#storyTesting').isVisible());
+  assert.match(await page.locator('#storyTesting').innerText(), /blind spot/);
+  await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-sma-mep-blindspot.png`});
+
+  await page.locator('[data-preset="left-occipitotemporal"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.preset === 'left-occipitotemporal' && window.__lesionLabTest.lens === 'awake-naming');
+  labState = await page.evaluate(() => window.__lesionLabTest);
+  assert(labState.interrogatedProtocols.includes('ifof-left'));
+  assert(labState.blindSpotProtocols.includes('ilf-vof-left-reading'));
+  assert(labState.blindSpotProtocols.includes('or-bilateral'));
+  await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-ot-naming-blindspot.png`});
+
+  await page.locator('[data-preset="right-parietal"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.hemi === 'R' && !window.__lesionLabTest.loading && window.__lesionLabTest.preset === 'right-parietal');
+  labState = await page.evaluate(() => window.__lesionLabTest);
+  assert(labState.blindSpotProtocols.includes('slf2-right'));
+  await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-right-parietal.png`});
+
+  await page.locator('[data-preset="third-ventricle"]').click();
+  await page.waitForFunction(() => window.__lesionLabTest.hemi === 'L' && !window.__lesionLabTest.loading && window.__lesionLabTest.preset === 'third-ventricle' && window.__lesionLabTest.lens === 'tailored');
+  labState = await page.evaluate(() => window.__lesionLabTest);
+  assert.equal(labState.interrogatedProtocols.length, 0);
+  assert(labState.blindSpotProtocols.includes('fornix-bilateral'));
+  assert(labState.blindSpotProtocols.includes('tra-bilateral'));
+  assert(labState.blindSpotProtocols.includes('drtt-bilateral'));
+  await page.locator('.lab-stage').screenshot({path: `${out}/lesion-lab-third-ventricle-tailored.png`});
+
   await page.locator('#openEvidence').click();
   await page.locator('#testingBlock').waitFor({state: 'visible'});
   await page.waitForFunction(() => document.getElementById('evidenceDrawer').getBoundingClientRect().right <= innerWidth + 1);
@@ -116,7 +192,7 @@ try {
   const firstHref = await page.locator('#testingList .lab-testing-link').first().getAttribute('href');
   assert.match(firstHref, /^\.\/testing\?target=/);
   await page.screenshot({path: `${out}/lesion-lab-testing-drawer.png`});
-  report.checks.push(`Lesion Lab #testingBlock renders ${labItems} matched protocol(s) with coverage note`);
+  report.checks.push(`Lesion Lab presets, 3D test lens, and #testingBlock render ${labItems} matched protocol(s)`);
 
   assert.deepEqual(report.errors, []);
   assert.deepEqual(report.consoleErrors, []);

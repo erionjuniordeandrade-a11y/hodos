@@ -13,6 +13,7 @@ import {
   testingStep,
   evaluateDrill,
 } from './testing_model.js';
+import {mountTerritoryMap} from './testing_map.js';
 
 const $ = id => document.getElementById(id);
 const el = (tag, props = {}, ...children) => {
@@ -30,6 +31,7 @@ let state = testingStateFromSearch(location.search);
 const drillAnswers = new Map();
 const drillRefs = new Map();
 let renderedMatchIds = '';
+let territoryMap = null;
 
 function syncUrl() {
   const params = new URLSearchParams();
@@ -159,7 +161,12 @@ function dispatch(action, {focusDetail = false} = {}) {
   state = testingStep(state, action);
   syncControls();
   syncUrl();
-  renderLookup();
+  const active = state.selectedId ? PROTOCOL_BY_ID[state.selectedId] ?? null : null;
+  let nextMapHemi = null;
+  if (action?.type === 'set-hemi' && (state.hemi === 'L' || state.hemi === 'R')) nextMapHemi = state.hemi;
+  else if (active && (active.hemi === 'L' || active.hemi === 'R')) nextMapHemi = active.hemi;
+  else if (state.hemi === 'L' || state.hemi === 'R') nextMapHemi = state.hemi;
+  renderLookup(nextMapHemi);
   if (focusDetail) {
     const activeBtn = $('targetList').querySelector('[aria-current="true"]');
     activeBtn?.scrollIntoView({block: 'nearest'});
@@ -168,7 +175,7 @@ function dispatch(action, {focusDetail = false} = {}) {
   }
 }
 
-function renderLookup() {
+function renderLookup(mapHemi = null) {
   const {matches} = state;
   const active = state.selectedId ? PROTOCOL_BY_ID[state.selectedId] ?? null : null;
   $('lookupStatus').textContent = `Showing ${matches.length} of ${TARGET_PROTOCOLS.length} anatomical protocols.`;
@@ -194,6 +201,7 @@ function renderLookup() {
   }
   syncCurrentRow();
   renderDetail(active);
+  territoryMap?.update({selectedId: state.selectedId, hemi: mapHemi});
 }
 
 function renderComparison() {
@@ -388,12 +396,28 @@ if (new URLSearchParams(location.search).has('test')) {
       query: state.query,
       visibleCount: $('targetList').children.length,
       answeredDrills: Object.fromEntries(drillAnswers),
+      mapHemi: territoryMap?.getHemi() ?? null,
+      mapTargetCount: territoryMap?.targetCount ?? 0,
     }),
   });
 }
 
+territoryMap = mountTerritoryMap($('territoryMap'), {
+  onSelect: targetId => dispatch({type: 'select-map', targetId}),
+  onHemiChange: hemi => {
+    if (state.hemi !== 'all' && state.hemi !== hemi) dispatch({type: 'set-hemi', hemi});
+  },
+});
+
 bindControls();
-renderLookup();
+const initialProtocol = state.selectedId ? PROTOCOL_BY_ID[state.selectedId] : null;
+const initialMapHemi =
+  initialProtocol && (initialProtocol.hemi === 'L' || initialProtocol.hemi === 'R')
+    ? initialProtocol.hemi
+    : state.hemi === 'R'
+      ? 'R'
+      : 'L';
+renderLookup(initialMapHemi);
 renderComparison();
 renderTasks();
 renderModalities();

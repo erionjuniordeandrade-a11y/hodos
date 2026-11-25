@@ -42,6 +42,7 @@ Status values:
 | Evidence drawer | closed, open; one Esc press does one step: a drag ignores it, then an armed entry is disarmed, then the drawer closes | `lesion_lab.js` `openDrawer` / `closeDrawer`; `lesion_model.js` `ESCAPE_ACTIONS`, `escapeAction` | `#openEvidence[aria-expanded]`, `__lesionLabTest.drawer` | Inline (Esc order explicit) |
 | Sheet | peek, expanded | `lesion_lab.js` `setSheet` | `[data-sheet]` | Inline |
 | Bundle focus | none, hovered, open; a row lifts its bundle only while it is listed | `lesion_model.js`: `FOCUS_STATES`, `bundleFocus` | `uFocus`, `__lesionLabTest.focus` | Explicit |
+| Test lens & preset | lens (`all` / `asleep-mep` / `awake-naming` / `tailored`) × optional preset (`left-sma`, `left-insula`, `left-temporoparietal`, `left-occipitotemporal`, `right-parietal`, `third-ventricle`); manual sphere move or radius edit clears preset | `testing_model.js`: `TEST_LENSES`, `LESION_PRESETS`, `evaluateTestLens`, `hudTestingSummary`; `lesion_lab.js` | `[data-lens][aria-pressed]`, `[data-preset][aria-pressed]`, URL `?lens=`, `__lesionLabTest.lens` / `.preset` | Explicit |
 
 ## Other pages
 
@@ -52,4 +53,4 @@ Status values:
 | Connections route | a named view (`#<view id>`), a found node's neighbourhood (`#node=<name>`); inspector intro / node / link | `connections_route.js`: `ROUTE_KINDS`, `routeFromHash`, `hashFor`, `routeContent`; each route is one history entry | URL hash, `body[data-route]` | Explicit |
 | Landing video | playing, paused by the user, off screen, ended | `landing.js` | `aria-pressed` | Inline |
 | Lesson preview dialog | closed, open (opener, scroll) | `lesson_previews.js` | `body.has-lesson-preview` | Inline |
-| Testing lookup & filters | kind (all / tract / cortex) × hemi (all / L / R) × mode × query × selectedId | `testing_model.js`: `testingStateFromSearch`, `testingStep`, `parseTestingParams` | URL `?target=&kind=&hemi=&mode=&q=`, `[aria-current="true"]`, `__testingTest` | Explicit |
+| Testing lookup & filters | kind (all / tract / cortex) × hemi (all / L / R) × mode × query × selectedId (`select-map` clears narrowing filters); 2D territory map hemisphere toggle (`L` / `R`) | `testing_model.js`: `testingStateFromSearch`, `testingStep`, `parseTestingParams`; `testing_map.js`: `mountTerritoryMap` | URL `?target=&kind=&hemi=&mode=&q=`, `[aria-current="true"]`, `[data-map-target][data-selected="true"]`, `__testingTest` | Explicit |

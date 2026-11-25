@@ -121,7 +121,8 @@ const cutIds=state=>state.rows.filter(r=>r.cut>0).map(r=>r.id).sort();
 // bundle lost the MARGIN/CUT exports lit every streamline while the counts stayed right.
 async function litPixels(page){
   await frame(page);
-  const png=PNG.sync.read(await page.locator('.lab-stage').screenshot({animations:'disabled',timeout:ciMode?45000:20000}));
+  const clip=await page.locator('.lab-stage').boundingBox();
+  const png=PNG.sync.read(await page.screenshot({clip,animations:'disabled',timeout:ciMode?45000:20000}));
   let lit=0;
   for(let i=0;i<png.data.length;i+=4){const r=png.data[i],g=png.data[i+1],b=png.data[i+2];if(Math.max(r,g,b)-Math.min(r,g,b)>70)lit++;}
   return lit;
